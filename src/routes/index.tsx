@@ -26,7 +26,7 @@ const cities = [
   ["Madrid", "9,340", "photo-1539037116277-4db20889f2d4"],
   ["Amsterdam", "1,200", "photo-1534351590666-13e3e96b5017"],
   ["Milan", "5,941", "photo-1513581166391-887a96ddeafd"],
-  ["Hamburg", "398", "photo-1567359781514-3b964e2b04d6"],
+  ["Helsinki", "398", "photo-1538332576228-eb5b4c4de6f5"],
   ["Paris", "1,916", "photo-1502602898657-3e91760cbb34"],
 ] as const;
 const stats = [["110,000+", "Homes listed"], ["400+", "University partners"], ["180,000+", "Happy tenants"], ["175+", "Cities"]];

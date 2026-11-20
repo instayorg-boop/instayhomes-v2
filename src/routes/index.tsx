@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Search, ShieldCheck, Video, CreditCard, MapPin, Star } from "lucide-react";
+import { useState } from "react";
+import { Search, CalendarDays, ShieldCheck, CheckCircle2, ChevronDown, Globe } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nestaway Stays — Mid-term rentals for students & professionals" },
-      { name: "description", content: "Find verified rooms, studios and apartments for 1 to 12 months in cities worldwide. Book online, move in safely." },
-      { property: "og:title", content: "Nestaway Stays — Mid-term rentals" },
-      { property: "og:description", content: "Verified rooms and apartments for 1–12 months, booked online." },
+      { title: "Nestaway Stays — Find your next home for months" },
+      { name: "description", content: "Rent rooms, studios and apartments for months in cities across Europe. Book online with tenant protection." },
+      { property: "og:title", content: "Nestaway Stays — Find your next home" },
+      { property: "og:description", content: "Mid-term rentals across Europe, booked online with tenant protection." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -15,130 +16,180 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const img = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=800&q=70`;
+const img = (id: string, w = 500) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
 const cities = [
-  { name: "Amsterdam", count: "4,210", src: img("photo-1534351590666-13e3e96b5017") },
-  { name: "Berlin", count: "6,830", src: img("photo-1560969184-10fe8719e047") },
-  { name: "Madrid", count: "5,140", src: img("photo-1539037116277-4db20889f2d4") },
-  { name: "Paris", count: "3,920", src: img("photo-1502602898657-3e91760cbb34") },
-  { name: "Lisbon", count: "2,670", src: img("photo-1585208798174-6cedd86e019a") },
-  { name: "Milan", count: "2,310", src: img("photo-1513581166391-887a96ddeafd") },
+  ["Berlin", "3,267", "photo-1560969184-10fe8719e047"],
+  ["Barcelona", "4,733", "photo-1583422409516-2895a77efded"],
+  ["Munich", "810", "photo-1595867818082-083862f3d630"],
+  ["Vienna", "2,441", "photo-1516550893923-42d28e5677af"],
+  ["Brussels", "2,138", "photo-1559113202-c916b8e44373"],
+  ["Madrid", "9,340", "photo-1539037116277-4db20889f2d4"],
+  ["Amsterdam", "1,200", "photo-1534351590666-13e3e96b5017"],
+  ["Milan", "5,941", "photo-1513581166391-887a96ddeafd"],
+  ["Hamburg", "398", "photo-1567359781514-3b964e2b04d6"],
+  ["Paris", "1,916", "photo-1502602898657-3e91760cbb34"],
+] as const;
+const stats = [["110,000+", "Homes listed"], ["400+", "University partners"], ["180,000+", "Happy tenants"], ["175+", "Cities"]];
+const perks = [
+  ["Covered if plans fall through", "If your landlord cancels late or delays your move-in, we help you find a new place or cover a short hotel stay."],
+  ["Help when you need it", "Something wrong with your rental? Our support team steps in quickly."],
+  ["Move in worry-free", "Your payment is held until you move in. If the home isn't as described, you get your money back."],
 ];
-const features = [
-  { icon: ShieldCheck, title: "Verified landlords", text: "Every listing is checked so you can book with confidence." },
-  { icon: Video, title: "Book without viewing", text: "Photos, videos and floor plans help you decide from anywhere." },
-  { icon: CreditCard, title: "Secure payments", text: "Your first rent is held safely until 48 hours after move-in." },
+const tabs = ["All", "Apartments", "Private rooms", "Shared rooms", "Studios", "Budget stays", "Student housing", "Long stays"];
+const countries: [string, string[]][] = [
+  ["Austria", ["Vienna"]], ["Germany", ["Berlin", "Cologne", "Düsseldorf", "Frankfurt", "Hamburg", "Munich", "Stuttgart"]],
+  ["Hungary", ["Budapest"]], ["Netherlands", ["Amsterdam", "Rotterdam", "The Hague", "Utrecht"]], ["Spain", ["Barcelona", "Madrid", "Málaga", "Seville", "Valencia"]],
+  ["Belgium", ["Brussels"]], ["Italy", ["Bologna", "Florence", "Milan", "Padua", "Rome", "Turin"]], ["Portugal", ["Lisbon", "Porto"]],
+  ["Czech Republic", ["Prague"]], ["Greece", ["Athens"]], ["France", ["Bordeaux", "Lyon", "Paris", "Strasbourg"]],
 ];
-const reviews = [
-  { name: "Sofia, Rome → Berlin", text: "I found my studio a month before my internship started. Moving in was totally stress-free." },
-  { name: "Daniel, Toronto → Madrid", text: "Booking from abroad felt safe thanks to the payment protection. Highly recommend." },
-  { name: "Aiko, Osaka → Amsterdam", text: "Great choice of rooms and the support team answered within hours." },
+const faqs = [
+  ["Is Nestaway a rental agency?", "No. We're an online platform that connects tenants with verified landlords and agencies, and keeps your payment safe."],
+  ["How does Nestaway work?", "Search a city, pick a home, send a booking request and pay your first rent online once the landlord accepts."],
+  ["My request was accepted. What now?", "You'll get a confirmation with your contract details and the landlord's contact info to plan your move-in."],
+  ["Can I cancel my stay?", "Yes, depending on the landlord's cancellation policy, which is shown on every listing."],
+  ["Can I see the place before renting?", "Most listings have photos, videos and floor plans. Some landlords also offer video viewings."],
 ];
 
 function Index() {
+  const [tab, setTab] = useState("Shared rooms");
+  const [open, setOpen] = useState<number | null>(null);
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
+      <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <span className="font-display text-2xl font-bold text-primary">nestaway</span>
-          <nav className="hidden gap-6 text-sm font-medium md:flex">
-            <a href="#cities" className="hover:text-primary">Cities</a>
-            <a href="#how" className="hover:text-primary">How it works</a>
-            <a href="#landlords" className="hover:text-primary">For landlords</a>
+          <span className="font-display text-2xl tracking-wide text-primary">NESTAWAY</span>
+          <nav className="flex items-center gap-1 text-sm font-medium">
+            {["How it works", "Pricing", "Help", "Log in", "Sign up"].map((l) => (
+              <a key={l} href="#" className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
+            ))}
+            <a href="#" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</a>
+            <Globe className="ml-2 size-5" />
           </nav>
-          <div className="flex gap-2">
-            <button className="hidden rounded-full px-4 py-2 text-sm font-medium hover:bg-muted sm:block">Log in</button>
-            <button className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Sign up</button>
-          </div>
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-hero">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
-          <div>
-            <h1 className="font-display text-4xl font-bold leading-tight md:text-6xl">
-              Your next home abroad, <span className="text-primary">booked online.</span>
-            </h1>
-            <p className="mt-5 max-w-md text-lg text-muted-foreground">
-              Rooms, studios and apartments for 1 to 12 months. Verified, secure and ready when you are.
-            </p>
-            <form className="mt-8 flex flex-col gap-2 rounded-2xl bg-card p-2 shadow-soft sm:flex-row">
-              <label className="flex flex-1 items-center gap-2 px-3">
-                <MapPin className="size-5 text-muted-foreground" />
-                <input placeholder="Where are you going?" className="h-12 w-full bg-transparent outline-none" />
-              </label>
-              <input type="month" className="h-12 rounded-xl bg-muted px-3 text-sm outline-none" />
-              <button type="button" className="flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground">
-                <Search className="size-4" /> Search
-              </button>
-            </form>
-            <p className="mt-4 flex items-center gap-1 text-sm text-muted-foreground">
-              <Star className="size-4 fill-accent text-accent" /> 4.6/5 from 20,000+ tenants
-            </p>
-          </div>
-          <img src={img("photo-1522708323590-d24dbb6b0267")} alt="Bright furnished apartment" className="h-[420px] w-full rounded-3xl object-cover shadow-soft" />
+      <section className="bg-primary px-4 pb-24 pt-16 text-primary-foreground">
+        <div className="mx-auto max-w-4xl text-center">
+          <h1 className="font-display text-5xl md:text-7xl">FIND YOUR NEXT HOME</h1>
+          <p className="mt-3 text-xl font-semibold md:text-2xl">Rent a place, stay for months.</p>
+          <p className="mt-4 inline-flex items-center gap-2 text-sm underline decoration-dotted underline-offset-4">
+            <ShieldCheck className="size-4" /> Covered by Tenant Protection
+          </p>
+          <form className="mt-8 flex flex-col gap-2 rounded-xl bg-background p-2 text-foreground md:flex-row">
+            <label className="flex flex-1 items-center gap-2 rounded-md border px-3">
+              <Search className="size-4" />
+              <input placeholder="Where will you go?" className="h-11 w-full bg-transparent text-sm outline-none" />
+            </label>
+            <button type="button" className="flex h-11 items-center justify-center gap-2 rounded-md border px-6 text-sm font-medium md:w-64">
+              <CalendarDays className="size-4" /> Move-in – Move-out
+            </button>
+            <button type="button" className="h-11 rounded-md bg-primary px-10 text-sm font-semibold text-primary-foreground">Search</button>
+          </form>
+          <p className="mt-3 text-left text-xs font-medium">Continue your search: <a href="#" className="underline">Berlin</a></p>
         </div>
       </section>
 
-      <section id="cities" className="mx-auto max-w-7xl px-4 py-20">
-        <h2 className="font-display text-3xl font-bold">Popular cities</h2>
-        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-          {cities.map((c) => (
-            <a key={c.name} href="#" className="group relative h-56 overflow-hidden rounded-2xl">
-              <img src={c.src} alt={c.name} loading="lazy" className="size-full object-cover transition duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-background">
-                <p className="text-xl font-bold">{c.name}</p>
-                <p className="text-sm opacity-90">{c.count} places</p>
-              </div>
+      <section className="mx-auto max-w-7xl px-4 py-10">
+        <h2 className="text-center text-2xl font-semibold">Explore popular cities</h2>
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {cities.map(([n, c, id]) => (
+            <a key={n} href="#" className="group">
+              <img src={img(id)} alt={n} loading="lazy" className="aspect-[5/3] w-full rounded-lg object-cover transition group-hover:opacity-90" />
+              <p className="mt-2 text-sm font-semibold group-hover:underline">{n}</p>
+              <p className="text-xs text-muted-foreground">{c} listings</p>
             </a>
           ))}
         </div>
       </section>
 
-      <section id="how" className="bg-muted py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <h2 className="font-display text-3xl font-bold">Rent with peace of mind</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {features.map((f) => (
-              <div key={f.title} className="rounded-2xl bg-card p-6 shadow-soft">
-                <f.icon className="size-10 text-primary" />
-                <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
-                <p className="mt-2 text-muted-foreground">{f.text}</p>
+      <section className="bg-muted">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 lg:flex-row lg:items-center">
+          <h2 className="text-2xl font-semibold lg:w-72">Why Nestaway?</h2>
+          <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
+            {stats.map(([v, l]) => (
+              <div key={l} className="rounded-lg bg-card p-4">
+                <p className="font-bold">{v}</p><p className="text-xs text-muted-foreground">{l}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-20">
-        <h2 className="font-display text-3xl font-bold">What tenants say</h2>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {reviews.map((r) => (
-            <figure key={r.name} className="rounded-2xl border p-6">
-              <div className="flex gap-0.5">{[0,1,2,3,4].map((i) => <Star key={i} className="size-4 fill-accent text-accent" />)}</div>
-              <blockquote className="mt-3">“{r.text}”</blockquote>
-              <figcaption className="mt-4 text-sm font-semibold text-muted-foreground">{r.name}</figcaption>
-            </figure>
+      <section className="bg-primary text-primary-foreground">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 md:grid-cols-2 md:px-12">
+          <div>
+            <h2 className="font-display text-5xl leading-none md:text-6xl">TENANT<br />PROTECTION</h2>
+            <ul className="mt-8 space-y-5">
+              {perks.map(([t, d]) => (
+                <li key={t} className="flex gap-3">
+                  <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
+                  <div><p className="font-semibold">{t}</p><p className="mt-1 text-sm opacity-90">{d}</p></div>
+                </li>
+              ))}
+            </ul>
+            <a href="#" className="mt-6 inline-block pl-8 text-sm font-semibold underline">Learn about Tenant Protection</a>
+          </div>
+          <img src={img("photo-1522071820081-009f0129c71c", 900)} alt="Happy tenants at home" className="aspect-[4/3] w-full rounded-lg object-cover" />
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-16">
+        <h2 className="text-center text-2xl font-semibold">Find your ideal accommodation</h2>
+        <div className="mt-6 flex gap-4 overflow-x-auto border-b text-xs">
+          {tabs.map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`whitespace-nowrap pb-2 ${tab === t ? "border-b-2 border-foreground font-semibold" : "text-muted-foreground"}`}>{t}</button>
+          ))}
+        </div>
+        <div className="mt-8 columns-2 gap-8 text-sm md:columns-5">
+          {countries.map(([c, list]) => (
+            <div key={c} className="mb-6 break-inside-avoid">
+              <p className="font-semibold">{c}</p>
+              {list.map((x) => <a key={x} href="#" className="mt-1.5 block text-xs text-muted-foreground hover:underline">{x}</a>)}
+            </div>
           ))}
         </div>
       </section>
 
-      <section id="landlords" className="mx-auto max-w-7xl px-4 pb-20">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-primary p-10 text-primary-foreground md:flex-row md:items-center">
-          <div>
-            <h2 className="font-display text-3xl font-bold">Have a place to rent out?</h2>
-            <p className="mt-2 opacity-90">Reach thousands of verified international tenants. Listing is free.</p>
-          </div>
-          <button className="rounded-full bg-background px-6 py-3 font-semibold text-foreground">List your property</button>
+      <section className="mx-auto max-w-3xl px-4 py-12">
+        <h2 className="text-3xl font-bold md:text-4xl">Your questions, answered</h2>
+        <div className="mt-8">
+          {faqs.map(([q, a], i) => (
+            <div key={q} className="border-t">
+              <button onClick={() => setOpen(open === i ? null : i)} className="flex w-full items-center justify-between py-4 text-left font-semibold">
+                {q}<ChevronDown className={`size-5 transition ${open === i ? "rotate-180" : ""}`} />
+              </button>
+              {open === i && <p className="pb-4 text-sm text-muted-foreground">{a}</p>}
+            </div>
+          ))}
         </div>
+        <a href="#" className="mt-6 inline-block text-sm font-semibold underline">Visit our Help Center</a>
       </section>
 
-      <footer className="border-t py-10 text-sm text-muted-foreground">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-4 md:flex-row">
-          <span className="font-display text-lg font-bold text-primary">nestaway</span>
-          <div className="flex gap-6"><a href="#">About</a><a href="#">Help</a><a href="#">Terms</a><a href="#">Privacy</a></div>
-          <span>© 2026 Nestaway Stays</span>
+      <section className="px-4 pb-20 pt-8 text-center">
+        <h2 className="font-display text-4xl md:text-6xl">THE ENDLESS HUNT IS OVER</h2>
+        <button className="mt-8 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">Find your next home</button>
+      </section>
+
+      <footer className="bg-muted py-14 text-sm">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-5">
+          <div className="md:col-span-2">
+            <span className="font-display text-2xl text-primary">NESTAWAY</span>
+            <p className="mt-4 text-xs">🌐 English</p>
+            <div className="mt-6 max-w-xs rounded-lg border bg-card p-4">
+              <p className="font-semibold">Get the app</p>
+              <p className="mt-1 text-xs text-muted-foreground">Search faster and get instant alerts.</p>
+            </div>
+          </div>
+          {[
+            ["Nestaway", ["About", "Careers", "Press", "Partners", "Terms", "Privacy", "Blog"]],
+            ["Tenants", ["How it works", "Pricing", "Pay rent online", "Help", "Contact us"]],
+            ["Landlords", ["How it works", "Pricing", "Become a landlord", "Rent guarantee", "Guides"]],
+          ].map(([h, l]) => (
+            <div key={h as string}>
+              <p className="font-semibold">{h}</p>
+              {(l as string[]).map((x) => <a key={x} href="#" className="mt-2 block text-xs text-muted-foreground hover:underline">{x}</a>)}
+            </div>
+          ))}
         </div>
       </footer>
     </div>

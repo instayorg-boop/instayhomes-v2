@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, CalendarDays, ShieldCheck, CheckCircle2, ChevronDown, Globe } from "lucide-react";
+import { Search, CalendarDays, ShieldCheck, CheckCircle2, ChevronDown, Globe, Menu, X } from "lucide-react";
+import homesImg from "@/assets/stat-homes.jpg";
+import partnersImg from "@/assets/stat-partners.jpg";
+import tenantsImg from "@/assets/stat-tenants.jpg";
+import citiesImg from "@/assets/stat-cities.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -29,7 +33,7 @@ const cities = [
   ["Helsinki", "398", "photo-1538332576228-eb5b4c4de6f5"],
   ["Paris", "1,916", "photo-1502602898657-3e91760cbb34"],
 ] as const;
-const stats = [["110,000+", "Homes listed"], ["400+", "University partners"], ["180,000+", "Happy tenants"], ["175+", "Cities"]];
+const stats = [["110,000+", "Homes listed", homesImg], ["400+", "University partners", partnersImg], ["180,000+", "Happy tenants", tenantsImg], ["175+", "Cities", citiesImg]] as const;
 const perks = [
   ["Covered if plans fall through", "If your landlord cancels late or delays your move-in, we help you find a new place or cover a short hotel stay."],
   ["Help when you need it", "Something wrong with your rental? Our support team steps in quickly."],
@@ -53,6 +57,7 @@ const faqs = [
 function Index() {
   const [tab, setTab] = useState("Shared rooms");
   const [open, setOpen] = useState<number | null>(null);
+  const [menu, setMenu] = useState(false);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b bg-background">
@@ -63,12 +68,34 @@ function Index() {
               <a key={l} href="#" className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
             ))}
             <a href="#" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</a>
-            <Globe className="ml-2 size-5" />
+            <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1 rounded-md p-2 hover:bg-muted"><Menu className="size-5" /></button>
           </nav>
         </div>
       </header>
 
-      <section className="bg-primary px-4 pb-24 pt-16 text-primary-foreground">
+      {menu && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setMenu(false)} />
+          <aside className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft animate-in slide-in-from-right">
+            <div className="flex items-center justify-between">
+              <span className="font-display text-2xl text-primary">NESTAWAY</span>
+              <button aria-label="Close menu" onClick={() => setMenu(false)} className="rounded-md p-2 hover:bg-muted"><X className="size-5" /></button>
+            </div>
+            <nav className="mt-8 flex flex-col gap-1 font-medium">
+              {["How it works", "Pricing", "Help", "Log in", "Sign up", "I'm a landlord"].map((l) => (
+                <a key={l} href="#" className="rounded-md px-3 py-3 hover:bg-muted">{l}</a>
+              ))}
+            </nav>
+            <div className="mt-auto border-t pt-4">
+              <button className="flex w-full items-center gap-3 rounded-md px-3 py-3 font-medium hover:bg-muted">
+                <Globe className="size-5" /> Language: English
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      <section className="relative bg-primary px-4 pb-32 pt-16 text-primary-foreground">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="font-display text-5xl md:text-7xl">FIND YOUR NEXT HOME</h1>
           <p className="mt-3 text-xl font-semibold md:text-2xl">Rent a place, stay for months.</p>
@@ -87,6 +114,9 @@ function Index() {
           </form>
           <p className="mt-3 text-left text-xs font-medium">Continue your search: <a href="#" className="underline">Berlin</a></p>
         </div>
+        <svg aria-hidden viewBox="0 0 1440 80" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-10 w-full fill-background md:h-20">
+          <path d="M0 80 Q720 -40 1440 80 Z" />
+        </svg>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10">
@@ -102,13 +132,16 @@ function Index() {
         </div>
       </section>
 
-      <section className="bg-muted">
+      <section className="bg-background">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 lg:flex-row lg:items-center">
           <h2 className="text-2xl font-semibold lg:w-72">Why Nestaway?</h2>
           <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
-            {stats.map(([v, l]) => (
-              <div key={l} className="rounded-lg bg-card p-4">
-                <p className="font-bold">{v}</p><p className="text-xs text-muted-foreground">{l}</p>
+            {stats.map(([v, l, src]) => (
+              <div key={l} className="relative flex h-28 overflow-hidden rounded-xl bg-stat p-4">
+                <div className="relative z-10">
+                  <p className="text-lg font-bold">{v}</p><p className="max-w-[7rem] text-sm text-muted-foreground">{l}</p>
+                </div>
+                <img src={src} alt="" loading="lazy" className="absolute -bottom-2 -right-2 h-32 w-32 object-cover mix-blend-multiply" />
               </div>
             ))}
           </div>

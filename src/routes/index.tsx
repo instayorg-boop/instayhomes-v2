@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, CalendarDays, ShieldCheck, CheckCircle2, ChevronDown, Globe, Menu, X } from "lucide-react";
 import homesImg from "@/assets/stat-homes.jpg";
@@ -55,6 +55,7 @@ const faqs = [
 ];
 
 function Index() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("Shared rooms");
   const [open, setOpen] = useState<number | null>(null);
   const [menu, setMenu] = useState(false);
@@ -102,7 +103,7 @@ function Index() {
           <p className="mt-4 inline-flex items-center gap-2 text-sm underline decoration-dotted underline-offset-4">
             <ShieldCheck className="size-4" /> Covered by Tenant Protection
           </p>
-          <form className="mt-8 flex flex-col gap-2 rounded-xl bg-background p-2 text-foreground md:flex-row">
+          <form onSubmit={(event) => { event.preventDefault(); void navigate({ to: "/search" }); }} className="mt-8 flex flex-col gap-2 rounded-xl bg-background p-2 text-foreground md:flex-row">
             <label className="flex flex-1 items-center gap-2 rounded-md border px-3">
               <Search className="size-4" />
               <input placeholder="Where will you go?" className="h-11 w-full bg-transparent text-sm outline-none" />
@@ -110,7 +111,7 @@ function Index() {
             <button type="button" className="flex h-11 items-center justify-center gap-2 rounded-md border px-6 text-sm font-medium md:w-64">
               <CalendarDays className="size-4" /> Move-in – Move-out
             </button>
-            <button type="button" className="h-11 rounded-md bg-primary px-10 text-sm font-semibold text-primary-foreground">Search</button>
+            <button type="submit" className="h-11 rounded-md bg-primary px-10 text-sm font-semibold text-primary-foreground">Search</button>
           </form>
           <p className="mt-3 text-left text-xs font-medium">Continue your search: <a href="#" className="underline">Berlin</a></p>
         </div>
@@ -123,11 +124,11 @@ function Index() {
         <h2 className="text-center text-2xl font-semibold">Explore popular cities</h2>
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {cities.map(([n, c, id]) => (
-            <a key={n} href="#" className="group">
+            <Link key={n} to="/search" className="group">
               <img src={img(id)} alt={n} loading="lazy" className="aspect-[5/3] w-full rounded-lg object-cover transition group-hover:opacity-90" />
               <p className="mt-2 text-sm font-semibold group-hover:underline">{n}</p>
               <p className="text-xs text-muted-foreground">{c} listings</p>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
@@ -200,7 +201,7 @@ function Index() {
 
       <section className="px-4 pb-20 pt-8 text-center">
         <h2 className="font-display text-4xl md:text-6xl">THE ENDLESS HUNT IS OVER</h2>
-        <button className="mt-8 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">Find your next home</button>
+        <Link to="/search" className="mt-8 inline-block rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">Find your next home</Link>
       </section>
 
       <footer className="bg-muted py-14 text-sm">

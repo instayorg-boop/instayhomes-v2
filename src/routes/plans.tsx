@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, ChevronDown, Home, Loader2, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Home, Loader2, Lock, ShieldCheck, Smartphone, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
@@ -54,6 +54,9 @@ const DEFAULT_PLAN = "self-service";
 
 type Contact = { phone: string; message: string };
 type Receipt = { reference: string; plan: Plan; email: string; phone: string };
+type NotPaid = "failed" | "declined" | "cancelled";
+// The payment's answer decides the page: success, or a page saying why it didn't happen.
+type Result = { kind: "paid"; receipt: Receipt } | { kind: NotPaid; plan: Plan; phone: string };
 
 function PlansPage() {
   const search = Route.useSearch();
@@ -64,15 +67,23 @@ function PlansPage() {
   const room = rooms.find((item) => item.id === search.room) ?? null;
   const plan = planById(search.plan) ?? planById(DEFAULT_PLAN)!;
   const contact: Contact = { phone: landlordWhatsApp, message: contactMessage(room) };
-  const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
 
   const setView = (next: { plan?: string; view?: "plans" | undefined }) =>
     void navigate({ search: (prev) => ({ ...prev, plan: next.plan ?? prev.plan, view: next.view }) });
 
-  if (receipt) {
+  if (result?.kind === "paid") {
     return (
       <Shell returnTo={returnTo} user={user}>
-        <Paid receipt={receipt} contact={contact} returnTo={returnTo} />
+        <Paid receipt={result.receipt} contact={contact} returnTo={returnTo} />
+      </Shell>
+    );
+  }
+
+  if (result) {
+    return (
+      <Shell returnTo={returnTo} user={user}>
+        <NotCompleted result={result} returnTo={returnTo} onTryAgain={() => setResult(null)} />
       </Shell>
     );
   }
@@ -90,7 +101,7 @@ function PlansPage() {
       {search.view === "plans" ? (
         <ComparePlans current={plan} onChoose={(id) => setView({ plan: id, view: undefined })} onClose={() => setView({ view: undefined })} />
       ) : (
-        <PayScreen plan={plan} room={room} user={user} onChangePlan={() => setView({ view: "plans" })} onPaid={setReceipt} />
+        <PayScreen plan={plan} room={room} user={user} onChangePlan={() => setView({ view: "plans" })} onResult={setResult} />
       )}
     </Shell>
   );
@@ -98,39 +109,30 @@ function PlansPage() {
 
 /* ───────────── the one screen ───────────── */
 
-type PayStatus = "idle" | "pending" | "failed" | "declined" | "cancelled";
-
-// What to say under the button after a payment that didn't complete. Nobody was charged in any of these.
-const outcomeMessage: Partial<Record<PayStatus, string>> = {
-  failed: "The payment didn't go through, so you weren't charged. Check your mobile money balance and try again.",
-  declined: "The payment was declined on your phone, so you weren't charged. Tap Pay to try again.",
-  cancelled: "Payment cancelled. You weren't charged.",
-};
 
 function PayScreen({
   plan,
   room,
   user,
   onChangePlan,
-  onPaid,
+  onResult,
 }: {
   plan: Plan;
   room: Room | null;
   user: PlusUser | null;
   onChangePlan: () => void;
-  onPaid: (receipt: Receipt) => void;
+  onResult: (result: Result) => void;
 }) {
   const [phone, setPhone] = useState("");
   const [remembered, setRemembered] = useState(false);
   const [editingEmail, setEditingEmail] = useState(false);
   const [email, setEmail] = useState(user?.email ?? "");
   const [signingIn, setSigningIn] = useState(false);
-  const [status, setStatus] = useState<PayStatus>("idle");
+  const [pending, setPending] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [showIncluded, setShowIncluded] = useState(false);
-  const paidRef = useRef(onPaid);
-  paidRef.current = onPaid;
-  const pending = status === "pending";
+  const resultRef = useRef(onResult);
+  resultRef.current = onResult;
 
   // While the phone prompt is open, keep them on this page: in-app links and the back button
   // do nothing, and closing or reloading the tab asks first.
@@ -161,14 +163,18 @@ function PayScreen({
     if (!pending || !user) return;
     const digits = phone.replace(/\D/g, "");
     const timer = window.setTimeout(() => {
-      if (digits.endsWith("0000")) return setStatus("failed");
-      if (digits.endsWith("1111")) return setStatus("declined");
+      setPending(false);
+      if (digits.endsWith("0000")) return resultRef.current({ kind: "failed", plan, phone });
+      if (digits.endsWith("1111")) return resultRef.current({ kind: "declined", plan, phone });
       setPlus(plan.id);
-      paidRef.current({
-        reference: `NW-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
-        plan,
-        email: email || user.email,
-        phone,
+      resultRef.current({
+        kind: "paid",
+        receipt: {
+          reference: `NW-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          plan,
+          email: email || user.email,
+          phone,
+        },
       });
     }, 3200);
     return () => window.clearTimeout(timer);
@@ -179,10 +185,8 @@ function PayScreen({
     if (!user || pending) return;
     if (email && email !== user.email) setPlusUser({ ...user, email });
     rememberMomoNumber(phone);
-    setStatus("pending");
+    setPending(true);
   };
-
-  const outcome = outcomeMessage[status];
 
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
@@ -309,11 +313,6 @@ function PayScreen({
       {user && (
         <>
           <div className="sticky bottom-0 -mx-4 mt-6 border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
-            {outcome && (
-              <p role="alert" className="mb-3 rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive animate-in fade-in duration-200">
-                {outcome}
-              </p>
-            )}
             {/* The button is the waiting state: no separate "check your phone" page. */}
             <button
               type="submit"
@@ -336,7 +335,7 @@ function PayScreen({
                     Send prompt again
                   </button>
                   {" · "}
-                  <button type="button" onClick={() => setStatus("cancelled")} className="font-semibold text-foreground underline underline-offset-2">
+                  <button type="button" onClick={() => { setPending(false); onResult({ kind: "cancelled", plan, phone }); }} className="font-semibold text-foreground underline underline-offset-2">
                     Cancel
                   </button>
                 </>
@@ -427,6 +426,49 @@ function Paid({ receipt, contact, returnTo }: { receipt: Receipt; contact: Conta
       <a href={link} className={`mt-8 w-full py-3.5 text-base ${whatsappButton}`}>
         <WhatsAppIcon className="size-5" /> Open WhatsApp
       </a>
+      <Link to={returnTo} className={`mt-2 flex w-full justify-center rounded-md border-2 px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
+        Back to the listing
+      </Link>
+    </div>
+  );
+}
+
+/* ───────────── didn't go through → say why, and offer the way back ───────────── */
+
+const notPaidCopy: Record<NotPaid, { title: string; body: string }> = {
+  failed: {
+    title: "Payment didn't go through",
+    body: "Your mobile money provider didn't complete the payment. This usually means the balance was too low or the network timed out.",
+  },
+  declined: {
+    title: "Payment declined",
+    body: "The request was declined on your phone, so nothing was paid.",
+  },
+  cancelled: {
+    title: "Payment cancelled",
+    body: "You cancelled before approving, so nothing was paid.",
+  },
+};
+
+function NotCompleted({ result, returnTo, onTryAgain }: { result: Extract<Result, { kind: NotPaid }>; returnTo: string; onTryAgain: () => void }) {
+  const copy = notPaidCopy[result.kind];
+  return (
+    <div className="mx-auto max-w-md pt-6 text-center animate-in fade-in zoom-in-95 duration-300 ease-out" aria-live="polite">
+      <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+        <X className="size-8" />
+      </span>
+      <h1 className="mt-6 text-3xl font-bold tracking-tight">{copy.title}</h1>
+      <p className="mt-2 text-base text-muted-foreground">{copy.body}</p>
+
+      <dl className="mt-8 divide-y rounded-2xl border-2 px-5 text-left text-sm">
+        <div className="flex justify-between gap-4 py-3.5"><dt className="text-muted-foreground">Amount</dt><dd className="font-semibold">{result.plan.price}</dd></div>
+        <div className="flex justify-between gap-4 py-3.5"><dt className="text-muted-foreground">From</dt><dd className="font-medium">+260 {result.phone}</dd></div>
+        <div className="flex justify-between gap-4 py-3.5"><dt className="text-muted-foreground">Charged</dt><dd className="font-semibold text-emerald-700">Nothing</dd></div>
+      </dl>
+
+      <button type="button" onClick={onTryAgain} className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3.5 text-base font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
+        Try again
+      </button>
       <Link to={returnTo} className={`mt-2 flex w-full justify-center rounded-md border-2 px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
         Back to the listing
       </Link>

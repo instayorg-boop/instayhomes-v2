@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
 import {
   discountedPrice,
+  accessPeriod,
   planById,
   plans,
   promoPercent,
@@ -121,7 +122,16 @@ function PlansPage() {
           onClose={() => setView({ view: undefined })}
         />
       ) : (
-        <PayScreen plan={plan} room={room} user={user} returnTo={returnTo} onChangePlan={() => setView({ view: "plans" })} onResult={setResult} />
+        <PayScreen
+          plan={plan}
+          room={room}
+          user={user}
+          returnTo={returnTo}
+          promo={promo ? search.promo?.toUpperCase() : undefined}
+          onPromo={(code) => setView({ promo: code })}
+          onChangePlan={() => setView({ view: "plans" })}
+          onResult={setResult}
+        />
       )}
     </Shell>
   );
@@ -135,6 +145,8 @@ function PayScreen({
   room,
   user,
   returnTo,
+  promo,
+  onPromo,
   onChangePlan,
   onResult,
 }: {
@@ -142,6 +154,8 @@ function PayScreen({
   plan: Plan;
   room: Room | null;
   user: PlusUser | null;
+  promo: string | undefined;
+  onPromo: (code: string | undefined) => void;
   onChangePlan: () => void;
   onResult: (result: Result) => void;
 }) {
@@ -242,19 +256,16 @@ function PayScreen({
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
             {room && (
               <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">
-                €{room.price.toLocaleString("en")}/month
+                K{room.price.toLocaleString("en")}/month
               </span>
             )}
             <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">Kreuzberg, Berlin</span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/15 py-0.5 pl-1.5 pr-2.5 backdrop-blur-md">
-              <VerifiedIcon className="size-3.5" /> Tenant verified
-            </span>
           </div>
         </div>
       </div>
       {/* On phones the page slides over the photo's bottom edge as a rounded sheet. */}
       <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
-      <h1 className="text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
+      <h1 className="text-2xl font-bold tracking-tight">Get Instayhomes Plus</h1>
       <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
       <TenantProtectionLink className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid">
         <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
@@ -266,6 +277,7 @@ function PayScreen({
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Your plan</p>
               <p className="font-semibold">{plan.name} · {plan.price}</p>
+              <p className="text-xs text-muted-foreground">{accessPeriod}</p>
             </div>
             <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted disabled:opacity-40 ${press}`}>
               Change
@@ -298,6 +310,8 @@ function PayScreen({
             </div>
           </div>
         </div>
+
+        <PayPromo applied={promo} onApply={onPromo} />
 
         {!user ? (
           <div className="mt-6">
@@ -336,7 +350,7 @@ function PayScreen({
               </span>
             </label>
             <p className="mt-2 text-sm text-muted-foreground">
-              {remembered ? <span className="font-medium text-emerald-700">✓ The number you used last time</span> : "Airtel, MTN or Zamtel."}
+              <NetworkHint phone={phone} remembered={remembered} />
             </p>
 
             <div className="mt-4 text-sm text-muted-foreground">
@@ -367,7 +381,7 @@ function PayScreen({
 
       {user && (
         <>
-          <div className="sticky bottom-0 -mx-4 mt-6 border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+          <div className="mt-6">
             {/* The button is the waiting state: no separate "check your phone" page. */}
             <button
               type="submit"
@@ -401,7 +415,7 @@ function PayScreen({
             </p>
           </div>
 
-          <p className="mt-5 flex gap-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm leading-6 text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
             You approve the payment on your own phone. Instayhomes never sees or asks for your PIN.
           </p>
@@ -480,7 +494,7 @@ function ComparePlans({
                   {percent && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{option.price}</s>}
                   <span className="ml-1 align-middle text-xs font-semibold text-muted-foreground">{option.currency}</span>
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">one payment</p>
+                <p className="mt-1 text-xs text-muted-foreground">{accessPeriod}</p>
                 <button
                   type="button"
                   onClick={() => onChoose(option.id, applied)}
@@ -855,5 +869,94 @@ function EmailSignIn({ open, onOpenChange }: { open: boolean; onOpenChange: (ope
         {body}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Zambian mobile money networks by the number's first two digits (after 0 or +260). */
+function networkFor(phone: string) {
+  const digits = phone.replace(/\D/g, "").replace(/^260/, "").replace(/^0/, "");
+  if (digits.length < 2) return null;
+  const prefix = digits.slice(0, 2);
+  if (prefix === "97" || prefix === "77") return "Airtel Money";
+  if (prefix === "96" || prefix === "76") return "MTN MoMo";
+  if (prefix === "95" || prefix === "75") return "Zamtel Kwacha";
+  return "unknown";
+}
+
+function NetworkHint({ phone, remembered }: { phone: string; remembered: boolean }) {
+  const network = networkFor(phone);
+  if (network === "unknown") {
+    return <span className="text-destructive">This doesn't look like an Airtel, MTN or Zamtel number.</span>;
+  }
+  if (network) {
+    return (
+      <span className="font-medium text-emerald-700">
+        ✓ {network}
+        {remembered && <span className="font-normal text-muted-foreground"> · the number you used last time</span>}
+      </span>
+    );
+  }
+  return <>Airtel, MTN or Zamtel.</>;
+}
+
+/** "Have a promo code?" right on the payment screen. */
+function PayPromo({ applied, onApply }: { applied: string | undefined; onApply: (code: string | undefined) => void }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState(false);
+
+  if (applied) {
+    return (
+      <p className="mt-3 flex items-center gap-2 text-sm">
+        <Check className="size-4 text-emerald-600" />
+        <span>
+          <span className="font-semibold">{applied}</span> applied: {promoPercent(applied)}% off
+        </span>
+        <button type="button" onClick={() => onApply(undefined)} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          Remove
+        </button>
+      </p>
+    );
+  }
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-3 text-sm font-medium underline underline-offset-4">
+        Have a promo code?
+      </button>
+    );
+  }
+  const apply = () => {
+    if (promoPercent(code)) onApply(code.trim().toUpperCase());
+    else setError(true);
+  };
+  return (
+    <div className="mt-3 animate-in fade-in duration-200">
+      <div className="flex gap-2">
+        <input
+          autoFocus
+          value={code}
+          onChange={(event) => {
+            setCode(event.target.value);
+            setError(false);
+          }}
+          onKeyDown={(event) => {
+            // Enter applies the code instead of submitting the payment form.
+            if (event.key === "Enter") {
+              event.preventDefault();
+              apply();
+            }
+          }}
+          aria-label="Promo code"
+          aria-invalid={error}
+          placeholder="Promo code"
+          autoCapitalize="characters"
+          className="h-11 min-w-0 flex-1 rounded-md border-2 bg-background px-3 text-base uppercase outline-none focus:border-foreground md:text-sm"
+        />
+        <button type="button" onClick={apply} className={`shrink-0 rounded-md bg-foreground px-4 text-sm font-semibold text-background ${press}`}>
+          Apply
+        </button>
+      </div>
+      {error && <p className="mt-2 text-xs text-destructive">That code isn't valid. Check the spelling and try again.</p>}
+    </div>
   );
 }

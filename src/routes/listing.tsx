@@ -89,7 +89,7 @@ export const rooms = [
     id: "aurora",
     name: "Room 1 · Aurora",
     shortName: "Aurora",
-    price: 790,
+    price: 2500,
     size: "18 m²",
     bed: "Double bed",
     floor: "3rd floor",
@@ -107,7 +107,7 @@ export const rooms = [
     id: "linden",
     name: "Room 2 · Linden",
     shortName: "Linden",
-    price: 850,
+    price: 2800,
     size: "20 m²",
     bed: "Queen bed",
     floor: "3rd floor",
@@ -125,7 +125,7 @@ export const rooms = [
     id: "willow",
     name: "Room 3 · Willow",
     shortName: "Willow",
-    price: 720,
+    price: 2200,
     size: "15 m²",
     bed: "Double bed",
     floor: "3rd floor",
@@ -210,7 +210,7 @@ const maskNumber = (number: string) => {
 /** The message is written for them: they only have to press send in WhatsApp. */
 export function contactMessage(room: Room | null) {
   return room
-    ? `Hi! I found ${room.shortName} (€${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Instayhomes. Is it still available?`
+    ? `Hi! I found ${room.shortName} (K${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Instayhomes. Is it still available?`
     : `Hi! I found your apartment in Kreuzberg on Instayhomes. Which rooms are still available?`;
 }
 
@@ -237,7 +237,7 @@ function ListingPage() {
       title: listingTitle,
       area: "Kreuzberg, Berlin",
       image: generalPhotos[0]!.src,
-      fromPrice: `€${fromPrice.toLocaleString("en")}`,
+      fromPrice: `K${fromPrice.toLocaleString("en")}`,
       available: soonest?.available ?? "Fully booked",
     });
   }, [dataMode, fromPrice, soonest?.available]);
@@ -481,7 +481,7 @@ function ListingPage() {
           <aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
             <div className="rounded-xl border bg-card p-6 shadow-soft">
               <p className="text-2xl font-bold tabular-nums">
-                <span className="text-sm font-normal text-muted-foreground">From </span>€{fromPrice.toLocaleString("en")}
+                <span className="text-sm font-normal text-muted-foreground">From </span>K{fromPrice.toLocaleString("en")}
                 <span className="text-sm font-normal text-muted-foreground"> / month</span>
               </p>
               <p className="mt-0.5 text-sm text-muted-foreground">Bills included</p>
@@ -542,7 +542,7 @@ function ListingPage() {
         <div className="mx-auto flex max-w-lg items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-lg font-bold tabular-nums">
-              <span className="text-xs font-normal text-muted-foreground">From </span>€{fromPrice.toLocaleString("en")}
+              <span className="text-xs font-normal text-muted-foreground">From </span>K{fromPrice.toLocaleString("en")}
               <span className="text-xs font-normal text-muted-foreground"> / month</span>
             </p>
             <PlusHint short />
@@ -571,7 +571,7 @@ function ListingPage() {
           footer={
             roomGallery.availableRooms > 0 ? (
               <button type="button" onClick={() => contactAbout(roomGallery)} className={`w-full ${whatsappButton}`}>
-                <WhatsAppIcon /> Ask about {roomGallery.shortName} · €{roomGallery.price.toLocaleString("en")} / month
+                <WhatsAppIcon /> Ask about {roomGallery.shortName} · K{roomGallery.price.toLocaleString("en")} / month
               </button>
             ) : null
           }
@@ -619,7 +619,7 @@ function RoomCard({ room, onAsk, onOpenPhotos }: { room: Room; onAsk: () => void
         <h3 className="line-clamp-2 font-bold" title={room.name}>{room.shortName}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{room.bed} · {room.size} · {room.floor}</p>
         <p className="mt-3 text-xl font-bold tabular-nums lg:mt-2 lg:text-lg">
-          €{room.price.toLocaleString("en")}
+          K{room.price.toLocaleString("en")}
           <span className="text-xs font-normal text-muted-foreground"> / month</span>
         </p>
         <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mb-4 mt-1 lg:mb-3" />

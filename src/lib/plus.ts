@@ -3,7 +3,8 @@ import { useSyncExternalStore } from "react";
 
 // Prices are real. One payment unlocks contact with every landlord. The rest of `features`
 // is PLACEHOLDER copy until each plan's contents are confirmed.
-export const plusPromise = "One payment lets you contact every landlord on Instayhomes, as often as you like.";
+export const plusPromise = "One payment gives you 30 days to contact every landlord on Instayhomes, as often as you like.";
+export const accessPeriod = "30 days of access";
 export const plans = [
   {
     id: "self-service",

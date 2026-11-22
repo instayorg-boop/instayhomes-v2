@@ -49,7 +49,7 @@ const listings = [
     title: "Private room in Roonstraße",
     area: "Schwabing-West, Munich",
     type: "Private room",
-    price: 790,
+    price: 2500,
     size: "18 m²",
     capacity: "1 tenant",
     available: "Available now",
@@ -62,7 +62,7 @@ const listings = [
     title: "Bright room in Maxvorstadt",
     area: "Maxvorstadt, Munich",
     type: "Private room",
-    price: 850,
+    price: 2800,
     size: "20 m²",
     capacity: "1 tenant",
     available: "Available now",
@@ -75,7 +75,7 @@ const listings = [
     title: "Studio near Olympiapark",
     area: "Milbertshofen, Munich",
     type: "Studio",
-    price: 1190,
+    price: 3800,
     size: "32 m²",
     capacity: "2 tenants",
     available: "Available from 1 Feb",
@@ -88,7 +88,7 @@ const listings = [
     title: "Furnished room in Glockenbach",
     area: "Glockenbachviertel, Munich",
     type: "Private room",
-    price: 760,
+    price: 2400,
     size: "16 m²",
     capacity: "1 tenant",
     available: "Available now",
@@ -101,7 +101,7 @@ const listings = [
     title: "Modern studio in Sendling",
     area: "Sendling, Munich",
     type: "Studio",
-    price: 1240,
+    price: 4000,
     size: "35 m²",
     capacity: "2 tenants",
     available: "Available from 15 Jan",
@@ -114,7 +114,7 @@ const listings = [
     title: "Two-room apartment in Haidhausen",
     area: "Haidhausen, Munich",
     type: "Apartment",
-    price: 1690,
+    price: 5500,
     size: "54 m²",
     capacity: "3 tenants",
     available: "Available from 1 Mar",
@@ -127,7 +127,7 @@ const listings = [
     title: "Quiet room near Luitpoldpark",
     area: "Schwabing-West, Munich",
     type: "Private room",
-    price: 720,
+    price: 2200,
     size: "15 m²",
     capacity: "1 tenant",
     available: "Available now",
@@ -140,7 +140,7 @@ const listings = [
     title: "City apartment in Lehel",
     area: "Lehel, Munich",
     type: "Apartment",
-    price: 1850,
+    price: 6000,
     size: "61 m²",
     capacity: "3 tenants",
     available: "Available from 1 Feb",
@@ -153,7 +153,7 @@ const listings = [
     title: "Compact studio in Giesing",
     area: "Obergiesing, Munich",
     type: "Studio",
-    price: 990,
+    price: 3200,
     size: "28 m²",
     capacity: "1 tenant",
     available: "Available now",
@@ -378,7 +378,7 @@ function ListingCard({
           {listing.area.replace(/, Munich$/, "")} · {listing.size}
         </p>
         <p className="mt-2 text-base">
-          <span className="font-bold">€{listing.price.toLocaleString("en")}</span>
+          <span className="font-bold">K{listing.price.toLocaleString("en")}</span>
           <span className="text-sm text-muted-foreground"> / month</span>
         </p>
         <Availability available={listing.available} left={listing.availableRooms} className="mt-1.5" />

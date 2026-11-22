@@ -3,7 +3,8 @@ import { useSyncExternalStore } from "react";
 
 // Prices are real. One payment unlocks contact with every landlord. The rest of `features`
 // is PLACEHOLDER copy until each plan's contents are confirmed.
-export const plusPromise = "One payment lets you contact every landlord on Instayhomes, as often as you like.";
+export const plusPromise = "One payment gives you 30 days to contact every landlord on Instayhomes, as often as you like.";
+export const accessPeriod = "30 days of access";
 export const plans = [
   {
     id: "self-service",
@@ -19,7 +20,7 @@ export const plans = [
     price: "K399",
     amount: 399,
     currency: "ZMW",
-    features: ["Contact every landlord on Instayhomes, as often as you like", "A Instayhomes agent helps you shortlist rooms", "Help arranging viewings with landlords"],
+    features: ["Contact every landlord on Instayhomes, as often as you like", "An Instayhomes agent helps you shortlist rooms", "Help arranging viewings with landlords"],
   },
   {
     id: "international",
@@ -27,7 +28,7 @@ export const plans = [
     price: "$50",
     amount: 50,
     currency: "USD",
-    features: ["Contact every landlord on Instayhomes, as often as you like", "For tenants moving from abroad", "Priced in US dollars"],
+    features: ["A dedicated person helps you one-on-one", "We shortlist rooms and arrange viewings for you", "Nothing to pay until you've picked a place"],
   },
 ] as const;
 
@@ -130,3 +131,28 @@ export function rememberMomoNumber(phone: string) {
     // Storage blocked: they type it next time.
   }
 }
+
+// Promo codes. PLACEHOLDER: real codes and their discounts belong in the database and must be
+// checked on the server when the payment is created; this list only drives the demo.
+const promoCodes: Record<string, number> = { STUDENT10: 10 };
+export const recommendedPlanId: PlanId = "assisted";
+
+/** The discount (percent) for a code, or null if it isn't valid. */
+export function promoPercent(code: string | null | undefined) {
+  if (!code) return null;
+  return promoCodes[code.trim().toUpperCase()] ?? null;
+}
+
+/** "K399" with 10% off → "K359". Keeps the currency sign, rounds to a whole amount. */
+export function discountedPrice(plan: Plan, percent: number | null) {
+  if (!percent) return plan.price;
+  const symbol = plan.price.replace(/[0-9.,]/g, "");
+  return `${symbol}${Math.round(plan.amount * (1 - percent / 100))}`;
+}
+
+// International: talk to the team first, invoiced once they've chosen a home.
+export const intlPromise = "Tell us a little about your move. A dedicated person helps you find a home, and you only pay once you've chosen one.";
+export const intlBilling = "Invoiced once you've chosen a home";
+// PLACEHOLDER team WhatsApp number: replace with the real one.
+export const teamWhatsApp = "+260 970 000 123";
+export const teamReplyTime = "within 2 hours";

@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, ChevronDown, Loader2, Lock, Mail, ShieldCheck, Smartphone, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, ChevronDown, CreditCard, Globe, Loader2, Lock, Mail, MessageSquareText, Plus, ShieldCheck, Smartphone, Users, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { universities } from "@/lib/universities";
 import { VerifiedIcon } from "@/components/verified-badge";
 import { TenantProtectionLink } from "@/components/tenant-protection";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -9,8 +11,16 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { useIsMobile } from "@/hooks/use-mobile";
 import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
 import {
+  discountedPrice,
+  accessPeriod,
+  intlBilling,
+  intlPromise,
+  teamReplyTime,
+  teamWhatsApp,
   planById,
   plans,
+  promoPercent,
+  recommendedPlanId,
   plusPromise,
   rememberMomoNumber,
   rememberedMomoNumber,
@@ -32,6 +42,7 @@ type PlansSearch = {
   room?: string | undefined;
   plan?: string | undefined;
   view?: "plans" | undefined;
+  promo?: string | undefined;
 };
 
 const str = (value: unknown) => (typeof value === "string" ? value : undefined);
@@ -42,6 +53,7 @@ export const Route = createFileRoute("/plans")({
     room: str(search["room"]),
     plan: str(search["plan"]),
     view: search["view"] === "plans" ? "plans" : undefined,
+    promo: str(search["promo"]),
   }),
   head: () => ({
     meta: [
@@ -55,13 +67,14 @@ export const Route = createFileRoute("/plans")({
 
 const press = "transition-[scale,background-color,border-color,color,opacity] duration-150 ease-out active:scale-[0.97]";
 const darkButton = `inline-flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 py-3.5 text-base font-semibold text-background hover:bg-foreground/90 ${press}`;
-const DEFAULT_PLAN = "self-service";
+const DEFAULT_PLAN = "assisted";
 
 type Contact = { phone: string; message: string };
 type Receipt = { reference: string; plan: Plan; email: string; phone: string };
 type NotPaid = "failed" | "declined" | "cancelled";
 // The payment's answer decides the page: success, or a page saying why it didn't happen.
 type Result = { kind: "paid"; receipt: Receipt } | { kind: NotPaid; plan: Plan; phone: string };
+type IntlRequest = { reference: string; whatsapp: string; university: string; arriving: string; budget: string; roomName: string | null };
 
 function PlansPage() {
   const search = Route.useSearch();
@@ -70,12 +83,26 @@ function PlansPage() {
   const currentPlan = usePlus();
   const returnTo = safeReturnPath(search.from);
   const room = rooms.find((item) => item.id === search.room) ?? null;
-  const plan = planById(search.plan) ?? planById(DEFAULT_PLAN)!;
+  const basePlan = planById(search.plan) ?? planById(DEFAULT_PLAN)!;
+  // An applied promo code lowers the price everywhere on the payment screen.
+  const promo = promoPercent(search.promo);
+  const plan = { ...basePlan, price: discountedPrice(basePlan, basePlan.id === "international" ? null : promo) } as Plan;
   const contact: Contact = { phone: landlordWhatsApp, message: contactMessage(room) };
   const [result, setResult] = useState<Result | null>(null);
+  const [intlRequest, setIntlRequest] = useState<IntlRequest | null>(null);
 
-  const setView = (next: { plan?: string; view?: "plans" | undefined }) =>
-    void navigate({ search: (prev) => ({ ...prev, plan: next.plan ?? prev.plan, view: next.view }) });
+  const setView = (next: { plan?: string; view?: "plans" | undefined; promo?: string | undefined }) =>
+    void navigate({
+      search: (prev) => ({ ...prev, plan: next.plan ?? prev.plan, view: next.view, promo: "promo" in next ? next.promo : prev.promo }),
+    });
+
+  if (intlRequest) {
+    return (
+      <Shell returnTo={returnTo} user={user}>
+        <IntlRequestReceived request={intlRequest} user={user} returnTo={returnTo} />
+      </Shell>
+    );
+  }
 
   if (result?.kind === "paid") {
     return (
@@ -104,9 +131,25 @@ function PlansPage() {
   return (
     <Shell returnTo={returnTo} user={user} photoFirst={search.view !== "plans"}>
       {search.view === "plans" ? (
-        <ComparePlans current={plan} onChoose={(id) => setView({ plan: id, view: undefined })} onClose={() => setView({ view: undefined })} />
+        <ComparePlans
+          current={basePlan}
+          promo={search.promo}
+          onChoose={(id, code) => setView({ plan: id, view: undefined, promo: code })}
+          onClose={() => setView({ view: undefined })}
+        />
       ) : (
-        <PayScreen plan={plan} room={room} user={user} returnTo={returnTo} onChangePlan={() => setView({ view: "plans" })} onResult={setResult} />
+        <PayScreen
+          plan={plan}
+          room={room}
+          user={user}
+          returnTo={returnTo}
+          promo={promo ? search.promo?.toUpperCase() : undefined}
+          onPromo={(code) => setView({ promo: code })}
+          onChangePlan={() => setView({ view: "plans" })}
+          onSwitchPlan={(id) => setView({ plan: id })}
+          onIntlRequest={setIntlRequest}
+          onResult={setResult}
+        />
       )}
     </Shell>
   );
@@ -120,13 +163,21 @@ function PayScreen({
   room,
   user,
   returnTo,
+  promo,
+  onPromo,
   onChangePlan,
+  onSwitchPlan,
+  onIntlRequest,
   onResult,
 }: {
+  onSwitchPlan: (id: Plan["id"]) => void;
+  onIntlRequest: (request: IntlRequest) => void;
   returnTo: string;
   plan: Plan;
   room: Room | null;
   user: PlusUser | null;
+  promo: string | undefined;
+  onPromo: (code: string | undefined) => void;
   onChangePlan: () => void;
   onResult: (result: Result) => void;
 }) {
@@ -188,8 +239,12 @@ function PayScreen({
     return () => window.clearTimeout(timer);
   }, [pending, attempt, plan, user, email, phone]);
 
+  const isIntl = plan.id === "international";
+
   const pay = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // International never pays here (and Enter in its fields must not start a payment).
+    if (isIntl) return;
     if (!user || pending) return;
     if (email && email !== user.email) setPlusUser({ ...user, email });
     rememberMomoNumber(phone);
@@ -219,7 +274,7 @@ function PayScreen({
           </span>
         </div>
         <div className="absolute inset-x-4 bottom-7 text-white sm:inset-x-5 sm:bottom-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">Unlock chat with the landlord of</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">{isIntl ? "You're asking about" : "Unlock chat with the landlord of"}</p>
           <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-2xl font-bold tracking-tight">
             <span className="truncate">{room ? room.shortName : "Sunny shared apartment"}</span>
             <VerifiedIcon className="size-6 shrink-0" />
@@ -227,20 +282,17 @@ function PayScreen({
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
             {room && (
               <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">
-                €{room.price.toLocaleString("en")}/month
+                K{room.price.toLocaleString("en")}/month
               </span>
             )}
             <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">Kreuzberg, Berlin</span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/15 py-0.5 pl-1.5 pr-2.5 backdrop-blur-md">
-              <VerifiedIcon className="size-3.5" /> Tenant verified
-            </span>
           </div>
         </div>
       </div>
       {/* On phones the page slides over the photo's bottom edge as a rounded sheet. */}
       <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
-      <h1 className="text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
-      <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
+      <h1 className="text-2xl font-bold tracking-tight">{isIntl ? "Talk to our team" : "Get Instayhomes Plus"}</h1>
+      <p className="mt-1 text-base text-muted-foreground">{isIntl ? intlPromise : plusPromise}</p>
       <TenantProtectionLink className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid">
         <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
       </TenantProtectionLink>
@@ -251,6 +303,7 @@ function PayScreen({
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Your plan</p>
               <p className="font-semibold">{plan.name} · {plan.price}</p>
+              <p className="text-xs text-muted-foreground">{isIntl ? intlBilling : accessPeriod}</p>
             </div>
             <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted disabled:opacity-40 ${press}`}>
               Change
@@ -284,6 +337,8 @@ function PayScreen({
           </div>
         </div>
 
+        {!isIntl && <PayPromo applied={promo} onApply={onPromo} />}
+
         {!user ? (
           <div className="mt-6">
             <button type="button" onClick={signIn} disabled={signingIn} className={`inline-flex w-full items-center justify-center gap-3 rounded-md border-2 bg-background px-5 py-3.5 text-base font-semibold hover:bg-muted disabled:opacity-60 ${press}`}>
@@ -298,6 +353,13 @@ function PayScreen({
               Your plan is saved to your account. You'll come straight back here to pay.
             </p>
           </div>
+        ) : isIntl ? (
+          <IntlRequestForm
+            room={room}
+            user={user}
+            onSwitchToLocal={() => onSwitchPlan(recommendedPlanId)}
+            onSent={onIntlRequest}
+          />
         ) : (
           <div className="mt-6 animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out">
             <label className="block text-sm font-semibold">
@@ -321,7 +383,7 @@ function PayScreen({
               </span>
             </label>
             <p className="mt-2 text-sm text-muted-foreground">
-              {remembered ? <span className="font-medium text-emerald-700">✓ The number you used last time</span> : "Airtel, MTN or Zamtel."}
+              <NetworkHint phone={phone} remembered={remembered} />
             </p>
 
             <div className="mt-4 text-sm text-muted-foreground">
@@ -350,9 +412,9 @@ function PayScreen({
         )}
       </fieldset>
 
-      {user && (
+      {user && !isIntl && (
         <>
-          <div className="sticky bottom-0 -mx-4 mt-6 border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+          <div className="mt-6">
             {/* The button is the waiting state: no separate "check your phone" page. */}
             <button
               type="submit"
@@ -386,7 +448,7 @@ function PayScreen({
             </p>
           </div>
 
-          <p className="mt-5 flex gap-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm leading-6 text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
             You approve the payment on your own phone. Instayhomes never sees or asks for your PIN.
           </p>
@@ -399,39 +461,162 @@ function PayScreen({
 
 /* ───────────── "Change" → compare plans ───────────── */
 
-function ComparePlans({ current, onChoose, onClose }: { current: Plan; onChoose: (id: Plan["id"]) => void; onClose: () => void }) {
+function featureIcon(feature: string) {
+  const f = feature.toLowerCase();
+  if (f.includes("contact") || f.includes("whatsapp")) return <WhatsAppIcon className="size-4 text-[#128C4A]" />;
+  if (f.includes("agent")) return <Users className="size-4 text-muted-foreground" />;
+  if (f.includes("viewing")) return <CalendarDays className="size-4 text-muted-foreground" />;
+  if (f.includes("abroad")) return <Globe className="size-4 text-muted-foreground" />;
+  if (f.includes("dollar")) return <CreditCard className="size-4 text-muted-foreground" />;
+  return <MessageSquareText className="size-4 text-muted-foreground" />;
+}
+
+/** The page behind "Change": the plans stacked on phones, side by side on desktop. */
+function ComparePlans({
+  current,
+  promo,
+  onChoose,
+  onClose,
+}: {
+  current: Plan;
+  promo: string | undefined;
+  onChoose: (id: Plan["id"], promo: string | undefined) => void;
+  onClose: () => void;
+}) {
+  // One promo code for the page: applying it on any card applies to all plans.
+  const [applied, setApplied] = useState<string | undefined>(promoPercent(promo) ? promo?.toUpperCase() : undefined);
+  const percent = promoPercent(applied);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
       <button type="button" onClick={onClose} className={`-ml-2 flex items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-muted ${press}`}>
         <ArrowLeft className="size-4" /> Back to payment
       </button>
-      <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Choose your plan</h1>
-      <p className="mt-3 max-w-xl text-base text-muted-foreground">{plusPromise}</p>
-      <div className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-5">
+      <h1 className="mt-4 text-center text-3xl font-medium tracking-tight sm:text-4xl">A plan for you</h1>
+      <p className="mx-auto mt-2 max-w-xl text-center text-base text-muted-foreground">{plusPromise}</p>
+      {percent && (
+        <p className="mx-auto mt-4 w-fit rounded-full bg-emerald-600/10 px-3 py-1 text-sm font-medium text-emerald-700 animate-in fade-in duration-200">
+          {applied} applied: {percent}% off every plan
+        </p>
+      )}
+
+      <div className="mx-auto mt-8 grid max-w-md gap-5 lg:max-w-none lg:grid-cols-3 lg:items-stretch">
         {plans.map((option) => {
+          const recommended = option.id === recommendedPlanId;
+          const intl = option.id === "international";
           const selected = option.id === current.id;
+          const price = discountedPrice(option, intl ? null : percent);
           return (
-            <article key={option.id} className={`flex flex-col rounded-2xl border-2 bg-card p-6 sm:p-8 ${selected ? "border-foreground" : ""}`}>
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-bold">{option.name}</h2>
-                {selected && <span className="rounded-full bg-foreground px-2.5 py-0.5 text-xs font-semibold text-background">Selected</span>}
-              </div>
-              <p className="mt-3 text-5xl font-bold tracking-tight tabular-nums sm:text-6xl">{option.price}</p>
-              <ul className="mt-6 flex-1 space-y-3 border-t pt-6">
-                {option.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm">
-                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {feature}
+            <article
+              key={option.id}
+              className={`flex flex-col overflow-hidden rounded-2xl bg-card text-center ${
+                recommended ? "border-2 border-primary" : intl ? "border-2 border-blue-600" : selected ? "border-2 border-foreground" : "border"
+              }`}
+            >
+              {recommended ? (
+                <p className="bg-primary/10 py-1.5 text-xs font-semibold text-primary">Recommended</p>
+              ) : intl ? (
+                <p className="bg-blue-50 py-1.5 text-xs font-semibold text-blue-700">For students moving from abroad</p>
+              ) : (
+                // Same height as the band, so names and prices line up across the row on desktop.
+                <p className="invisible hidden py-1.5 text-xs lg:block" aria-hidden>
+                  Recommended
+                </p>
+              )}
+              <div className="flex flex-1 flex-col px-6 pb-2 pt-6">
+                <h2 className="text-xl font-medium">{option.name}</h2>
+                <p className={`mt-3 text-4xl font-bold tracking-tight tabular-nums ${recommended ? "text-primary" : ""}`}>
+                  {price}
+                  {percent && !intl && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{option.price}</s>}
+                  <span className="ml-1 align-middle text-xs font-semibold text-muted-foreground">{option.currency}</span>
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{intl ? intlBilling : accessPeriod}</p>
+                <button
+                  type="button"
+                  onClick={() => onChoose(option.id, applied)}
+                  className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold ${press} ${
+                    recommended ? "bg-primary text-primary-foreground hover:bg-primary/90" : intl ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-foreground text-background hover:bg-foreground/90"
+                  }`}
+                >
+                  {intl ? "Talk to our team" : selected ? `Keep ${option.name}` : `Choose ${option.name}`}
+                </button>
+                <ul className="mt-6 flex-1 space-y-3 text-left">
+                  {option.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 text-sm">
+                      <span className="mt-0.5 shrink-0">{featureIcon(feature)}</span> {feature}
+                    </li>
+                  ))}
+                  <li className="flex items-start gap-3 text-sm">
+                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> Covered by Tenant Protection
                   </li>
-                ))}
-              </ul>
-              <button type="button" onClick={() => onChoose(option.id)} className={`mt-8 ${darkButton}`}>
-                {selected ? `Keep ${option.name}` : `Choose ${option.name}`}
-              </button>
+                </ul>
+              </div>
+              {intl ? <div className="mt-4 border-t px-6 py-3.5 text-sm text-muted-foreground">No payment until you choose</div> : <PromoCode applied={applied} onApply={setApplied} />}
             </article>
           );
         })}
       </div>
     </div>
+  );
+}
+
+function PromoCode({ applied, onApply }: { applied: string | undefined; onApply: (code: string | undefined) => void }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState(false);
+
+  if (applied) {
+    return (
+      <div className="mt-4 flex items-center justify-center gap-2 border-t px-6 py-3.5 text-sm">
+        <Check className="size-4 text-emerald-600" /> <span className="font-medium">{applied}</span>
+        <button type="button" onClick={() => onApply(undefined)} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          Remove
+        </button>
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-4 flex w-full items-center justify-center gap-1.5 border-t px-6 py-3.5 text-sm font-semibold hover:bg-muted/60">
+        <Plus className="size-4" /> Add promo code
+      </button>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (promoPercent(code)) {
+          onApply(code.trim().toUpperCase());
+          setError(false);
+        } else {
+          setError(true);
+        }
+      }}
+      className="mt-4 border-t px-4 py-3 text-left animate-in fade-in duration-200"
+    >
+      <div className="flex gap-2">
+        <input
+          autoFocus
+          value={code}
+          onChange={(event) => {
+            setCode(event.target.value);
+            setError(false);
+          }}
+          aria-label="Promo code"
+          aria-invalid={error}
+          placeholder="Promo code"
+          autoCapitalize="characters"
+          className="h-10 min-w-0 flex-1 rounded-md border-2 bg-background px-3 text-base uppercase outline-none focus:border-foreground md:text-sm"
+        />
+        <button type="submit" className={`shrink-0 rounded-md bg-foreground px-4 text-sm font-semibold text-background ${press}`}>
+          Apply
+        </button>
+      </div>
+      {error && <p className="mt-2 text-xs text-destructive">That code isn't valid. Check the spelling and try again.</p>}
+    </form>
   );
 }
 
@@ -720,5 +905,357 @@ function EmailSignIn({ open, onOpenChange }: { open: boolean; onOpenChange: (ope
         {body}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Zambian mobile money networks by the number's first two digits (after 0 or +260). */
+function networkFor(phone: string) {
+  const digits = phone.replace(/\D/g, "").replace(/^260/, "").replace(/^0/, "");
+  if (digits.length < 2) return null;
+  const prefix = digits.slice(0, 2);
+  if (prefix === "97" || prefix === "77") return "Airtel Money";
+  if (prefix === "96" || prefix === "76") return "MTN MoMo";
+  if (prefix === "95" || prefix === "75") return "Zamtel Kwacha";
+  return "unknown";
+}
+
+function NetworkHint({ phone, remembered }: { phone: string; remembered: boolean }) {
+  const network = networkFor(phone);
+  if (network === "unknown") {
+    return <span className="text-destructive">This doesn't look like an Airtel, MTN or Zamtel number.</span>;
+  }
+  if (network) {
+    return (
+      <span className="font-medium text-emerald-700">
+        ✓ {network}
+        {remembered && <span className="font-normal text-muted-foreground"> · the number you used last time</span>}
+      </span>
+    );
+  }
+  return <>Airtel, MTN or Zamtel.</>;
+}
+
+/** "Have a promo code?" right on the payment screen. */
+function PayPromo({ applied, onApply }: { applied: string | undefined; onApply: (code: string | undefined) => void }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState(false);
+
+  if (applied) {
+    return (
+      <p className="mt-3 flex items-center gap-2 text-sm">
+        <Check className="size-4 text-emerald-600" />
+        <span>
+          <span className="font-semibold">{applied}</span> applied: {promoPercent(applied)}% off
+        </span>
+        <button type="button" onClick={() => onApply(undefined)} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          Remove
+        </button>
+      </p>
+    );
+  }
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-3 text-sm font-medium underline underline-offset-4">
+        Have a promo code?
+      </button>
+    );
+  }
+  const apply = () => {
+    if (promoPercent(code)) onApply(code.trim().toUpperCase());
+    else setError(true);
+  };
+  return (
+    <div className="mt-3 animate-in fade-in duration-200">
+      <div className="flex gap-2">
+        <input
+          autoFocus
+          value={code}
+          onChange={(event) => {
+            setCode(event.target.value);
+            setError(false);
+          }}
+          onKeyDown={(event) => {
+            // Enter applies the code instead of submitting the payment form.
+            if (event.key === "Enter") {
+              event.preventDefault();
+              apply();
+            }
+          }}
+          aria-label="Promo code"
+          aria-invalid={error}
+          placeholder="Promo code"
+          autoCapitalize="characters"
+          className="h-11 min-w-0 flex-1 rounded-md border-2 bg-background px-3 text-base uppercase outline-none focus:border-foreground md:text-sm"
+        />
+        <button type="button" onClick={apply} className={`shrink-0 rounded-md bg-foreground px-4 text-sm font-semibold text-background ${press}`}>
+          Apply
+        </button>
+      </div>
+      {error && <p className="mt-2 text-xs text-destructive">That code isn't valid. Check the spelling and try again.</p>}
+    </div>
+  );
+}
+
+/* ───────────── International: talk to our team, invoiced later ───────────── */
+
+const countryCodes = [
+  { code: "+260", name: "Zambia", flag: "🇿🇲" },
+  { code: "+263", name: "Zimbabwe", flag: "🇿🇼" },
+  { code: "+265", name: "Malawi", flag: "🇲🇼" },
+  { code: "+27", name: "South Africa", flag: "🇿🇦" },
+  { code: "+267", name: "Botswana", flag: "🇧🇼" },
+  { code: "+243", name: "DR Congo", flag: "🇨🇩" },
+  { code: "+255", name: "Tanzania", flag: "🇹🇿" },
+  { code: "+254", name: "Kenya", flag: "🇰🇪" },
+  { code: "+234", name: "Nigeria", flag: "🇳🇬" },
+  { code: "+91", name: "India", flag: "🇮🇳" },
+  { code: "+86", name: "China", flag: "🇨🇳" },
+  { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "+1", name: "United States", flag: "🇺🇸" },
+] as const;
+
+const budgets = ["Under K1,500", "K1,500 – K2,500", "K2,500 – K4,000", "Over K4,000"];
+
+/** The next 12 months, e.g. "Jan 2027", plus "I'm already here". */
+function arrivalOptions() {
+  const now = new Date();
+  const months = Array.from({ length: 12 }, (_, i) =>
+    new Date(now.getFullYear(), now.getMonth() + i, 1).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+  );
+  return ["I'm already here", ...months];
+}
+
+// DEMO: requests are kept in this browser only. They belong in a database table for the team.
+function saveIntlRequest(request: IntlRequest) {
+  try {
+    const key = "instayhomes-intl-requests";
+    const list = JSON.parse(window.localStorage.getItem(key) ?? "[]") as IntlRequest[];
+    window.localStorage.setItem(key, JSON.stringify([...list, request]));
+  } catch {
+    // Storage blocked: the WhatsApp message still carries everything the team needs.
+  }
+}
+
+/** One question at a time: each answer reveals the next, so the form never feels long. */
+function IntlRequestForm({
+  room,
+  user,
+  onSwitchToLocal,
+  onSent,
+}: {
+  room: Room | null;
+  user: PlusUser;
+  onSwitchToLocal: () => void;
+  onSent: (request: IntlRequest) => void;
+}) {
+  const [country, setCountry] = useState<string>("");
+  const [number, setNumber] = useState("");
+  const [university, setUniversity] = useState("");
+  const [arriving, setArriving] = useState("");
+  const [budget, setBudget] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const numberDone = country !== "" && number.replace(/\D/g, "").length >= 7;
+  const local = country === "+260";
+  const step = !numberDone ? 1 : !university ? 2 : !arriving ? 3 : !budget ? 4 : 5;
+
+  const send = () => {
+    setSending(true);
+    const request: IntlRequest = {
+      reference: `IH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      whatsapp: `${country} ${number.trim()}`,
+      university,
+      arriving,
+      budget,
+      roomName: room?.shortName ?? null,
+    };
+    saveIntlRequest(request);
+    window.setTimeout(() => onSent(request), 500);
+  };
+
+  const row = "px-4 py-3";
+  const rowLabel = "block text-xs font-semibold";
+  const trigger = "mt-1 h-auto border-0 p-0 text-base shadow-none focus:ring-0 focus:ring-offset-0 [&>span]:truncate";
+
+  return (
+    <div className="mt-6">
+      {/* Airbnb-style grouped fields: one bordered block, rows separated by lines. */}
+      <div className="overflow-hidden rounded-xl border-2 divide-y">
+        <div className={row}>
+          <span className={rowLabel}>WhatsApp number</span>
+          <div className="mt-1 flex items-center gap-2">
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger aria-label="Country code" className="h-auto w-auto shrink-0 gap-1 border-0 p-0 text-base shadow-none focus:ring-0 focus:ring-offset-0 [&_[data-name]]:hidden">
+                <SelectValue placeholder="Country" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryCodes.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    <span className="flex items-center gap-2">
+                      {c.flag} {c.code} <span className="text-muted-foreground" data-name>{c.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="h-5 w-px bg-border" aria-hidden />
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel-national"
+              value={number}
+              onChange={(event) => setNumber(event.target.value)}
+              placeholder="Your number"
+              aria-label="WhatsApp number"
+              className="min-w-0 flex-1 bg-transparent text-base outline-none"
+            />
+          </div>
+        </div>
+
+        {step >= 2 && (
+          <div className={`${row} animate-in fade-in slide-in-from-top-1 duration-200 ease-out`}>
+            <span className={rowLabel}>University</span>
+            <Select value={university} onValueChange={setUniversity}>
+              <SelectTrigger aria-label="University" className={trigger}>
+                <SelectValue placeholder="Where will you study?" />
+              </SelectTrigger>
+              <SelectContent>
+                {universities.map((u) => (
+                  <SelectItem key={u.id} value={u.name}>
+                    {u.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="Other">Another university</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {step >= 3 && (
+          <div className={`${row} animate-in fade-in slide-in-from-top-1 duration-200 ease-out`}>
+            <span className={rowLabel}>Arriving</span>
+            <Select value={arriving} onValueChange={setArriving}>
+              <SelectTrigger aria-label="Arriving" className={trigger}>
+                <SelectValue placeholder="When do you arrive?" />
+              </SelectTrigger>
+              <SelectContent>
+                {arrivalOptions().map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {step >= 4 && (
+          <div className={`${row} animate-in fade-in slide-in-from-top-1 duration-200 ease-out`}>
+            <span className={rowLabel}>Monthly budget</span>
+            <Select value={budget} onValueChange={setBudget}>
+              <SelectTrigger aria-label="Monthly budget" className={trigger}>
+                <SelectValue placeholder="How much can you spend on rent?" />
+              </SelectTrigger>
+              <SelectContent>
+                {budgets.map((b) => (
+                  <SelectItem key={b} value={b}>
+                    {b}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {/* Already in Zambia: self-service with mobile money is quicker for them and for the team. */}
+      {local && (
+        <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 animate-in fade-in duration-200">
+          <p>
+            <span className="font-semibold">Already in Zambia?</span> Assisted gives you instant access to every landlord, paid with mobile
+            money. No waiting for our team.
+          </p>
+          <button
+            type="button"
+            onClick={onSwitchToLocal}
+            className={`mt-2.5 w-full rounded-md border border-amber-300 bg-white px-4 py-2.5 font-semibold text-foreground ${press}`}
+          >
+            Switch to Assisted · K399
+          </button>
+        </div>
+      )}
+
+      {step === 5 && (
+        <div className="mt-5 animate-in fade-in slide-in-from-bottom-1 duration-200 ease-out">
+          <button
+            type="button"
+            onClick={send}
+            disabled={sending}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-5 py-3.5 text-base font-semibold ${press} ${
+              local ? "border-2 bg-background hover:bg-muted" : "bg-primary text-primary-foreground hover:bg-primary/90"
+            }`}
+          >
+            {sending && <Loader2 className="size-5 animate-spin" />} Send to our team
+          </button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">No payment now. Details also go to {user.email}.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IntlRequestReceived({ request, user, returnTo }: { request: IntlRequest; user: PlusUser | null; returnTo: string }) {
+  const firstName = user?.name.trim().split(/\s+/)[0] ?? "";
+  const message = [
+    `Hi Instayhomes! I'd like help finding a home. Ref ${request.reference}.`,
+    request.roomName ? `I'm interested in ${request.roomName}.` : null,
+    `University: ${request.university}. Arriving: ${request.arriving}. Budget: ${request.budget}.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const link = whatsappLink({ phone: teamWhatsApp, message });
+  const summary = [request.roomName, request.university, request.arriving].filter(Boolean).join(" · ");
+
+  return (
+    <div className="mx-auto max-w-md pt-6 text-center animate-in fade-in zoom-in-95 duration-300 ease-out">
+      <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-600">
+        <Check className="size-8" />
+      </span>
+      <h1 className="mt-6 text-3xl font-bold tracking-tight">{firstName ? `Thanks, ${firstName}` : "Request sent"}</h1>
+      <p className="mt-2 text-base text-muted-foreground">Message us on WhatsApp to get started. We reply {teamReplyTime}.</p>
+      <p className="mt-3 inline-block rounded-md bg-muted px-2.5 py-1 font-mono text-sm tracking-wide">{request.reference}</p>
+
+      <a href={link} target="_blank" rel="noopener noreferrer" className={`mt-6 w-full py-3.5 text-base ${whatsappButton}`}>
+        <WhatsAppIcon className="size-5" /> Message us now
+      </a>
+
+      <ol className="mt-8 space-y-4 text-left">
+        <li className="flex gap-3">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <Check className="size-3.5" />
+          </span>
+          <p className="text-sm">
+            <span className="block font-semibold">You told us about your move</span>
+            <span className="text-muted-foreground">{summary}</span>
+          </p>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold">2</span>
+          <p className="text-sm">
+            <span className="block font-semibold">We help you choose</span>
+            <span className="text-muted-foreground">Shortlist, viewings and questions for landlords</span>
+          </p>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold">3</span>
+          <p className="text-sm font-semibold">You pick a home, we send the invoice</p>
+        </li>
+      </ol>
+
+      <Link to={returnTo} className={`mt-8 flex w-full justify-center rounded-md border-2 px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
+        Back to the listing
+      </Link>
+    </div>
   );
 }

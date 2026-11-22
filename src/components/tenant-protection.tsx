@@ -77,9 +77,10 @@ export function TenantProtectionSheet({ open, onOpenChange }: { open: boolean; o
               </div>
             </div>
             {/* Photo at the bottom, edge to edge, fading up into the red. */}
-            <div className="relative mt-2 h-52">
-              <img src={protectionImage} alt="Happy tenants at home" className="absolute inset-0 size-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-b from-primary via-primary/40 to-transparent" aria-hidden />
+            <div className="relative mt-4 h-64">
+              <img src={protectionImage} alt="Happy tenants at home" className="absolute inset-0 size-full object-cover object-[center_25%]" />
+              {/* Short fade: only the top edge melts into the red, so the people stay clear. */}
+              <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-primary to-transparent" aria-hidden />
             </div>
           </div>
         </DrawerContent>

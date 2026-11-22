@@ -181,6 +181,22 @@ type LightboxState = {
 // Landlord's WhatsApp number in international format. PLACEHOLDER: comes from the listing data.
 export const landlordWhatsApp = "";
 
+// PLACEHOLDER landlord profile: comes from the landlord's account once profiles exist.
+// `whatsappDisplay` is an example number for the layout; the chat link uses landlordWhatsApp.
+const landlord = {
+  firstName: "Chanda",
+  photo: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=160&h=160&q=80",
+  yearsOnInstayhomes: 2,
+  whatsappDisplay: "+260 97 123 4545",
+};
+
+/** "+260 97 123 4545" → "+260 97 ••• ••45": enough to look real, not enough to use. */
+const maskNumber = (number: string) => {
+  const [country, prefix, ...rest] = number.split(" ");
+  const tail = rest.join("");
+  return `${country} ${prefix} ••• ••${tail.slice(-2)}`;
+};
+
 /** The message is written for them: they only have to press send in WhatsApp. */
 export function contactMessage(room: Room | null) {
   return room
@@ -385,7 +401,9 @@ function ListingPage() {
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
-            <section aria-labelledby="room-heading" className="border-b pb-8">
+            <LandlordRow hasPlus={Boolean(plan)} onMessage={() => contactAbout(null)} />
+
+            <section aria-labelledby="room-heading" className="border-b py-8">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 id="room-heading" className="text-xl font-bold">Rooms</h2>
                 <p className="shrink-0 text-sm text-muted-foreground">
@@ -402,30 +420,6 @@ function ListingPage() {
                     onOpenPhotos={() => setRoomGalleryId(room.id)}
                   />
                 ))}
-              </div>
-            </section>
-
-            {/* Shows exactly what Plus unlocks before anyone reaches the payment screen. */}
-            <section aria-labelledby="landlord-heading" className="border-b py-8">
-              <h2 id="landlord-heading" className="text-xl font-bold">Your landlord</h2>
-              <div className="mt-4 flex flex-col gap-4 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-lg font-semibold">L</span>
-                  <div className="min-w-0">
-                    <p className="font-semibold">Landlord of this apartment</p>
-                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <WhatsAppIcon className="size-3.5 text-[#128C4A]" /> Replies on WhatsApp
-                    </p>
-                    {!plan && (
-                      <p className="mt-1 flex items-center gap-1.5 font-mono text-sm tracking-wider text-muted-foreground">
-                        <Lock className="size-3.5" /> +260 9• ••• ••••
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button type="button" onClick={() => contactAbout(null)} className={`sm:w-auto ${whatsappButton}`}>
-                  <WhatsAppIcon /> {plan ? "Chat on WhatsApp" : "Unlock with Plus"}
-                </button>
               </div>
             </section>
 
@@ -749,5 +743,60 @@ function PhotoGalleryDialog({
         </div>
       )}
     </div>
+  );
+}
+
+/** Who you'd be talking to, above the rooms. The number stays partly hidden until you have Plus. */
+function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () => void }) {
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const years = landlord.yearsOnInstayhomes;
+  return (
+    <section aria-labelledby="landlord-heading" className="border-b pb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <span className="relative size-14 shrink-0">
+            {photoFailed ? (
+              <span className="flex size-14 items-center justify-center rounded-full bg-muted text-lg font-semibold">
+                {landlord.firstName.charAt(0)}
+              </span>
+            ) : (
+              <img
+                src={landlord.photo}
+                alt={`${landlord.firstName}, the landlord`}
+                onError={() => setPhotoFailed(true)}
+                className="size-14 rounded-full object-cover"
+              />
+            )}
+            <span className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-background">
+              <VerifiedIcon className="size-5" />
+            </span>
+          </span>
+          <div className="min-w-0">
+            <h2 id="landlord-heading" className="text-lg font-bold">Listed by {landlord.firstName}</h2>
+            <p className="text-sm text-muted-foreground">
+              Verified landlord · {years} {years === 1 ? "year" : "years"} on Instayhomes
+            </p>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+              {hasPlus ? <WhatsAppIcon className="size-3.5 text-[#128C4A]" /> : <Lock className="size-3.5" />}
+              WhatsApp
+              <span className="font-mono tracking-wide text-foreground">
+                {hasPlus ? landlord.whatsappDisplay : maskNumber(landlord.whatsappDisplay)}
+              </span>
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onMessage}
+          className={
+            hasPlus
+              ? `shrink-0 sm:w-auto ${whatsappButton}`
+              : `inline-flex shrink-0 items-center justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 ${press}`
+          }
+        >
+          <WhatsAppIcon /> Message landlord
+        </button>
+      </div>
+    </section>
   );
 }

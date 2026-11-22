@@ -1,8 +1,9 @@
 // Contact flow: browsing is free; chatting with a landlord on WhatsApp needs Nestaway Plus.
 //   subscribed  → open WhatsApp with a ready-to-send message (one tap)
 //   not yet     → upgrade sheet → after paying, continue straight to the same chat
-import { Check, Lock, MessageCircle } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -115,7 +116,7 @@ function UpgradeSheet({
         onClick={close}
         className={`mt-4 w-full ${whatsappButton}`}
       >
-        <MessageCircle className="size-4" /> Open WhatsApp
+        <WhatsAppIcon /> Open WhatsApp
       </a>
     </div>
   ) : (

@@ -15,7 +15,6 @@ import {
   LogIn,
   LogOut,
   MapPin,
-  MessageCircle,
   PawPrint,
   Share2,
   Sofa,
@@ -27,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { SiteHeader } from "@/components/site-header";
 import { Availability } from "@/components/availability";
 import { ContactProvider, PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
@@ -435,7 +435,7 @@ function ListingContent() {
                 <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Minimum stay</dt><dd className="font-medium">3 months</dd></div>
               </dl>
               <button type="button" onClick={() => contactAbout(null)} className={`mt-5 w-full ${whatsappButton}`}>
-                <MessageCircle className="size-4" /> Chat with landlord
+                <WhatsAppIcon /> Chat with landlord
               </button>
               <PlusHint className="mt-2 justify-center text-center" />
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
@@ -480,7 +480,7 @@ function ListingContent() {
             <PlusHint short />
           </div>
           <button type="button" onClick={() => contactAbout(null)} className={`shrink-0 ${whatsappButton}`}>
-            <MessageCircle className="size-4" /> Chat with landlord
+            <WhatsAppIcon /> Chat with landlord
           </button>
         </div>
       </div>
@@ -503,7 +503,7 @@ function ListingContent() {
           footer={
             roomGallery.availableRooms > 0 ? (
               <button type="button" onClick={() => contactAbout(roomGallery)} className={`w-full ${whatsappButton}`}>
-                <MessageCircle className="size-4" /> Ask about {roomGallery.shortName} · €{roomGallery.price.toLocaleString("en")} / month
+                <WhatsAppIcon /> Ask about {roomGallery.shortName} · €{roomGallery.price.toLocaleString("en")} / month
               </button>
             ) : null
           }
@@ -561,7 +561,7 @@ function RoomCard({ room, onAsk, onOpenPhotos }: { room: Room; onAsk: () => void
           onClick={onAsk}
           className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 disabled:cursor-not-allowed disabled:text-muted-foreground ${press}`}
         >
-          {bookedOut ? "Fully booked" : <><MessageCircle className="size-4" /> Ask about this room</>}
+          {bookedOut ? "Fully booked" : <><WhatsAppIcon /> Ask about this room</>}
         </button>
       </div>
     </article>

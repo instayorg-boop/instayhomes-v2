@@ -1,11 +1,12 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Home, Loader2, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Check, ChevronDown, Home, Loader2, Lock, ShieldCheck, Smartphone } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
 import {
   planById,
   plans,
+  plusPromise,
   rememberMomoNumber,
   rememberedMomoNumber,
   safeReturnPath,
@@ -97,6 +98,15 @@ function PlansPage() {
 
 /* ───────────── the one screen ───────────── */
 
+type PayStatus = "idle" | "pending" | "failed" | "declined" | "cancelled";
+
+// What to say under the button after a payment that didn't complete. Nobody was charged in any of these.
+const outcomeMessage: Partial<Record<PayStatus, string>> = {
+  failed: "The payment didn't go through, so you weren't charged. Check your mobile money balance and try again.",
+  declined: "The payment was declined on your phone, so you weren't charged. Tap Pay to try again.",
+  cancelled: "Payment cancelled. You weren't charged.",
+};
+
 function PayScreen({
   plan,
   room,
@@ -115,10 +125,16 @@ function PayScreen({
   const [editingEmail, setEditingEmail] = useState(false);
   const [email, setEmail] = useState(user?.email ?? "");
   const [signingIn, setSigningIn] = useState(false);
-  const [waiting, setWaiting] = useState(false);
+  const [status, setStatus] = useState<PayStatus>("idle");
   const [attempt, setAttempt] = useState(0);
+  const [showIncluded, setShowIncluded] = useState(false);
   const paidRef = useRef(onPaid);
   paidRef.current = onPaid;
+  const pending = status === "pending";
+
+  // While the phone prompt is open, keep them on this page: in-app links and the back button
+  // do nothing, and closing or reloading the tab asks first.
+  useBlocker({ shouldBlockFn: () => pending, enableBeforeUnload: () => pending });
 
   // Fill in what we already know: the last number they paid with, and their account email.
   useEffect(() => {
@@ -138,11 +154,15 @@ function PayScreen({
     window.setTimeout(() => setPlusUser({ name: "Mwila Banda", email: "mwila.banda@example.com" }), 900);
   };
 
-  // DEMO payment: the real provider sends a prompt to the phone and reports back once the PIN
-  // is entered. Swap this timer for that callback.
+  // DEMO payment: the real provider sends a prompt to the phone and reports success, failure
+  // or a decline once the customer responds. Swap this timer for that callback.
+  // To try the other outcomes: a number ending 0000 fails, one ending 1111 is declined.
   useEffect(() => {
-    if (!waiting || !user) return;
+    if (!pending || !user) return;
+    const digits = phone.replace(/\D/g, "");
     const timer = window.setTimeout(() => {
+      if (digits.endsWith("0000")) return setStatus("failed");
+      if (digits.endsWith("1111")) return setStatus("declined");
       setPlus(plan.id);
       paidRef.current({
         reference: `NW-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
@@ -152,45 +172,17 @@ function PayScreen({
       });
     }, 3200);
     return () => window.clearTimeout(timer);
-  }, [waiting, attempt, plan, user, email, phone]);
+  }, [pending, attempt, plan, user, email, phone]);
 
   const pay = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user) return;
+    if (!user || pending) return;
     if (email && email !== user.email) setPlusUser({ ...user, email });
     rememberMomoNumber(phone);
-    setWaiting(true);
+    setStatus("pending");
   };
 
-  if (waiting) {
-    return (
-      <div className="mx-auto max-w-md pt-6 text-center animate-in fade-in duration-300 ease-out" aria-live="polite">
-        <span className="relative mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <span className="absolute inset-0 animate-ping rounded-full bg-primary/10 [animation-duration:1.6s]" />
-          <Smartphone className="size-7" />
-        </span>
-        <h1 className="mt-6 text-3xl font-bold tracking-tight">Check your phone</h1>
-        <p className="mt-2 text-base text-muted-foreground">
-          We sent a request for <strong className="text-foreground">{plan.price}</strong> to{" "}
-          <strong className="text-foreground">+260 {phone}</strong>. Enter your mobile money PIN to approve it. WhatsApp opens as soon as it's done.
-        </p>
-        <p className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Waiting for your approval…
-        </p>
-        <div className="mt-8 border-t pt-6 text-sm">
-          <p className="font-medium">No prompt on your phone?</p>
-          <div className="mt-3 flex justify-center gap-3">
-            <button type="button" onClick={() => setAttempt((count) => count + 1)} className={`rounded-md border-2 px-4 py-2 font-semibold hover:bg-muted ${press}`}>
-              Send it again
-            </button>
-            <button type="button" onClick={() => setWaiting(false)} className={`rounded-md px-4 py-2 font-semibold underline underline-offset-4 ${press}`}>
-              Change number
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const outcome = outcomeMessage[status];
 
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
@@ -211,90 +203,155 @@ function PayScreen({
       </div>
 
       <h1 className="mt-7 text-3xl font-bold tracking-tight">Get Nestaway Plus</h1>
-      <p className="mt-1 text-base text-muted-foreground">Chat with landlords directly on WhatsApp.</p>
+      <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
 
-      <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border-2 p-4">
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">Your plan</p>
-          <p className="font-semibold">{plan.name} · {plan.price}</p>
-        </div>
-        <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted ${press}`}>
-          Change
-        </button>
-      </div>
-
-      {!user ? (
-        <div className="mt-6">
-          <button type="button" onClick={signIn} disabled={signingIn} className={`inline-flex w-full items-center justify-center gap-3 rounded-md border-2 bg-background px-5 py-3.5 text-base font-semibold hover:bg-muted disabled:opacity-60 ${press}`}>
-            {signingIn ? <Loader2 className="size-5 animate-spin" /> : <GoogleIcon />}
-            {signingIn ? "Signing in…" : "Continue with Google"}
+      <fieldset disabled={pending} className="contents">
+        <div className="mt-6 rounded-xl border-2">
+          <div className="flex items-center justify-between gap-4 p-4">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Your plan</p>
+              <p className="font-semibold">{plan.name} · {plan.price}</p>
+            </div>
+            <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted disabled:opacity-40 ${press}`}>
+              Change
+            </button>
+          </div>
+          <button
+            type="button"
+            aria-expanded={showIncluded}
+            aria-controls="plan-included"
+            onClick={() => setShowIncluded((open) => !open)}
+            className="flex w-full items-center justify-between border-t px-4 py-3 text-sm font-medium hover:bg-muted/60"
+          >
+            What's included
+            <ChevronDown className={`size-4 transition-transform duration-200 ease-out ${showIncluded ? "rotate-180" : ""}`} />
           </button>
-          <p className="mt-3 text-center text-sm text-muted-foreground">
-            Your plan is saved to your account. You'll come straight back here to pay.
-          </p>
+          {/* Animates height with grid rows (0fr → 1fr), so no measuring is needed. */}
+          <div
+            id="plan-included"
+            className="grid transition-[grid-template-rows] duration-300 ease-out"
+            style={{ gridTemplateRows: showIncluded ? "1fr" : "0fr" }}
+          >
+            <div className="overflow-hidden">
+              <ul className="space-y-2.5 px-4 pb-4 pt-1">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2.5 text-sm">
+                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="mt-6 animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out">
-          <label className="block text-sm font-semibold">
-            Mobile money number
-            <span className="mt-2 flex h-14 items-center rounded-md border-2 bg-background focus-within:border-foreground">
-              <span className="border-r-2 px-4 text-base font-normal text-muted-foreground">+260</span>
-              <input
-                required
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel-national"
-                pattern="0?[0-9 ]{9,11}"
-                value={phone}
-                onChange={(event) => {
-                  setPhone(event.target.value);
-                  setRemembered(false);
-                }}
-                placeholder="97 123 4567"
-                className="h-full min-w-0 flex-1 bg-transparent px-4 text-lg font-normal tracking-wide outline-none"
-              />
-            </span>
-          </label>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {remembered ? <span className="font-medium text-emerald-700">✓ The number you used last time</span> : "Airtel, MTN or Zamtel."}
-          </p>
 
-          <div className="mt-4 text-sm text-muted-foreground">
-            {editingEmail ? (
-              <label className="block font-semibold text-foreground">
-                Email for your receipt
+        {!user ? (
+          <div className="mt-6">
+            <button type="button" onClick={signIn} disabled={signingIn} className={`inline-flex w-full items-center justify-center gap-3 rounded-md border-2 bg-background px-5 py-3.5 text-base font-semibold hover:bg-muted disabled:opacity-60 ${press}`}>
+              {signingIn ? <Loader2 className="size-5 animate-spin" /> : <GoogleIcon />}
+              {signingIn ? "Signing in…" : "Continue with Google"}
+            </button>
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Your plan is saved to your account. You'll come straight back here to pay.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out">
+            <label className="block text-sm font-semibold">
+              Mobile money number
+              <span className="mt-2 flex h-14 items-center rounded-md border-2 bg-background focus-within:border-foreground">
+                <span className="border-r-2 px-4 text-base font-normal text-muted-foreground">+260</span>
                 <input
                   required
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 h-12 w-full rounded-md border-2 bg-background px-4 text-base font-normal outline-none focus:border-foreground"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel-national"
+                  pattern="0?[0-9 ]{9,11}"
+                  value={phone}
+                  onChange={(event) => {
+                    setPhone(event.target.value);
+                    setRemembered(false);
+                  }}
+                  placeholder="97 123 4567"
+                  className="h-full min-w-0 flex-1 bg-transparent px-4 text-lg font-normal tracking-wide outline-none disabled:opacity-60"
                 />
-              </label>
-            ) : (
-              <p>
-                Receipt goes to <span className="font-medium text-foreground">{email}</span>{" "}
-                <button type="button" onClick={() => setEditingEmail(true)} className="font-semibold text-foreground underline underline-offset-4">
-                  Change
-                </button>
+              </span>
+            </label>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {remembered ? <span className="font-medium text-emerald-700">✓ The number you used last time</span> : "Airtel, MTN or Zamtel."}
+            </p>
+
+            <div className="mt-4 text-sm text-muted-foreground">
+              {editingEmail ? (
+                <label className="block font-semibold text-foreground">
+                  Email for your receipt
+                  <input
+                    required
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="mt-2 h-12 w-full rounded-md border-2 bg-background px-4 text-base font-normal outline-none focus:border-foreground"
+                  />
+                </label>
+              ) : (
+                <p>
+                  Receipt goes to <span className="font-medium text-foreground">{email}</span>{" "}
+                  <button type="button" onClick={() => setEditingEmail(true)} className="font-semibold text-foreground underline underline-offset-4 disabled:opacity-40">
+                    Change
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </fieldset>
+
+      {user && (
+        <>
+          <div className="sticky bottom-0 -mx-4 mt-6 border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+            {outcome && (
+              <p role="alert" className="mb-3 rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive animate-in fade-in duration-200">
+                {outcome}
               </p>
             )}
-          </div>
-
-          <div className="sticky bottom-0 -mx-4 mt-6 border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
-            <button type="submit" className={`inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3.5 text-base font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
-              <Lock className="size-4" /> Pay {plan.price}
+            {/* The button is the waiting state: no separate "check your phone" page. */}
+            <button
+              type="submit"
+              aria-busy={pending}
+              className={`relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-md px-5 py-3.5 text-base font-semibold text-primary-foreground ${press} ${
+                pending ? "cursor-progress bg-primary/85" : "bg-primary hover:bg-primary/90"
+              }`}
+            >
+              {pending && <span className="absolute inset-y-0 left-0 w-1/3 animate-[pay-sweep_1.4s_ease-in-out_infinite] bg-white/15" aria-hidden />}
+              <span key={pending ? "pending" : "idle"} className="relative inline-flex items-center gap-2 animate-in fade-in duration-200">
+                {pending ? <Smartphone className="size-5 animate-pulse" /> : <Lock className="size-4" />}
+                {pending ? `Check your phone to approve ${plan.price}` : `Pay ${plan.price}`}
+              </span>
             </button>
-            {/* PLACEHOLDER legal wording: confirm with a lawyer that this can replace a checkbox. */}
-            <p className="mt-2 text-center text-xs text-muted-foreground">By paying you agree to the Nestaway Plus terms. No other fees.</p>
+            <p aria-live="polite" className="mt-2 text-center text-xs text-muted-foreground">
+              {pending ? (
+                <>
+                  Stay on this page until you've approved.{" "}
+                  <button type="button" onClick={() => setAttempt((count) => count + 1)} className="font-semibold text-foreground underline underline-offset-2">
+                    Send prompt again
+                  </button>
+                  {" · "}
+                  <button type="button" onClick={() => setStatus("cancelled")} className="font-semibold text-foreground underline underline-offset-2">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                // PLACEHOLDER legal wording: confirm with a lawyer that this can replace a checkbox.
+                "By paying you agree to the Nestaway Plus terms. No other fees."
+              )}
+            </p>
           </div>
 
           <p className="mt-5 flex gap-2 text-sm leading-6 text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
             You approve the payment on your own phone. Nestaway never sees or asks for your PIN.
           </p>
-        </div>
+        </>
       )}
     </form>
   );
@@ -309,6 +366,7 @@ function ComparePlans({ current, onChoose, onClose }: { current: Plan; onChoose:
         <ArrowLeft className="size-4" /> Back to payment
       </button>
       <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Choose your plan</h1>
+      <p className="mt-3 max-w-xl text-base text-muted-foreground">{plusPromise}</p>
       <div className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-5">
         {plans.map((option) => {
           const selected = option.id === current.id;
@@ -422,11 +480,16 @@ function Shell({ returnTo, user, children }: { returnTo: string; user: PlusUser 
   );
 }
 
-// Google "G" from Simple Icons v13.21.0 (CC0-1.0).
+// Google's "G" logo, from Google's own sign-in button artwork
+// (gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg). Used as Google's branding
+// guidelines intend: on a "Continue with Google" button.
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="size-5" aria-hidden="true">
-      <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
+    <svg viewBox="0 0 120 120" className="size-5" aria-hidden="true">
+      <path fill="#4285F4" d="M117.6 61.36c0-4.25-.38-8.34-1.09-12.27H60V72.3h32.29c-1.39 7.5-5.62 13.85-11.97 18.11v15.05h19.39c11.35-10.44 17.89-25.83 17.89-44.1Z" />
+      <path fill="#34A853" d="M60 120c16.2 0 29.78-5.37 39.71-14.54L80.32 90.41c-5.37 3.6-12.25 5.73-20.32 5.73-15.63 0-28.85-10.56-33.57-24.74H6.38v15.55C16.25 106.55 36.55 120 60 120Z" />
+      <path fill="#FBBC05" d="M26.43 71.4c-1.2-3.6-1.88-7.45-1.88-11.4s.68-7.8 1.88-11.4V33.05H6.38A59.9 59.9 0 0 0 0 60c0 9.68 2.32 18.85 6.38 26.95L26.43 71.4Z" />
+      <path fill="#EA4335" d="M60 23.86c8.81 0 16.72 3.03 22.94 8.98l17.2-17.21C89.76 5.95 76.17 0 60 0 36.55 0 16.25 13.45 6.38 33.05L26.43 48.6C31.15 34.42 44.37 23.86 60 23.86Z" />
     </svg>
   );
 }

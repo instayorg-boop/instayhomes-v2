@@ -41,8 +41,8 @@ export function PlusHint({ className = "", short = false }: { className?: string
   const plan = usePlus();
   if (plan) return <p className={`text-xs text-muted-foreground ${className}`}>{short ? "Opens WhatsApp" : "Opens WhatsApp with your message ready."}</p>;
   return (
-    <p className={`flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground ${className}`}>
-      <Lock className="size-3 shrink-0" /> {short ? "With Nestaway Plus" : "Included with Nestaway Plus"}
+    <p className={`flex items-center gap-1 text-xs text-muted-foreground ${short ? "whitespace-nowrap" : ""} ${className}`}>
+      <Lock className="size-3 shrink-0" /> {short ? "With Nestaway Plus" : "One Plus payment unlocks every landlord"}
     </p>
   );
 }

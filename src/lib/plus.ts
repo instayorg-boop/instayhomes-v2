@@ -1,7 +1,9 @@
 // Nestaway Plus: the paid plans that unlock direct WhatsApp contact with landlords.
 import { useSyncExternalStore } from "react";
 
-// Prices are real; `features` are PLACEHOLDER copy until each plan's contents are confirmed.
+// Prices are real. One payment unlocks contact with every landlord. The rest of `features`
+// is PLACEHOLDER copy until each plan's contents are confirmed.
+export const plusPromise = "One payment lets you contact every landlord on Nestaway, as often as you like.";
 export const plans = [
   {
     id: "self-service",
@@ -9,7 +11,7 @@ export const plans = [
     price: "K199",
     amount: 199,
     currency: "ZMW",
-    features: ["Chat with landlords on WhatsApp", "Ask about any room on Nestaway", "Messages written for you, ready to send"],
+    features: ["Contact every landlord on Nestaway", "Message as many as you like, whenever you like", "Chat directly on WhatsApp, with your first message written for you"],
   },
   {
     id: "assisted",
@@ -17,7 +19,7 @@ export const plans = [
     price: "K399",
     amount: 399,
     currency: "ZMW",
-    features: ["Everything in Self-service", "A Nestaway agent helps you shortlist rooms", "Help arranging viewings with landlords"],
+    features: ["Contact every landlord on Nestaway, as often as you like", "A Nestaway agent helps you shortlist rooms", "Help arranging viewings with landlords"],
   },
   {
     id: "international",
@@ -25,7 +27,7 @@ export const plans = [
     price: "$50",
     amount: 50,
     currency: "USD",
-    features: ["Everything in Self-service", "For tenants moving from abroad", "Priced in US dollars"],
+    features: ["Contact every landlord on Nestaway, as often as you like", "For tenants moving from abroad", "Priced in US dollars"],
   },
 ] as const;
 

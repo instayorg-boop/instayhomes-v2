@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -12,6 +12,7 @@ import {
   Heart,
   Home,
   KeyRound,
+  Lock,
   LogIn,
   LogOut,
   MapPin,
@@ -197,7 +198,13 @@ function ListingPage() {
   const soonest = openRooms.find((room) => room.available === "Available now") ?? openRooms[0] ?? null;
   const fromPrice = Math.min(...(openRooms.length ? openRooms : listingRooms).map((room) => room.price));
 
-  const { contact } = useContactLandlord();
+  const { contact, plan } = useContactLandlord();
+  const router = useRouter();
+
+  // Load the payment page's code in the background, so "Ask" opens it instantly.
+  useEffect(() => {
+    void router.preloadRoute({ to: "/plans" }).catch(() => undefined);
+  }, [router]);
   const [roomGalleryId, setRoomGalleryId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
@@ -370,6 +377,30 @@ function ListingPage() {
                     onOpenPhotos={() => setRoomGalleryId(room.id)}
                   />
                 ))}
+              </div>
+            </section>
+
+            {/* Shows exactly what Plus unlocks before anyone reaches the payment screen. */}
+            <section aria-labelledby="landlord-heading" className="border-b py-8">
+              <h2 id="landlord-heading" className="text-xl font-bold">Your landlord</h2>
+              <div className="mt-4 flex flex-col gap-4 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-lg font-semibold">L</span>
+                  <div className="min-w-0">
+                    <p className="font-semibold">Landlord of this apartment</p>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <WhatsAppIcon className="size-3.5 text-[#128C4A]" /> Replies on WhatsApp
+                    </p>
+                    {!plan && (
+                      <p className="mt-1 flex items-center gap-1.5 font-mono text-sm tracking-wider text-muted-foreground">
+                        <Lock className="size-3.5" /> +260 9• ••• ••••
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <button type="button" onClick={() => contactAbout(null)} className={`sm:w-auto ${whatsappButton}`}>
+                  <WhatsAppIcon /> {plan ? "Chat on WhatsApp" : "Unlock with Plus"}
+                </button>
               </div>
             </section>
 

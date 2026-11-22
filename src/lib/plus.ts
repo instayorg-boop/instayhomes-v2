@@ -109,3 +109,22 @@ export function setPlusUser(user: PlusUser | null) {
   }
   listeners.forEach((listener) => listener());
 }
+
+// Remembered mobile money number, so renewing is one tap. DEMO: per browser.
+const MOMO_KEY = "nestaway-momo-demo";
+
+export function rememberedMomoNumber(): string {
+  try {
+    return window.localStorage.getItem(MOMO_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function rememberMomoNumber(phone: string) {
+  try {
+    window.localStorage.setItem(MOMO_KEY, phone);
+  } catch {
+    // Storage blocked: they type it next time.
+  }
+}

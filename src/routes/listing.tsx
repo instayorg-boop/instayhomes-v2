@@ -147,6 +147,15 @@ export const totalAvailableRooms = rooms.reduce((total, room) => total + room.av
 
 const listingTitle = "Sunny shared apartment in Kreuzberg";
 
+// Who the home is for. PLACEHOLDER: set per listing once listings come from the database.
+type Gender = "mixed" | "male" | "female";
+const listingGender: Gender = "mixed";
+const genderLabel: Record<Gender, string> = {
+  mixed: "Male & female spaces",
+  male: "Male spaces only",
+  female: "Female spaces only",
+};
+
 const universities = [
   { name: "Humboldt-Universität zu Berlin", distance: "3.2 km" },
   { name: "Technische Universität Berlin", distance: "4.8 km" },
@@ -374,27 +383,32 @@ function ListingPage() {
           <div className="min-w-0">
           <div className="min-w-0 pb-8">
             {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
-            <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
-            {/* Phones: stacked. Desktop: location, availability and gender on one line. */}
-            <div className="mt-2 flex flex-col items-start gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-5 lg:gap-y-2">
-              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
-              </p>
-              {soonest ? (
-                <Availability
-                  available={soonest.available}
-                  left={roomsLeft}
-                  leftLabel={(count) => `${count} rooms left`}
-                  className="text-base lg:text-sm"
-                />
-              ) : (
-                <p className="text-base font-medium text-muted-foreground lg:text-sm">Fully booked right now</p>
-              )}
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
-                <Users className="size-3.5 text-muted-foreground" /> Mixed gender
-              </span>
+            <h1 className="max-w-3xl text-balance text-center text-2xl font-bold leading-tight tracking-tight sm:text-3xl lg:text-left">{listing.title}</h1>
+            {/* Phones and tablets: centred, location and gender side by side, availability below.
+                Desktop: location, availability and gender on one left-aligned line. */}
+            <div className="mt-2 flex flex-col items-center gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-5 lg:gap-y-2">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 lg:contents">
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground lg:order-1">
+                  <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
+                </p>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm lg:order-3">
+                  <Users className="size-3.5 text-muted-foreground" /> {genderLabel[listingGender]}
+                </span>
+              </div>
+              <div className="lg:order-2">
+                {soonest ? (
+                  <Availability
+                    available={soonest.available}
+                    left={roomsLeft}
+                    leftLabel={(count) => `${count} rooms left`}
+                    className="text-base lg:text-sm"
+                  />
+                ) : (
+                  <p className="text-base font-medium text-muted-foreground lg:text-sm">Fully booked right now</p>
+                )}
+              </div>
             </div>
-            <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 lg:hidden ${press} w-full text-left`}>
+            <TenantProtectionLink className={`mx-auto mt-5 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 lg:hidden ${press} w-full text-left`}>
               <VerifiedIcon className="size-7 shrink-0" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">Tenant verified</span>

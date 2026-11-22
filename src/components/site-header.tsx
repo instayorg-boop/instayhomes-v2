@@ -28,7 +28,7 @@ export function SiteHeader() {
               type="button"
               aria-label="Open menu"
               onClick={() => setMenuOpen(true)}
-              className="ml-1 rounded-md p-2 hover:bg-muted"
+              className="ml-1 rounded-md p-2 transition-[scale,background-color] duration-150 ease-out hover:bg-muted active:scale-95"
             >
               <Menu className="size-5" />
             </button>
@@ -41,10 +41,10 @@ export function SiteHeader() {
           <button
             type="button"
             aria-label="Close menu overlay"
-            className="absolute inset-0 bg-foreground/40"
+            className="absolute inset-0 bg-foreground/40 animate-in fade-in duration-300 ease-out"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft animate-in slide-in-from-right">
+          <aside className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft animate-in slide-in-from-right duration-300 ease-drawer">
             <div className="flex items-center justify-between">
               <span className="font-display text-2xl text-primary">NESTAWAY</span>
               <button

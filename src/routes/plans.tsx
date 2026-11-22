@@ -195,19 +195,27 @@ function PayScreen({
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
       {/* What they're unlocking stays in view, so paying reads as the last step of contacting. */}
-      <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
-        {/* The room's photo, or the property's main photo when they're asking about the whole home. */}
-        <img src={room?.images[0]?.src ?? heroImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">Unlock chat with the landlord of</p>
-          <p className="truncate font-semibold">
-            {room ? `${room.shortName} · €${room.price.toLocaleString("en")}/month` : "Sunny shared apartment"}
-          </p>
-          <p className="text-xs text-muted-foreground">Kreuzberg, Berlin</p>
+      {/* The room's photo (or the property's main photo for the whole home), darkened towards the
+          bottom with the name over it. Edge to edge on phones, a rounded card on wider screens. */}
+      <div className="relative -mx-4 -mt-6 h-48 overflow-hidden sm:mx-0 sm:mt-0 sm:h-52 sm:rounded-2xl">
+        <img src={room?.images[0]?.src ?? heroImage} alt="" className="absolute inset-0 size-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/35 to-black/80" aria-hidden />
+        <div className="absolute inset-x-4 bottom-7 text-white sm:inset-x-5 sm:bottom-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">Unlock chat with the landlord of</p>
+          <p className="mt-0.5 truncate text-2xl font-bold tracking-tight">{room ? room.shortName : "Sunny shared apartment"}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
+            {room && (
+              <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">
+                €{room.price.toLocaleString("en")}/month
+              </span>
+            )}
+            <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">Kreuzberg, Berlin</span>
+          </div>
         </div>
       </div>
-
-      <h1 className="mt-7 text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
+      {/* On phones the page slides over the photo's bottom edge as a rounded sheet. */}
+      <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
+      <h1 className="text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
       <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
 
       <fieldset disabled={pending} className="contents">
@@ -357,6 +365,7 @@ function PayScreen({
           </p>
         </>
       )}
+      </div>
     </form>
   );
 }

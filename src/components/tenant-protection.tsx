@@ -1,6 +1,6 @@
 // Tenant Protection: the wording lives here once. The home page shows it as a section; every other
 // page opens it in a red sheet (phones) or window (desktop) so nobody has to leave what they're doing.
-import { CheckCircle2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -52,36 +52,35 @@ export function TenantProtectionSheet({ open, onOpenChange }: { open: boolean; o
   const isMobile = useIsMobile();
   const description = "What Instayhomes does for you if something goes wrong with your rental.";
 
-  const body = (
-    <>
-      <ProtectionPerks />
-      <img
-        src={protectionImage}
-        alt="Happy tenants at home"
-        className="mt-6 aspect-[16/9] w-full rounded-lg object-cover md:aspect-[4/3]"
-      />
-      <button
-        type="button"
-        onClick={() => onOpenChange(false)}
-        className="mt-6 w-full rounded-md bg-primary-foreground px-5 py-3.5 text-base font-semibold text-primary transition-[scale,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"
-      >
-        Got it
-      </button>
-    </>
-  );
-
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
-        <DrawerContent className="max-h-[90dvh] border-primary bg-primary text-primary-foreground [&>div:first-child]:bg-primary-foreground/40">
-          <div className="overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5">
-            <DrawerTitle className="font-display text-5xl font-normal leading-none">
-              TENANT
-              <br />
-              PROTECTION
-            </DrawerTitle>
-            <DrawerDescription className="sr-only">{description}</DrawerDescription>
-            <div className="mt-7">{body}</div>
+        <DrawerContent className="max-h-[90dvh] overflow-hidden border-primary bg-primary text-primary-foreground [&>div:first-child]:bg-primary-foreground/40">
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={() => onOpenChange(false)}
+            className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-primary-foreground/80 transition-[scale,color] duration-150 ease-out hover:text-primary-foreground active:scale-90"
+          >
+            <X className="size-5" />
+          </button>
+          <div className="overflow-y-auto overscroll-contain">
+            <div className="px-5 pt-5">
+              <DrawerTitle className="font-display text-5xl font-normal leading-none">
+                TENANT
+                <br />
+                PROTECTION
+              </DrawerTitle>
+              <DrawerDescription className="sr-only">{description}</DrawerDescription>
+              <div className="mt-7">
+                <ProtectionPerks />
+              </div>
+            </div>
+            {/* Photo at the bottom, edge to edge, fading up into the red. */}
+            <div className="relative mt-2 h-52">
+              <img src={protectionImage} alt="Happy tenants at home" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-b from-primary via-primary/40 to-transparent" aria-hidden />
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
@@ -90,9 +89,9 @@ export function TenantProtectionSheet({ open, onOpenChange }: { open: boolean; o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] max-w-3xl overflow-y-auto border-primary bg-primary p-8 text-primary-foreground [&>button:last-child]:text-primary-foreground [&>button:last-child]:opacity-80">
-        <div className="grid items-start gap-8 md:grid-cols-2">
-          <div>
+      <DialogContent className="max-h-[90dvh] max-w-3xl gap-0 overflow-hidden border-primary bg-primary p-0 text-primary-foreground sm:rounded-xl [&>button:last-child]:z-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-black/30 [&>button:last-child]:p-1.5 [&>button:last-child]:text-white [&>button:last-child]:opacity-100 [&>button:last-child]:backdrop-blur-sm">
+        <div className="grid md:grid-cols-2">
+          <div className="p-8 md:py-10">
             <DialogTitle className="font-display text-6xl font-normal leading-none">
               TENANT
               <br />
@@ -103,19 +102,13 @@ export function TenantProtectionSheet({ open, onOpenChange }: { open: boolean; o
               <ProtectionPerks />
             </div>
           </div>
-          <div>
-            <img src={protectionImage} alt="Happy tenants at home" className="aspect-[4/3] w-full rounded-lg object-cover" />
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="mt-6 w-full rounded-md bg-primary-foreground px-5 py-3.5 text-base font-semibold text-primary transition-[scale,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"
-            >
-              Got it
-            </button>
+          {/* Photo fills the right half top to bottom, fading into the red from the left. */}
+          <div className="relative min-h-64">
+            <img src={protectionImage} alt="Happy tenants at home" className="absolute inset-0 size-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/30 to-transparent" aria-hidden />
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

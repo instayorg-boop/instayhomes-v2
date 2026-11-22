@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  BadgeCheck,
   BedDouble,
   Check,
   ChevronLeft,
@@ -15,6 +16,7 @@ import {
   LogOut,
   MapPin,
   Maximize2,
+  MessageCircle,
   PawPrint,
   Share2,
   ShieldCheck,
@@ -26,8 +28,14 @@ import {
   Wifi,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { Availability } from "@/components/availability";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { pickListing } from "./-listing-worst-case";
+import { DataToggle, useDataMode } from "./-search-worst-case";
 
 export const Route = createFileRoute("/listing")({
   head: () => ({
@@ -133,12 +141,11 @@ export const rooms = [
   },
 ];
 
+export type Room = (typeof rooms)[number];
+
 export const totalAvailableRooms = rooms.reduce((total, room) => total + room.availableRooms, 0);
 
-const gallerySections: PhotoSection[] = [
-  { id: "general", title: "General photos", photos: generalPhotos },
-  ...rooms.map((room) => ({ id: room.id, title: room.name, photos: room.images })),
-];
+const listingTitle = "Sunny shared apartment in Kreuzberg";
 
 const universities = [
   { name: "Humboldt-Universität zu Berlin", distance: "3.2 km" },
@@ -172,40 +179,51 @@ type LightboxState = {
   index: number;
 };
 
+type RequestMode = "book" | "message";
+
+// Press feedback shared by every button on the page (emil-design-eng: buttons must feel heard).
+const press = "transition-[scale,background-color,border-color,color] duration-150 ease-out active:scale-[0.97]";
+
 function ListingPage() {
-  const [selectedRoomId, setSelectedRoomId] = useState(rooms[0]!.id);
+  const dataMode = useDataMode();
+  const listing = pickListing(dataMode, { title: listingTitle, rooms });
+  const listingRooms = listing.rooms;
+  const roomsLeft = listingRooms.reduce((total, room) => total + room.availableRooms, 0);
+  const firstOpenRoom = listingRooms.find((room) => room.availableRooms > 0);
+
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [roomGalleryId, setRoomGalleryId] = useState<string | null>(null);
   const [roomPickerOpen, setRoomPickerOpen] = useState(false);
+  const [request, setRequest] = useState<RequestMode | null>(null);
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
-  const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? rooms[0]!;
-  const roomGallery = rooms.find((room) => room.id === roomGalleryId);
-  const anyOverlayOpen = galleryOpen || roomPickerOpen || Boolean(roomGallery) || Boolean(lightbox);
+  // A booked-out room can't stay selected; fall back to the first room with space.
+  const selectedRoom =
+    listingRooms.find((room) => room.id === selectedRoomId && room.availableRooms > 0) ?? firstOpenRoom ?? null;
+  const roomGallery = listingRooms.find((room) => room.id === roomGalleryId);
+  const fullScreenOpen = galleryOpen || Boolean(roomGallery) || Boolean(lightbox);
+
+  const gallerySections: PhotoSection[] = [
+    { id: "general", title: "General photos", photos: generalPhotos },
+    ...listingRooms
+      .filter((room) => room.images.length > 0)
+      .map((room) => ({ id: room.id, title: room.name, photos: room.images })),
+  ];
 
   useEffect(() => {
-    if (!anyOverlayOpen) return;
+    if (!fullScreenOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (lightbox) setLightbox(null);
-        else if (roomGalleryId) setRoomGalleryId(null);
-        else if (roomPickerOpen) setRoomPickerOpen(false);
-        else setGalleryOpen(false);
-      }
-
-      if (lightbox && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
-        const direction = event.key === "ArrowRight" ? 1 : -1;
-        setLightbox((current) => current ? {
-          ...current,
-          index: (current.index + direction + current.photos.length) % current.photos.length,
-        } : null);
-      }
+      if (event.key !== "Escape") return;
+      if (lightbox) setLightbox(null);
+      else if (roomGalleryId) setRoomGalleryId(null);
+      else setGalleryOpen(false);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -213,12 +231,12 @@ function ListingPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [anyOverlayOpen, lightbox, roomGalleryId, roomPickerOpen]);
+  }, [fullScreenOpen, lightbox, roomGalleryId]);
 
-  const openRoom = (roomId: string) => {
+  const selectRoom = (roomId: string) => {
     setSelectedRoomId(roomId);
     setRoomPickerOpen(false);
-    setRoomGalleryId(roomId);
+    setRoomGalleryId(null);
   };
 
   const shareListing = async () => {
@@ -231,8 +249,12 @@ function ListingPage() {
     }
   };
 
+  const soonest = firstOpenRoom
+    ? (listingRooms.find((room) => room.availableRooms > 0 && room.available === "Available now") ?? firstOpenRoom)
+    : null;
+
   return (
-    <div className="min-h-screen bg-background pb-20 text-foreground lg:pb-0">
+    <div className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
       <SiteHeader />
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-12 sm:pt-5">
@@ -249,23 +271,34 @@ function ListingPage() {
         <div className="flex flex-col">
           <div className="order-2 mt-5 flex flex-col justify-between gap-4 sm:order-1 sm:flex-row sm:items-start">
             <div className="min-w-0">
-              <h1 className="max-w-3xl text-2xl font-bold leading-tight sm:text-3xl">Sunny shared apartment in Kreuzberg</h1>
-              <p className="mt-2 text-sm text-muted-foreground">Berlin, Germany · 3 room types · 2 shared bathrooms</p>
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium">
-                <span className="flex items-center gap-1.5"><Users className="size-4 text-primary" /> Mixed gender</span>
-                <span className="flex items-center gap-1.5"><MapPin className="size-4 text-primary" /> Kreuzberg, Berlin</span>
-                <span className="flex items-center gap-1.5"><Check className="size-4 text-primary" /> {totalAvailableRooms} rooms available</span>
-              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                <BadgeCheck className="size-3.5" /> Tenant verified
+              </span>
+              <h1 className="mt-2 max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
+              <p className="mt-2 flex items-start gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="mt-0.5 size-4 shrink-0" />
+                <span>Kreuzberg, Berlin · Mixed gender · 2 shared bathrooms</span>
+              </p>
+              {soonest ? (
+                <Availability
+                  available={soonest.available}
+                  left={roomsLeft}
+                  leftLabel={(count) => `${count} rooms left`}
+                  className="mt-3 text-base"
+                />
+              ) : (
+                <p className="mt-3 text-base font-medium text-muted-foreground">Fully booked right now</p>
+              )}
             </div>
             <div className="hidden shrink-0 gap-2 sm:flex">
-              <button type="button" onClick={shareListing} className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold underline underline-offset-4 hover:bg-muted">
+              <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>
                 <Share2 className="size-4" /> {shared ? "Link copied" : "Share"}
               </button>
               <button
                 type="button"
                 aria-pressed={saved}
                 onClick={() => setSaved((current) => !current)}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold underline underline-offset-4 hover:bg-muted"
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}
               >
                 <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} /> {saved ? "Saved" : "Save"}
               </button>
@@ -273,12 +306,12 @@ function ListingPage() {
           </div>
 
           <section aria-label="Property photos" className="relative order-1 -mx-4 sm:order-2 sm:mx-0 sm:mt-5">
-            <div className="flex h-72 snap-x snap-mandatory gap-2 overflow-x-auto sm:hidden">
+            <div className="flex h-72 snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:hidden">
               {generalPhotos.slice(0, 5).map((photo, index) => (
                 <button
                   key={photo.src}
                   type="button"
-                  aria-label={`Open photo gallery at image ${index + 1}`}
+                  aria-label={`Open photo ${index + 1} of ${generalPhotos.length}`}
                   onClick={() => setLightbox({ title: "General photos", photos: generalPhotos, index })}
                   className="h-full w-[88%] shrink-0 snap-center overflow-hidden"
                 >
@@ -288,26 +321,26 @@ function ListingPage() {
             </div>
 
             <div className="absolute left-4 top-4 z-10 sm:hidden">
-              <Link to="/search" aria-label="Back to search" className="flex size-10 items-center justify-center rounded-full bg-background shadow-md transition hover:bg-muted">
+              <Link to="/search" aria-label="Back to search" className={`flex size-10 items-center justify-center rounded-full bg-background shadow-md ${press}`}>
                 <ArrowLeft className="size-5" />
               </Link>
             </div>
             <div className="absolute right-4 top-4 z-10 flex gap-2 sm:hidden">
-              <button type="button" aria-label={shared ? "Link copied" : "Share this home"} onClick={shareListing} className="flex size-10 items-center justify-center rounded-full bg-background shadow-md transition hover:bg-muted">
-                <Share2 className="size-4" />
+              <button type="button" aria-label={shared ? "Link copied" : "Share this home"} onClick={shareListing} className={`flex size-10 items-center justify-center rounded-full bg-background shadow-md ${press}`}>
+                {shared ? <Check className="size-4 text-emerald-600" /> : <Share2 className="size-4" />}
               </button>
-              <button type="button" aria-label={saved ? "Remove this home from saved homes" : "Save this home"} aria-pressed={saved} onClick={() => setSaved((current) => !current)} className="flex size-10 items-center justify-center rounded-full bg-background shadow-md transition hover:bg-muted">
+              <button type="button" aria-label={saved ? "Remove this home from saved homes" : "Save this home"} aria-pressed={saved} onClick={() => setSaved((current) => !current)} className={`flex size-10 items-center justify-center rounded-full bg-background shadow-md ${press}`}>
                 <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} />
               </button>
             </div>
 
             <div className="hidden h-[340px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl sm:grid">
               <button type="button" onClick={() => setGalleryOpen(true)} className="col-span-2 row-span-2 h-full w-full overflow-hidden">
-                <img src={generalPhotos[0]!.src} alt={generalPhotos[0]!.alt} className="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" />
+                <img src={generalPhotos[0]!.src} alt={generalPhotos[0]!.alt} className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-[1.02]" />
               </button>
               {generalPhotos.slice(1, 5).map((photo) => (
                 <button key={photo.src} type="button" onClick={() => setGalleryOpen(true)} className="h-full w-full overflow-hidden">
-                  <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" />
+                  <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-[1.02]" />
                 </button>
               ))}
             </div>
@@ -315,9 +348,9 @@ function ListingPage() {
             <button
               type="button"
               onClick={() => setGalleryOpen(true)}
-              className="absolute bottom-4 right-4 flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-semibold shadow-sm hover:bg-muted"
+              className={`absolute bottom-4 right-4 flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-semibold shadow-sm hover:bg-muted ${press}`}
             >
-              <Expand className="size-4" /> Show all photos
+              <Expand className="size-4" /> All {gallerySections.reduce((total, section) => total + section.photos.length, 0)} photos
             </button>
           </section>
         </div>
@@ -325,43 +358,29 @@ function ListingPage() {
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
             <section aria-labelledby="room-heading" className="border-b pb-8">
-              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Rooms & prices</p>
-                  <h2 id="room-heading" className="mt-1 text-2xl font-bold">Choose your room</h2>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Compare prices, then tap <strong className="font-semibold text-foreground">View photos & select</strong> to see each room.</p>
-                </div>
-                <p className="shrink-0 text-sm font-semibold text-primary">{totalAvailableRooms} rooms available</p>
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 id="room-heading" className="text-xl font-bold">Choose your room</h2>
+                <p className="shrink-0 text-sm text-muted-foreground">
+                  {listingRooms.length} {listingRooms.length === 1 ? "room type" : "room types"}
+                </p>
               </div>
 
-              <div className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-5">
-                {rooms.map((room) => {
-                  const active = room.id === selectedRoom.id;
-                  return (
-                    <article key={room.id} className={`min-w-0 overflow-hidden rounded-xl border-2 transition ${active ? "border-primary" : "border-border"}`}>
-                      <button type="button" aria-label={`View ${room.name} photos and select it`} onClick={() => openRoom(room.id)} className="group relative block w-full text-left">
-                        <img src={room.images[0]!.src} alt={`${room.shortName} bedroom`} className="aspect-[16/10] w-full object-cover transition duration-300 group-hover:scale-[1.02] sm:aspect-[4/3]" />
-                        <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-background/95 px-2.5 py-1.5 text-xs font-semibold shadow-sm"><Expand className="size-3.5" /> {room.images.length} photos</span>
-                      </button>
-                      <div className="p-4">
-                        <h3 className="text-base font-bold">{room.name}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">{room.bed} · {room.size} · {room.floor}</p>
-                        <p className="mt-3 text-xl font-bold">€{room.price}<span className="text-xs font-normal text-muted-foreground"> / month</span></p>
-                        <p className="mt-1 text-xs font-semibold text-primary">{room.availableRooms} {room.availableRooms === 1 ? "room" : "rooms"} available</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{room.available}</p>
-                        <button type="button" onClick={() => openRoom(room.id)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
-                          <Expand className="size-4" /> View photos & select
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {listingRooms.map((room) => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    selected={room.id === selectedRoom?.id}
+                    onSelect={() => selectRoom(room.id)}
+                    onOpenPhotos={() => setRoomGalleryId(room.id)}
+                  />
+                ))}
               </div>
             </section>
 
             <section className="border-b py-8">
               <h2 className="text-xl font-bold">About this home</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              <p className="mt-3 max-w-prose text-sm leading-7 text-muted-foreground">
                 Set on a quiet street in Kreuzberg, this bright apartment pairs original wooden floors with simple, modern furnishings. Prepare dinner in the shared kitchen, catch up in the living room, or retreat to your own private room. Shops, cafés and public transport are all within easy walking distance.
               </p>
             </section>
@@ -377,12 +396,11 @@ function ListingPage() {
 
             <section aria-labelledby="universities-heading" className="border-b py-8">
               <h2 id="universities-heading" className="text-xl font-bold">Nearby universities</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Approximate distances from the apartment</p>
               <ul className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {universities.map((university) => (
                   <li key={university.name} className="flex items-center justify-between gap-4 text-sm">
                     <span className="min-w-0">{university.name}</span>
-                    <span className="shrink-0 font-semibold text-primary">{university.distance}</span>
+                    <span className="shrink-0 font-medium tabular-nums">{university.distance}</span>
                   </li>
                 ))}
               </ul>
@@ -400,31 +418,44 @@ function ListingPage() {
 
           <aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
             <div className="rounded-xl border bg-card p-6 shadow-soft">
-              <p className="text-xs font-medium text-muted-foreground">Selected room</p>
-              <h2 className="mt-1 text-lg font-bold">{selectedRoom.name}</h2>
-              <p className="mt-4 text-2xl font-bold">€{selectedRoom.price}<span className="text-sm font-normal text-muted-foreground"> / month</span></p>
-              <p className="mt-1 text-xs text-muted-foreground">Utilities and internet included</p>
-              <p className="mt-3 text-sm font-semibold text-primary">{selectedRoom.availableRooms} {selectedRoom.availableRooms === 1 ? "room" : "rooms"} available</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{selectedRoom.available}</p>
-              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><Maximize2 className="size-4" /> {selectedRoom.size}</span>
-                <span className="flex items-center gap-1.5"><BedDouble className="size-4" /> {selectedRoom.bed}</span>
-              </div>
-              <div className="mt-5 space-y-3 border-y py-4 text-xs">
-                <div className="flex justify-between gap-4"><span className="text-muted-foreground">One-time service fee</span><span className="font-medium">€120</span></div>
-                <div className="flex justify-between gap-4"><span className="text-muted-foreground">Refundable deposit</span><span className="font-medium">€{selectedRoom.price}</span></div>
-                <div className="flex justify-between gap-4"><span className="text-muted-foreground">Minimum stay</span><span className="font-medium">3 months</span></div>
-              </div>
-              <button type="button" className="mt-5 w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
-                Contact landlord
-              </button>
-              <button type="button" onClick={() => openRoom(selectedRoom.id)} className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold transition hover:bg-muted">
-                <Expand className="size-4" /> View room photos
-              </button>
-              <div className="mt-5 flex gap-3 rounded-lg bg-primary/10 p-3">
-                <ShieldCheck className="size-5 shrink-0 text-primary" />
-                <p className="text-[11px] leading-5"><span className="font-semibold">Tenant Protection</span><br /><span className="text-muted-foreground">Your payment is protected until you move in.</span></p>
-              </div>
+              {selectedRoom ? (
+                <>
+                  <p className="text-xs font-medium text-muted-foreground">Your room</p>
+                  <h2 className="mt-1 text-lg font-bold leading-snug">{selectedRoom.name}</h2>
+                  <p className="mt-3 text-2xl font-bold tabular-nums">
+                    €{selectedRoom.price.toLocaleString("en")}
+                    <span className="text-sm font-normal text-muted-foreground"> / month, bills included</span>
+                  </p>
+                  <Availability available={selectedRoom.available} left={selectedRoom.availableRooms} leftLabel={(count) => `${count} left`} className="mt-2" />
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><Maximize2 className="size-4" /> {selectedRoom.size}</span>
+                    <span className="flex items-center gap-1.5"><BedDouble className="size-4" /> {selectedRoom.bed}</span>
+                  </div>
+                  <dl className="mt-5 space-y-2.5 border-y py-4 text-sm">
+                    <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Refundable deposit</dt><dd className="font-medium tabular-nums">€{selectedRoom.price.toLocaleString("en")}</dd></div>
+                    <div className="flex justify-between gap-4"><dt className="text-muted-foreground">One-time service fee</dt><dd className="font-medium tabular-nums">€120</dd></div>
+                    <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Minimum stay</dt><dd className="font-medium">3 months</dd></div>
+                  </dl>
+                  <button type="button" onClick={() => setRequest("book")} className={`mt-5 w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
+                    Request to book
+                  </button>
+                  <button type="button" onClick={() => setRequest("message")} className={`mt-2 flex w-full items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
+                    <MessageCircle className="size-4" /> Message landlord
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-lg font-bold">Fully booked right now</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">Ask the landlord about upcoming dates or save this home for later.</p>
+                  <button type="button" onClick={() => setRequest("message")} className={`mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
+                    <MessageCircle className="size-4" /> Message landlord
+                  </button>
+                </>
+              )}
+              <p className="mt-4 flex gap-2 text-xs leading-5 text-muted-foreground">
+                <ShieldCheck className="size-4 shrink-0 text-primary" />
+                <span><span className="font-semibold text-foreground">Tenant Protection:</span> your payment is protected until you move in.</span>
+              </p>
             </div>
           </aside>
         </div>
@@ -453,46 +484,72 @@ function ListingPage() {
         </div>
       </footer>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background p-3 shadow-soft lg:hidden">
+      {/* Phone booking bar: what you picked, what it costs, one action. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-muted-foreground">{selectedRoom.name}</p>
-            <p className="mt-0.5 text-lg font-bold">€{selectedRoom.price}<span className="text-xs font-normal text-muted-foreground"> / month</span></p>
-          </div>
-          <button type="button" onClick={() => setRoomPickerOpen(true)} className="shrink-0 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
-            Select room
-          </button>
+          {selectedRoom ? (
+            <>
+              <button type="button" onClick={() => setRoomPickerOpen(true)} className={`min-w-0 flex-1 text-left ${press}`}>
+                <span className="flex items-baseline gap-1">
+                  <span className="text-lg font-bold tabular-nums">€{selectedRoom.price.toLocaleString("en")}</span>
+                  <span className="text-xs text-muted-foreground">/ month</span>
+                </span>
+                <span className="flex min-w-0 items-center gap-1 text-xs font-medium underline underline-offset-2">
+                  <span className="truncate">{selectedRoom.shortName}</span> · Change
+                </span>
+              </button>
+              <button type="button" onClick={() => setRequest("book")} className={`shrink-0 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground ${press}`}>
+                Request to book
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="min-w-0 flex-1 text-sm font-medium text-muted-foreground">Fully booked right now</p>
+              <button type="button" onClick={() => setRequest("message")} className={`shrink-0 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground ${press}`}>
+                Message landlord
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {roomPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-foreground/50 lg:hidden" role="dialog" aria-modal="true" aria-label="Select a room">
-          <button type="button" aria-label="Close room selector" onClick={() => setRoomPickerOpen(false)} className="absolute inset-0 cursor-default" />
-          <div className="relative max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-background p-5 shadow-soft">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold">Select a room</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Tap a room to see its photos and price.</p>
-              </div>
-              <button autoFocus type="button" aria-label="Close room selector" onClick={() => setRoomPickerOpen(false)} className="shrink-0 rounded-full border p-2 hover:bg-muted"><X className="size-5" /></button>
-            </div>
-            <div className="mt-5 space-y-3">
-              {rooms.map((room) => (
-                <button key={room.id} type="button" onClick={() => openRoom(room.id)} className={`flex w-full items-center gap-4 rounded-xl border-2 p-3 text-left transition ${room.id === selectedRoom.id ? "border-primary" : "border-border hover:border-primary/50"}`}>
-                  <img src={room.images[0]!.src} alt="" className="h-24 w-28 shrink-0 rounded-lg object-cover" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-bold">{room.name}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{room.bed} · {room.size}</span>
-                    <span className="mt-2 block text-lg font-bold">€{room.price}<span className="text-xs font-normal text-muted-foreground"> / month</span></span>
-                    <span className="mt-1 block text-xs font-semibold text-primary">{room.availableRooms} available · {room.available}</span>
-                    <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold"><Expand className="size-3.5" /> View photos & select</span>
-                  </span>
-                </button>
-              ))}
+      {/* Room picker: a real sheet (Vaul) — drag to dismiss, momentum, exit animation. */}
+      <Drawer open={roomPickerOpen} onOpenChange={setRoomPickerOpen} shouldScaleBackground={false}>
+        <DrawerContent className="max-h-[88dvh] lg:hidden">
+          <div className="overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
+            <DrawerTitle className="text-lg font-bold">Choose your room</DrawerTitle>
+            <div className="mt-4 space-y-3">
+              {listingRooms.map((room) => {
+                const bookedOut = room.availableRooms === 0;
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    disabled={bookedOut}
+                    onClick={() => selectRoom(room.id)}
+                    className={`flex w-full items-center gap-4 rounded-xl border-2 p-3 text-left disabled:opacity-50 ${press} ${room.id === selectedRoom?.id ? "border-primary" : "border-border"}`}
+                  >
+                    <RoomPhoto room={room} className="h-20 w-24 shrink-0 rounded-lg" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-bold">{room.shortName}</span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">{room.bed} · {room.size}</span>
+                      <span className="mt-1 block font-bold tabular-nums">€{room.price.toLocaleString("en")}<span className="text-xs font-normal text-muted-foreground"> / month</span></span>
+                      <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mt-0.5 text-xs" />
+                    </span>
+                    {room.id === selectedRoom?.id && <Check className="size-5 shrink-0 text-primary" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
+
+      <RequestSheet
+        mode={request}
+        room={selectedRoom}
+        onClose={() => setRequest(null)}
+      />
 
       {galleryOpen && (
         <PhotoGalleryDialog
@@ -509,46 +566,252 @@ function ListingPage() {
           sections={[{ id: roomGallery.id, title: `${roomGallery.shortName} photos`, photos: roomGallery.images }]}
           onClose={() => setRoomGalleryId(null)}
           onOpenPhoto={(section, index) => setLightbox({ title: section.title, photos: section.photos, index })}
+          footer={
+            roomGallery.availableRooms > 0 ? (
+              <button type="button" onClick={() => selectRoom(roomGallery.id)} className={`w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
+                {roomGallery.id === selectedRoom?.id ? "Keep this room" : `Choose ${roomGallery.shortName}`} · €{roomGallery.price.toLocaleString("en")} / month
+              </button>
+            ) : null
+          }
         />
       )}
 
-      {lightbox && (
-        <div role="dialog" aria-modal="true" aria-label={`${lightbox.title} image viewer`} className="fixed inset-0 z-[70] flex flex-col bg-foreground/95 text-background">
-          <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-8">
+      {lightbox && <Lightbox state={lightbox} onClose={() => setLightbox(null)} />}
+
+      <DataToggle mode={dataMode} />
+    </div>
+  );
+}
+
+function RoomPhoto({ room, className = "" }: { room: Room; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  const first = room.images[0];
+  if (!first || failed) {
+    return (
+      <span className={`flex items-center justify-center bg-muted text-muted-foreground ${className}`}>
+        <Home className="size-6 opacity-60" />
+      </span>
+    );
+  }
+  return <img src={first.src} alt={first.alt} onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+}
+
+function RoomCard({
+  room,
+  selected,
+  onSelect,
+  onOpenPhotos,
+}: {
+  room: Room;
+  selected: boolean;
+  onSelect: () => void;
+  onOpenPhotos: () => void;
+}) {
+  const bookedOut = room.availableRooms === 0;
+  const photoCount = room.images.length;
+  return (
+    <article
+      className={`flex min-w-0 flex-col overflow-hidden rounded-xl border-2 transition-colors duration-200 ease-out ${
+        selected ? "border-primary" : "border-border"
+      } ${bookedOut ? "opacity-60" : ""}`}
+    >
+      <button
+        type="button"
+        disabled={photoCount === 0}
+        aria-label={photoCount ? `View ${photoCount} photos of ${room.shortName}` : `${room.shortName} has no photos yet`}
+        onClick={onOpenPhotos}
+        className="group relative block w-full overflow-hidden text-left"
+      >
+        <RoomPhoto room={room} className="aspect-[16/10] w-full transition-transform duration-300 ease-out group-hover:scale-[1.02] sm:aspect-[4/3]" />
+        <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-background/95 px-2.5 py-1.5 text-xs font-semibold shadow-sm">
+          <Expand className="size-3.5" /> {photoCount === 0 ? "Photos soon" : photoCount === 1 ? "1 photo" : `${photoCount} photos`}
+        </span>
+      </button>
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 font-bold" title={room.name}>{room.shortName}</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">{room.bed} · {room.size} · {room.floor}</p>
+        <p className="mt-3 text-xl font-bold tabular-nums">
+          €{room.price.toLocaleString("en")}
+          <span className="text-xs font-normal text-muted-foreground"> / month</span>
+        </p>
+        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mt-1 mb-4" />
+        <button
+          type="button"
+          disabled={bookedOut}
+          aria-pressed={selected}
+          onClick={onSelect}
+          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border-2 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed ${press} ${
+            selected ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-foreground/30"
+          }`}
+        >
+          {bookedOut ? "Fully booked" : selected ? <><Check className="size-4" /> Selected</> : "Select"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function RequestSheet({ mode, room, onClose }: { mode: RequestMode | null; room: Room | null; onClose: () => void }) {
+  const isMobile = useIsMobile();
+  const [sent, setSent] = useState(false);
+  const open = mode !== null;
+
+  useEffect(() => {
+    if (open) setSent(false);
+  }, [open]);
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSent(true);
+  };
+
+  const booking = mode === "book" && room;
+  const title = sent ? (booking ? "Request sent" : "Message sent") : booking ? "Request to book" : "Message the landlord";
+
+  const body = sent ? (
+    <div className="flex flex-col items-center py-6 text-center animate-in fade-in zoom-in-95 duration-300 ease-out">
+      <span className="flex size-12 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-600">
+        <Check className="size-6" />
+      </span>
+      <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+        {booking ? "The landlord will review your request. We'll email you as soon as they reply." : "We'll email you as soon as the landlord replies."}
+      </p>
+      <button type="button" onClick={onClose} className={`mt-6 w-full rounded-md border px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
+        Done
+      </button>
+    </div>
+  ) : (
+    <form onSubmit={submit} className="space-y-4">
+      {booking && (
+        <>
+          <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
+            <RoomPhoto room={room} className="size-14 shrink-0 rounded-md" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{lightbox.title}</p>
-              <p className="mt-0.5 text-xs text-background/70">{lightbox.index + 1} / {lightbox.photos.length}</p>
+              <p className="truncate text-sm font-semibold">{room.name}</p>
+              <p className="text-sm tabular-nums">€{room.price.toLocaleString("en")} <span className="text-muted-foreground">/ month</span></p>
             </div>
-            <button autoFocus type="button" aria-label="Close image viewer" onClick={() => setLightbox(null)} className="shrink-0 rounded-full border border-background/30 p-2 hover:bg-background/10">
-              <X className="size-5" />
-            </button>
           </div>
-          <div className="relative flex min-h-0 flex-1 items-center justify-center px-14 pb-8 sm:px-20">
-            <img
-              src={lightbox.photos[lightbox.index]!.src}
-              alt={lightbox.photos[lightbox.index]!.alt}
-              className="max-h-full max-w-full object-contain"
-            />
-            <button
-              type="button"
-              aria-label="Previous photo"
-              onClick={() => setLightbox((current) => current ? { ...current, index: (current.index - 1 + current.photos.length) % current.photos.length } : null)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-background/30 bg-foreground/30 p-2.5 hover:bg-background/10 sm:left-6"
-            >
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm font-medium">
+              Move-in
+              <input required type="date" className="mt-1 h-11 w-full rounded-md border bg-background px-3 text-base md:text-sm" />
+            </label>
+            <label className="block text-sm font-medium">
+              Stay
+              <select defaultValue="6" className="mt-1 h-11 w-full rounded-md border bg-background px-3 text-base md:text-sm">
+                {[3, 6, 9, 12].map((months) => (
+                  <option key={months} value={months}>{months} months</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </>
+      )}
+      <label className="block text-sm font-medium">
+        {booking ? "Introduce yourself (optional)" : "Your message"}
+        <textarea
+          required={!booking}
+          rows={3}
+          placeholder={booking ? "Who you are and why you're moving" : "Ask about the room, dates or the flatmates"}
+          className="mt-1 w-full resize-none rounded-md border bg-background px-3 py-2 text-base md:text-sm"
+        />
+      </label>
+      <button type="submit" className={`w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
+        {booking ? "Send request" : "Send message"}
+      </button>
+      {booking && <p className="text-center text-xs text-muted-foreground">You won't be charged until the landlord accepts.</p>}
+    </form>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={(next) => !next && onClose()} shouldScaleBackground={false}>
+        <DrawerContent className="max-h-[92dvh]">
+          <div className="overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
+            <DrawerTitle className="mb-4 text-lg font-bold">{title}</DrawerTitle>
+            {body}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
+        {body}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Full-screen viewer built on native scroll-snap: swipe on touch, arrows and keys on desktop.
+// The browser's own scroll physics beat a hand-rolled gesture (mobile-native §9).
+function Lightbox({ state, onClose }: { state: LightboxState; onClose: () => void }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(state.index);
+  const count = state.photos.length;
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (track) track.scrollTo({ left: state.index * track.clientWidth, behavior: "instant" });
+  }, [state.index]);
+
+  const go = (direction: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const next = (index + direction + count) % count;
+    track.scrollTo({ left: next * track.clientWidth, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") go(1);
+      if (event.key === "ArrowLeft") go(-1);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={`${state.title} image viewer`} className="fixed inset-0 z-[70] flex flex-col bg-neutral-950 text-white animate-in fade-in duration-200 ease-out">
+      <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-8">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{state.title}</p>
+          <p className="mt-0.5 text-xs tabular-nums text-white/70">{index + 1} / {count}</p>
+        </div>
+        <button autoFocus type="button" aria-label="Close image viewer" onClick={onClose} className={`shrink-0 rounded-full border border-white/30 p-2 hover:bg-white/10 ${press}`}>
+          <X className="size-5" />
+        </button>
+      </div>
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={trackRef}
+          onScroll={(event) => {
+            const track = event.currentTarget;
+            setIndex(Math.round(track.scrollLeft / track.clientWidth));
+          }}
+          className="flex h-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none]"
+        >
+          {state.photos.map((photo) => (
+            <div key={photo.src} className="flex h-full w-full shrink-0 snap-center items-center justify-center px-2 pb-6 sm:px-20">
+              <img src={photo.src} alt={photo.alt} draggable={false} className="max-h-full max-w-full select-none object-contain" />
+            </div>
+          ))}
+        </div>
+        {count > 1 && (
+          <>
+            <button type="button" aria-label="Previous photo" onClick={() => go(-1)} className={`absolute left-6 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/30 bg-black/30 p-2.5 hover:bg-white/10 sm:block ${press}`}>
               <ChevronLeft className="size-6" />
             </button>
-            <button
-              type="button"
-              aria-label="Next photo"
-              onClick={() => setLightbox((current) => current ? { ...current, index: (current.index + 1) % current.photos.length } : null)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-background/30 bg-foreground/30 p-2.5 hover:bg-background/10 sm:right-6"
-            >
+            <button type="button" aria-label="Next photo" onClick={() => go(1)} className={`absolute right-6 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/30 bg-black/30 p-2.5 hover:bg-white/10 sm:block ${press}`}>
               <ChevronRight className="size-6" />
             </button>
-          </div>
-          <p className="px-6 pb-5 text-center text-xs text-background/70">{lightbox.photos[lightbox.index]!.alt}</p>
-        </div>
-      )}
+          </>
+        )}
+      </div>
+      <p className="px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-xs text-white/70">{state.photos[index]?.alt}</p>
     </div>
   );
 }
@@ -558,52 +821,62 @@ function PhotoGalleryDialog({
   sections,
   onClose,
   onOpenPhoto,
+  footer,
 }: {
   title: string;
   sections: PhotoSection[];
   onClose: () => void;
   onOpenPhoto: (section: PhotoSection, index: number) => void;
+  footer?: ReactNode;
 }) {
   const photoCount = sections.reduce((total, section) => total + section.photos.length, 0);
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={`${title} photo gallery`} className="fixed inset-0 z-50 overflow-y-auto bg-background">
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b bg-background px-5 py-4 sm:px-8">
+    <div role="dialog" aria-modal="true" aria-label={`${title} photo gallery`} className="fixed inset-0 z-50 flex flex-col bg-background animate-in fade-in slide-in-from-bottom-4 duration-300 ease-out">
+      <div className="flex items-center justify-between gap-4 border-b px-5 py-4 sm:px-8">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold">{title}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{photoCount} photos</p>
         </div>
-        <button autoFocus type="button" aria-label="Close photo gallery" onClick={onClose} className="shrink-0 rounded-full border p-2 hover:bg-muted"><X className="size-5" /></button>
+        <button autoFocus type="button" aria-label="Close photo gallery" onClick={onClose} className={`shrink-0 rounded-full border p-2 hover:bg-muted ${press}`}><X className="size-5" /></button>
       </div>
 
-      <div className="mx-auto max-w-4xl px-5 py-7 sm:px-8 sm:py-10">
-        {sections.map((section) => (
-          <section key={section.id} aria-labelledby={`gallery-${section.id}`} className="mb-10 last:mb-0">
-            <div className="mb-4 flex items-end justify-between gap-4">
-              <h2 id={`gallery-${section.id}`} className="text-lg font-bold">{section.title}</h2>
-              <p className="shrink-0 text-xs text-muted-foreground">{section.photos.length} photos</p>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {section.photos.map((photo, index) => (
-                <button
-                  key={photo.src}
-                  type="button"
-                  aria-label={`Enlarge ${photo.alt}`}
-                  onClick={() => onOpenPhoto(section, index)}
-                  className={`overflow-hidden bg-muted ${index === 0 ? "col-span-2" : "col-span-1"}`}
-                >
-                  <img
-                    src={photo.src}
-                    alt={photo.alt}
-                    loading="lazy"
-                    className={`w-full object-cover transition duration-300 hover:scale-[1.02] ${index === 0 ? "aspect-[16/8]" : "aspect-[4/3]"}`}
-                  />
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="mx-auto max-w-4xl px-5 py-7 sm:px-8 sm:py-10">
+          {sections.map((section) => (
+            <section key={section.id} aria-labelledby={`gallery-${section.id}`} className="mb-10 last:mb-0">
+              <div className="mb-4 flex items-end justify-between gap-4">
+                <h2 id={`gallery-${section.id}`} className="text-lg font-bold">{section.title}</h2>
+                <p className="shrink-0 text-xs text-muted-foreground">{section.photos.length} photos</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {section.photos.map((photo, index) => (
+                  <button
+                    key={photo.src}
+                    type="button"
+                    aria-label={`Enlarge ${photo.alt}`}
+                    onClick={() => onOpenPhoto(section, index)}
+                    className={`overflow-hidden bg-muted ${index === 0 ? "col-span-2" : "col-span-1"}`}
+                  >
+                    <img
+                      src={photo.src}
+                      alt={photo.alt}
+                      loading="lazy"
+                      className={`w-full object-cover transition-transform duration-300 ease-out hover:scale-[1.02] ${index === 0 ? "aspect-[16/8]" : "aspect-[4/3]"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
+
+      {footer && (
+        <div className="border-t bg-background px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-8">
+          <div className="mx-auto max-w-4xl">{footer}</div>
+        </div>
+      )}
     </div>
   );
 }

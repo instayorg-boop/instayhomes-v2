@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { Availability } from "@/components/availability";
 import { NoResultsIllustration } from "@/components/no-results-illustration";
 import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
 
@@ -390,24 +391,9 @@ function ListingCard({
           <span className="font-bold">€{listing.price.toLocaleString("en")}</span>
           <span className="text-sm text-muted-foreground"> / month</span>
         </p>
-        <Availability listing={listing} />
+        <Availability available={listing.available} left={listing.availableRooms} className="mt-1.5" />
       </Link>
     </article>
   );
 }
 
-function Availability({ listing }: { listing: Listing }) {
-  if (listing.availableRooms === 0) {
-    return <p className="mt-1.5 text-sm font-medium text-muted-foreground">Fully booked</p>;
-  }
-  const now = listing.available === "Available now";
-  return (
-    <p className={`mt-1.5 flex items-center gap-1.5 text-sm font-semibold ${now ? "text-emerald-600" : "text-primary"}`}>
-      <span className="size-2 shrink-0 rounded-full bg-current" aria-hidden />
-      {listing.available}
-      {listing.availableRooms > 1 && (
-        <span className="font-normal text-muted-foreground">· {listing.availableRooms} rooms</span>
-      )}
-    </p>
-  );
-}

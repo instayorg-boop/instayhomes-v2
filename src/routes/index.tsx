@@ -114,7 +114,7 @@ function Index() {
       </section>
 
       <section className="bg-background">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-12 lg:flex-row lg:items-center">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 pb-16 pt-8 sm:px-12 md:pb-20 md:pt-10 lg:flex-row lg:items-center">
           <h2 className="text-2xl font-semibold lg:w-72">Why Instayhomes?</h2>
           <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
             {stats.map(([v, l, src]) => (

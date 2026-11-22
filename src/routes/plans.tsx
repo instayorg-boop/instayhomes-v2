@@ -55,7 +55,7 @@ export const Route = createFileRoute("/plans")({
 
 const press = "transition-[scale,background-color,border-color,color,opacity] duration-150 ease-out active:scale-[0.97]";
 const darkButton = `inline-flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 py-3.5 text-base font-semibold text-background hover:bg-foreground/90 ${press}`;
-const DEFAULT_PLAN = "self-service";
+const DEFAULT_PLAN = "assisted";
 
 type Contact = { phone: string; message: string };
 type Receipt = { reference: string; plan: Plan; email: string; phone: string };

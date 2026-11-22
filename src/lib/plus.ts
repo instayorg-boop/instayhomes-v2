@@ -1,28 +1,31 @@
 // Nestaway Plus: the paid plans that unlock direct WhatsApp contact with landlords.
 import { useSyncExternalStore } from "react";
 
+// Prices are real; `features` are PLACEHOLDER copy until each plan's contents are confirmed.
 export const plans = [
   {
     id: "self-service",
     name: "Self-service",
     price: "K199",
+    amount: 199,
     currency: "ZMW",
-    // PLACEHOLDER copy: replace with what each plan includes.
-    summary: "Contact landlords yourself on WhatsApp.",
+    features: ["Chat with landlords on WhatsApp", "Ask about any room on Nestaway", "Messages written for you, ready to send"],
   },
   {
     id: "assisted",
     name: "Assisted",
     price: "K399",
+    amount: 399,
     currency: "ZMW",
-    summary: "Contact landlords, with our team helping you along the way.",
+    features: ["Everything in Self-service", "A Nestaway agent helps you shortlist rooms", "Help arranging viewings with landlords"],
   },
   {
     id: "international",
     name: "International",
     price: "$50",
+    amount: 50,
     currency: "USD",
-    summary: "For tenants paying from outside Zambia.",
+    features: ["Everything in Self-service", "For tenants moving from abroad", "Priced in US dollars"],
   },
 ] as const;
 
@@ -72,4 +75,37 @@ export function setPlus(id: PlanId | null) {
 /** Only allow returning to a path on this site (never an outside URL). */
 export function safeReturnPath(from: unknown) {
   return typeof from === "string" && from.startsWith("/") && !from.startsWith("//") ? from : "/";
+}
+
+// DEMO sign-in (stands in for "Continue with Google"). Replace with real auth; the payment
+// flow only needs usePlusUser() and to be sent back to the same /plans URL after sign-in.
+export type PlusUser = { name: string; email: string };
+const USER_KEY = "nestaway-user-demo";
+
+function readUser(): string | null {
+  try {
+    return window.localStorage.getItem(USER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function usePlusUser(): PlusUser | null {
+  const raw = useSyncExternalStore(subscribe, readUser, () => null);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as PlusUser;
+  } catch {
+    return null;
+  }
+}
+
+export function setPlusUser(user: PlusUser | null) {
+  try {
+    if (user) window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+    else window.localStorage.removeItem(USER_KEY);
+  } catch {
+    // Storage blocked: sign-in lasts for this page view only.
+  }
+  listeners.forEach((listener) => listener());
 }

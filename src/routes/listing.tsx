@@ -29,7 +29,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { SiteHeader } from "@/components/site-header";
 import { Availability } from "@/components/availability";
-import { ContactProvider, PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
+import { PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
 import { pickListing } from "./-listing-worst-case";
 import { DataToggle, useDataMode } from "./-search-worst-case";
 
@@ -176,20 +176,19 @@ type LightboxState = {
 };
 
 // Landlord's WhatsApp number in international format. PLACEHOLDER: comes from the listing data.
-const landlordWhatsApp = "";
+export const landlordWhatsApp = "";
+
+/** The message is written for them: they only have to press send in WhatsApp. */
+export function contactMessage(room: Room | null) {
+  return room
+    ? `Hi! I found ${room.shortName} (€${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Nestaway. Is it still available?`
+    : `Hi! I found your apartment in Kreuzberg on Nestaway. Which rooms are still available?`;
+}
 
 // Press feedback shared by every button on the page (emil-design-eng: buttons must feel heard).
 const press = "transition-[scale,background-color,border-color,color] duration-150 ease-out active:scale-[0.97]";
 
 function ListingPage() {
-  return (
-    <ContactProvider>
-      <ListingContent />
-    </ContactProvider>
-  );
-}
-
-function ListingContent() {
   const dataMode = useDataMode();
   const listing = pickListing(dataMode, { title: listingTitle, rooms });
   const listingRooms = listing.rooms;
@@ -215,15 +214,9 @@ function ListingContent() {
       .map((room) => ({ id: room.id, title: room.name, photos: room.images })),
   ];
 
-  // The message is written for them: they only have to press send in WhatsApp.
   const contactAbout = (room: Room | null) => {
     setRoomGalleryId(null);
-    contact({
-      phone: landlordWhatsApp,
-      message: room
-        ? `Hi! I found ${room.shortName} (€${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Nestaway. Is it still available?`
-        : `Hi! I found your apartment in Kreuzberg on Nestaway. Which rooms are still available?`,
-    });
+    contact({ phone: landlordWhatsApp, message: contactMessage(room), roomId: room?.id });
   };
 
   useEffect(() => {

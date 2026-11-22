@@ -5,13 +5,20 @@ import {
   Home,
   Search,
 } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { rememberSearch } from "@/lib/recent";
+import { universityById } from "@/lib/universities";
 import { Availability } from "@/components/availability";
 import { NoResultsIllustration } from "@/components/no-results-illustration";
 import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
 
+type SearchParams = { university?: string | undefined };
+
 export const Route = createFileRoute("/search")({
+  validateSearch: (search: Record<string, unknown>): SearchParams => ({
+    university: typeof search["university"] === "string" ? search["university"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Rooms and apartments in Munich | Nestaway Stays" },
@@ -168,6 +175,13 @@ function SearchPage() {
   const dataMode = useDataMode();
   const dataset = pickDataset(dataMode, listings);
   const city = dataMode === "worst" ? worstCaseCity : searchedCity;
+  const university = universityById(Route.useSearch().university);
+
+  // Arriving here for a university (from the home page search or its tiles) is a search worth
+  // offering again as "Continue your search".
+  useEffect(() => {
+    if (university) rememberSearch({ label: university.name, universityId: university.id });
+  }, [university]);
 
   const visibleListings = useMemo(
     () => {
@@ -232,10 +246,13 @@ function SearchPage() {
       </section>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <h1 className="text-2xl font-bold tracking-tight">Accommodation in {city}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{university ? `Homes near ${university.name}` : `Accommodation in ${city}`}</h1>
         <div className="mt-1 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            {visibleListings.length} furnished {visibleListings.length === 1 ? "home" : "homes"}
+            {visibleListings.length} furnished {visibleListings.length === 1 ? "home" : "homes"} ·{" "}
+            <Link to="/" hash="tenant-protection" className="underline decoration-dotted underline-offset-4 hover:text-foreground">
+              Covered by Tenant Protection
+            </Link>
           </p>
           {visibleListings.length > 1 && (
             <label className="flex items-center gap-1 text-sm">

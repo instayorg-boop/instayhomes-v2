@@ -33,6 +33,7 @@ import { Availability } from "@/components/availability";
 import { PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
 import { pickListing } from "./-listing-worst-case";
 import { DataToggle, useDataMode } from "./-search-worst-case";
+import { rememberListing } from "@/lib/recent";
 
 export const Route = createFileRoute("/listing")({
   head: () => ({
@@ -201,6 +202,19 @@ function ListingPage() {
   const { contact, plan } = useContactLandlord();
   const router = useRouter();
 
+  // Remember this home for "Continue where you left off" on the home page.
+  useEffect(() => {
+    if (dataMode !== "demo") return;
+    rememberListing({
+      href: "/listing",
+      title: listingTitle,
+      area: "Kreuzberg, Berlin",
+      image: generalPhotos[0]!.src,
+      fromPrice: `€${fromPrice.toLocaleString("en")}`,
+      available: soonest?.available ?? "Fully booked",
+    });
+  }, [dataMode, fromPrice, soonest?.available]);
+
   // Load the payment page's code in the background, so "Ask" opens it instantly.
   useEffect(() => {
     void router.preloadRoute({ to: "/plans" }).catch(() => undefined);
@@ -274,8 +288,13 @@ function ListingPage() {
         <div className="flex flex-col">
           <div className="order-2 mt-5 flex flex-col justify-between gap-4 sm:order-1 sm:flex-row sm:items-start">
             <div className="min-w-0">
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                <BadgeCheck className="size-3.5" /> Tenant verified
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                  <BadgeCheck className="size-3.5" /> Tenant verified
+                </span>
+                <Link to="/" hash="tenant-protection" className="text-xs font-medium text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-foreground">
+                  Covered by Tenant Protection
+                </Link>
               </span>
               <h1 className="mt-2 max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
               <p className="mt-2 flex items-start gap-1.5 text-sm text-muted-foreground">

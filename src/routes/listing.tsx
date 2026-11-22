@@ -375,25 +375,26 @@ function ListingPage() {
           <div className="min-w-0 pb-8">
             {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
             <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
-            <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
-            </p>
-            {soonest ? (
-              <Availability
-                available={soonest.available}
-                left={roomsLeft}
-                leftLabel={(count) => `${count} rooms left`}
-                className="mt-3 text-base"
-              />
-            ) : (
-              <p className="mt-3 text-base font-medium text-muted-foreground">Fully booked right now</p>
-            )}
-            <div className="mt-3 flex flex-wrap gap-2">
+            {/* Phones: stacked. Desktop: location, availability and gender on one line. */}
+            <div className="mt-2 flex flex-col items-start gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-5 lg:gap-y-2">
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
+              </p>
+              {soonest ? (
+                <Availability
+                  available={soonest.available}
+                  left={roomsLeft}
+                  leftLabel={(count) => `${count} rooms left`}
+                  className="text-base lg:text-sm"
+                />
+              ) : (
+                <p className="text-base font-medium text-muted-foreground lg:text-sm">Fully booked right now</p>
+              )}
               <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
                 <Users className="size-3.5 text-muted-foreground" /> Mixed gender
               </span>
             </div>
-            <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press} w-full text-left`}>
+            <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 lg:hidden ${press} w-full text-left`}>
               <VerifiedIcon className="size-7 shrink-0" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">Tenant verified</span>
@@ -486,6 +487,14 @@ function ListingPage() {
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 Move-in date, length of stay and viewing are agreed with the landlord in the chat.
               </p>
+              <TenantProtectionLink className={`group mt-5 flex w-full items-center gap-3 border-t pt-4 text-left ${press}`}>
+                <VerifiedIcon className="size-6 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">Tenant verified</span>
+                  <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+              </TenantProtectionLink>
             </div>
           </aside>
         </div>
@@ -801,8 +810,8 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
           onClick={onMessage}
           className={
             hasPlus
-              ? `shrink-0 sm:w-auto ${whatsappButton}`
-              : `inline-flex shrink-0 items-center justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 ${press}`
+              ? `shrink-0 sm:w-auto lg:hidden ${whatsappButton}`
+              : `inline-flex shrink-0 items-center lg:hidden justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 ${press}`
           }
         >
           <WhatsAppIcon /> Message landlord

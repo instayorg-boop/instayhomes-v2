@@ -6,6 +6,7 @@ import partnersImg from "@/assets/stat-partners.png";
 import tenantsImg from "@/assets/stat-tenants.png";
 import citiesImg from "@/assets/stat-cities.png";
 import { Availability } from "@/components/availability";
+import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
 import { matchUniversities, universities, type University } from "@/lib/universities";
 
@@ -100,11 +101,7 @@ function Index() {
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {universities.map((uni, index) => (
             <Link key={uni.id} to="/search" search={{ university: uni.id }} className="group rounded-lg">
-              <span
-                className={`flex aspect-[5/3] w-full items-center justify-center rounded-lg font-display text-3xl tracking-wide transition-[scale,opacity] duration-200 ease-out group-hover:opacity-90 group-active:scale-[0.98] ${tileColors[index % tileColors.length]}`}
-              >
-                {uni.short}
-              </span>
+              <UniversityMark university={uni} size="tile" index={index} />
               <p className="mt-2 text-sm font-semibold leading-5 group-hover:underline">{uni.name}</p>
               <p className="text-xs text-muted-foreground">{uni.city}</p>
             </Link>
@@ -196,7 +193,6 @@ function Index() {
   );
 }
 
-const tileColors = ["bg-primary text-primary-foreground", "bg-foreground text-background", "bg-stat text-foreground"];
 
 /** Smoothly brings the Tenant Protection section into view (instantly for reduced-motion users).
  *  Animated by hand rather than with `scroll-behavior: smooth`, which some browsers skip. */
@@ -323,7 +319,7 @@ function UniversitySearch() {
                 onClick={() => go(uni)}
                 className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 ${index === active ? "bg-muted" : ""}`}
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[11px] font-bold text-primary">{uni.short}</span>
+                <UniversityMark university={uni} size="chip" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold">{uni.name}</span>
                   <span className="block text-xs text-muted-foreground">{uni.city}</span>

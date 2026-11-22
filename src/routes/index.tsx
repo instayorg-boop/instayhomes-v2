@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, Search, ShieldCheck, CheckCircle2, ChevronDown, Globe, History, Menu, X } from "lucide-react";
+import { ArrowRight, Search, ShieldCheck, ChevronDown, Globe, History, Menu, X } from "lucide-react";
 import homesImg from "@/assets/stat-homes.png";
 import partnersImg from "@/assets/stat-partners.png";
 import tenantsImg from "@/assets/stat-tenants.png";
 import citiesImg from "@/assets/stat-cities.png";
 import { Availability } from "@/components/availability";
+import { ProtectionPerks, protectionImage } from "@/components/tenant-protection";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
 import { listingCount, matchUniversities, universities, type University } from "@/lib/universities";
@@ -26,11 +27,6 @@ export const Route = createFileRoute("/")({
 
 const img = (id: string, w = 500) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
 const stats = [["110,000+", "Homes listed", homesImg], ["400+", "University partners", partnersImg], ["180,000+", "Happy tenants", tenantsImg], ["175+", "Cities", citiesImg]] as const;
-const perks = [
-  ["Covered if plans fall through", "If your landlord cancels late or delays your move-in, we help you find a new place or cover a short hotel stay."],
-  ["Help when you need it", "Something wrong with your rental? Our support team steps in quickly."],
-  ["Move in worry-free", "Your payment is held until you move in. If the home isn't as described, you get your money back."],
-];
 const faqs = [
   ["Is Instayhomes a rental agency?", "No. We're an online platform that connects tenants with verified landlords and agencies, and keeps your payment safe."],
   ["How does Instayhomes work?", "Search a city, pick a home, send a booking request and pay your first rent online once the landlord accepts."],
@@ -133,17 +129,10 @@ function Index() {
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-12 md:grid-cols-2">
           <div>
             <h2 className="font-display text-5xl leading-none md:text-6xl">TENANT<br />PROTECTION</h2>
-            <ul className="mt-8 space-y-5">
-              {perks.map(([t, d]) => (
-                <li key={t} className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
-                  <div><p className="font-semibold">{t}</p><p className="mt-1 text-sm opacity-90">{d}</p></div>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-8"><ProtectionPerks /></div>
             <a href="#" className="mt-6 inline-block pl-8 text-sm font-semibold underline">Learn about Tenant Protection</a>
           </div>
-          <img src={img("photo-1522071820081-009f0129c71c", 900)} alt="Happy tenants at home" className="aspect-[4/3] w-full rounded-lg object-cover" />
+          <img src={protectionImage} alt="Happy tenants at home" className="aspect-[4/3] w-full rounded-lg object-cover" />
         </div>
       </section>
 

@@ -2,6 +2,8 @@ import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-
 import { ArrowLeft, Check, ChevronDown, Loader2, Lock, Mail, ShieldCheck, Smartphone, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { VerifiedIcon } from "@/components/verified-badge";
+import { TenantProtectionLink } from "@/components/tenant-protection";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -100,11 +102,11 @@ function PlansPage() {
   }
 
   return (
-    <Shell returnTo={returnTo} user={user}>
+    <Shell returnTo={returnTo} user={user} photoFirst={search.view !== "plans"}>
       {search.view === "plans" ? (
         <ComparePlans current={plan} onChoose={(id) => setView({ plan: id, view: undefined })} onClose={() => setView({ view: undefined })} />
       ) : (
-        <PayScreen plan={plan} room={room} user={user} onChangePlan={() => setView({ view: "plans" })} onResult={setResult} />
+        <PayScreen plan={plan} room={room} user={user} returnTo={returnTo} onChangePlan={() => setView({ view: "plans" })} onResult={setResult} />
       )}
     </Shell>
   );
@@ -117,9 +119,11 @@ function PayScreen({
   plan,
   room,
   user,
+  returnTo,
   onChangePlan,
   onResult,
 }: {
+  returnTo: string;
   plan: Plan;
   room: Room | null;
   user: PlusUser | null;
@@ -195,20 +199,51 @@ function PayScreen({
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
       {/* What they're unlocking stays in view, so paying reads as the last step of contacting. */}
-      <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
-        {/* The room's photo, or the property's main photo when they're asking about the whole home. */}
-        <img src={room?.images[0]?.src ?? heroImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">Unlock chat with the landlord of</p>
-          <p className="truncate font-semibold">
-            {room ? `${room.shortName} · €${room.price.toLocaleString("en")}/month` : "Sunny shared apartment"}
+      {/* The room's photo (or the property's main photo for the whole home), darkened towards the
+          bottom with the name over it. Edge to edge on phones, a rounded card on wider screens. */}
+      <div className="relative -mx-4 h-60 overflow-hidden sm:mx-0 sm:h-52 sm:rounded-2xl">
+        <img src={room?.images[0]?.src ?? heroImage} alt="" className="absolute inset-0 size-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/80 sm:from-black/15 sm:via-black/35" aria-hidden />
+        {/* Phones have no top bar here, so back, logo and account sit on the photo. */}
+        <div className="absolute inset-x-4 top-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between sm:hidden">
+          <Link to={returnTo} aria-label="Back" className={`flex size-9 items-center justify-center rounded-full bg-white/90 text-foreground shadow ${press}`}>
+            <ArrowLeft className="size-5" />
+          </Link>
+          <span className="font-display text-xl tracking-wide text-white drop-shadow">INSTAYHOMES</span>
+          <span className="flex size-9 items-center justify-center">
+            {user && (
+              <span title={user.email} className="flex size-9 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-foreground shadow">
+                {user.name.trim().charAt(0).toUpperCase() || "?"}
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="absolute inset-x-4 bottom-7 text-white sm:inset-x-5 sm:bottom-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">Unlock chat with the landlord of</p>
+          <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-2xl font-bold tracking-tight">
+            <span className="truncate">{room ? room.shortName : "Sunny shared apartment"}</span>
+            <VerifiedIcon className="size-6 shrink-0" />
           </p>
-          <p className="text-xs text-muted-foreground">Kreuzberg, Berlin</p>
+          <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
+            {room && (
+              <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">
+                €{room.price.toLocaleString("en")}/month
+              </span>
+            )}
+            <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">Kreuzberg, Berlin</span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/15 py-0.5 pl-1.5 pr-2.5 backdrop-blur-md">
+              <VerifiedIcon className="size-3.5" /> Tenant verified
+            </span>
+          </div>
         </div>
       </div>
-
-      <h1 className="mt-7 text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
+      {/* On phones the page slides over the photo's bottom edge as a rounded sheet. */}
+      <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
+      <h1 className="text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
       <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
+      <TenantProtectionLink className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid">
+        <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
+      </TenantProtectionLink>
 
       <fieldset disabled={pending} className="contents">
         <div className="mt-6 rounded-xl border-2">
@@ -357,6 +392,7 @@ function PayScreen({
           </p>
         </>
       )}
+      </div>
     </form>
   );
 }
@@ -504,10 +540,21 @@ function AlreadySubscribed({ plan, contact, returnTo }: { plan: Plan; contact: C
   );
 }
 
-function Shell({ returnTo, user, children }: { returnTo: string; user: PlusUser | null; children: ReactNode }) {
+function Shell({
+  returnTo,
+  user,
+  children,
+  photoFirst = false,
+}: {
+  returnTo: string;
+  user: PlusUser | null;
+  children: ReactNode;
+  /** Phones: no top bar; the page's photo runs to the top with back and logo on it. */
+  photoFirst?: boolean;
+}) {
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <header className="border-b">
+      <header className={`border-b ${photoFirst ? "max-sm:hidden" : ""}`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-12">
           <Link to={returnTo} className={`-ml-2 flex w-24 items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-muted ${press}`}>
             <ArrowLeft className="size-5" /> <span className="hidden sm:inline">Back</span>
@@ -522,7 +569,7 @@ function Shell({ returnTo, user, children }: { returnTo: string; user: PlusUser 
           </span>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-12 sm:pt-10">{children}</main>
+      <main className={`mx-auto max-w-7xl px-4 pb-16 sm:px-12 sm:pt-10 ${photoFirst ? "pt-0" : "pt-6"}`}>{children}</main>
     </div>
   );
 }

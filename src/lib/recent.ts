@@ -53,8 +53,8 @@ function createStore<T>(key: string) {
   };
 }
 
-const listingStore = createStore<RecentListing>("nestaway-recent-listing");
-const searchStore = createStore<RecentSearch>("nestaway-recent-search");
+const listingStore = createStore<RecentListing>("instayhomes-recent-listing");
+const searchStore = createStore<RecentSearch>("instayhomes-recent-search");
 
 export const useRecentListing = listingStore.use;
 export const rememberListing = listingStore.set;

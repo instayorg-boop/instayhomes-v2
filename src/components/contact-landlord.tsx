@@ -1,4 +1,4 @@
-// Contact flow: browsing is free; chatting with a landlord on WhatsApp needs Nestaway Plus.
+// Contact flow: browsing is free; chatting with a landlord on WhatsApp needs Instayhomes Plus.
 //   has a plan → open WhatsApp with a ready-to-send message (one tap)
 //   no plan    → /plans, remembering the page and room they came from, then straight on to the chat
 import { useNavigate } from "@tanstack/react-router";
@@ -42,7 +42,7 @@ export function PlusHint({ className = "", short = false }: { className?: string
   if (plan) return <p className={`text-xs text-muted-foreground ${className}`}>{short ? "Opens WhatsApp" : "Opens WhatsApp with your message ready."}</p>;
   return (
     <p className={`flex items-center gap-1 text-xs text-muted-foreground ${short ? "whitespace-nowrap" : ""} ${className}`}>
-      <Lock className="size-3 shrink-0" /> {short ? "With Nestaway Plus" : "One Plus payment unlocks every landlord"}
+      <Lock className="size-3 shrink-0" /> {short ? "With Instayhomes Plus" : "One Plus payment unlocks every landlord"}
     </p>
   );
 }

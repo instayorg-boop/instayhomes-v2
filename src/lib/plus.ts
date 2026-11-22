@@ -1,9 +1,9 @@
-// Nestaway Plus: the paid plans that unlock direct WhatsApp contact with landlords.
+// Instayhomes Plus: the paid plans that unlock direct WhatsApp contact with landlords.
 import { useSyncExternalStore } from "react";
 
 // Prices are real. One payment unlocks contact with every landlord. The rest of `features`
 // is PLACEHOLDER copy until each plan's contents are confirmed.
-export const plusPromise = "One payment lets you contact every landlord on Nestaway, as often as you like.";
+export const plusPromise = "One payment lets you contact every landlord on Instayhomes, as often as you like.";
 export const plans = [
   {
     id: "self-service",
@@ -11,7 +11,7 @@ export const plans = [
     price: "K199",
     amount: 199,
     currency: "ZMW",
-    features: ["Contact every landlord on Nestaway", "Message as many as you like, whenever you like", "Chat directly on WhatsApp, with your first message written for you"],
+    features: ["Contact every landlord on Instayhomes", "Message as many as you like, whenever you like", "Chat directly on WhatsApp, with your first message written for you"],
   },
   {
     id: "assisted",
@@ -19,7 +19,7 @@ export const plans = [
     price: "K399",
     amount: 399,
     currency: "ZMW",
-    features: ["Contact every landlord on Nestaway, as often as you like", "A Nestaway agent helps you shortlist rooms", "Help arranging viewings with landlords"],
+    features: ["Contact every landlord on Instayhomes, as often as you like", "A Instayhomes agent helps you shortlist rooms", "Help arranging viewings with landlords"],
   },
   {
     id: "international",
@@ -27,7 +27,7 @@ export const plans = [
     price: "$50",
     amount: 50,
     currency: "USD",
-    features: ["Contact every landlord on Nestaway, as often as you like", "For tenants moving from abroad", "Priced in US dollars"],
+    features: ["Contact every landlord on Instayhomes, as often as you like", "For tenants moving from abroad", "Priced in US dollars"],
   },
 ] as const;
 
@@ -38,7 +38,7 @@ export const planById = (id: string | null | undefined) => plans.find((plan) => 
 
 // DEMO subscription store: remembers the plan in this browser only. Replace with the real
 // subscription from your auth/billing backend (the rest of the app only calls usePlus/setPlus).
-const KEY = "nestaway-plus-demo";
+const KEY = "instayhomes-plus-demo";
 const listeners = new Set<() => void>();
 
 function read(): string | null {
@@ -82,7 +82,7 @@ export function safeReturnPath(from: unknown) {
 // DEMO sign-in (stands in for "Continue with Google"). Replace with real auth; the payment
 // flow only needs usePlusUser() and to be sent back to the same /plans URL after sign-in.
 export type PlusUser = { name: string; email: string };
-const USER_KEY = "nestaway-user-demo";
+const USER_KEY = "instayhomes-user-demo";
 
 function readUser(): string | null {
   try {
@@ -113,7 +113,7 @@ export function setPlusUser(user: PlusUser | null) {
 }
 
 // Remembered mobile money number, so renewing is one tap. DEMO: per browser.
-const MOMO_KEY = "nestaway-momo-demo";
+const MOMO_KEY = "instayhomes-momo-demo";
 
 export function rememberedMomoNumber(): string {
   try {

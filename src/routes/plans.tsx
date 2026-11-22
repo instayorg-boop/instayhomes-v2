@@ -1,7 +1,10 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, ChevronDown, Home, Loader2, Lock, ShieldCheck, Smartphone, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Loader2, Lock, Mail, ShieldCheck, Smartphone, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
 import {
   planById,
@@ -17,7 +20,7 @@ import {
   type Plan,
   type PlusUser,
 } from "@/lib/plus";
-import { contactMessage, landlordWhatsApp, rooms, type Room } from "./listing";
+import { contactMessage, heroImage, landlordWhatsApp, rooms, type Room } from "./listing";
 
 // One screen: what you're unlocking, the plan (Self-service unless changed), sign-in the first
 // time, the mobile money number, Pay. Everything lives in the URL, so returning from Google
@@ -40,7 +43,7 @@ export const Route = createFileRoute("/plans")({
   }),
   head: () => ({
     meta: [
-      { title: "Nestaway Plus | Chat with landlords on WhatsApp" },
+      { title: "Instayhomes Plus | Chat with landlords on WhatsApp" },
       { name: "description", content: "Pay with mobile money to contact landlords directly on WhatsApp." },
       { name: "robots", content: "noindex" },
     ],
@@ -128,6 +131,7 @@ function PayScreen({
   const [editingEmail, setEditingEmail] = useState(false);
   const [email, setEmail] = useState(user?.email ?? "");
   const [signingIn, setSigningIn] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [showIncluded, setShowIncluded] = useState(false);
@@ -170,7 +174,7 @@ function PayScreen({
       resultRef.current({
         kind: "paid",
         receipt: {
-          reference: `NW-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          reference: `IH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
           plan,
           email: email || user.email,
           phone,
@@ -192,11 +196,8 @@ function PayScreen({
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
       {/* What they're unlocking stays in view, so paying reads as the last step of contacting. */}
       <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
-        {room?.images[0] ? (
-          <img src={room.images[0].src} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-        ) : (
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-background"><Home className="size-6 text-muted-foreground" /></span>
-        )}
+        {/* The room's photo, or the property's main photo when they're asking about the whole home. */}
+        <img src={room?.images[0]?.src ?? heroImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground">Unlock chat with the landlord of</p>
           <p className="truncate font-semibold">
@@ -206,7 +207,7 @@ function PayScreen({
         </div>
       </div>
 
-      <h1 className="mt-7 text-3xl font-bold tracking-tight">Get Nestaway Plus</h1>
+      <h1 className="mt-7 text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
       <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
 
       <fieldset disabled={pending} className="contents">
@@ -254,6 +255,10 @@ function PayScreen({
               {signingIn ? <Loader2 className="size-5 animate-spin" /> : <GoogleIcon />}
               {signingIn ? "Signing in…" : "Continue with Google"}
             </button>
+            <button type="button" onClick={() => setEmailOpen(true)} disabled={signingIn} className={`mt-2 inline-flex w-full items-center justify-center gap-3 rounded-md border-2 bg-background px-5 py-3.5 text-base font-semibold hover:bg-muted disabled:opacity-60 ${press}`}>
+              <Mail className="size-5" /> Continue with email
+            </button>
+            <EmailSignIn open={emailOpen} onOpenChange={setEmailOpen} />
             <p className="mt-3 text-center text-sm text-muted-foreground">
               Your plan is saved to your account. You'll come straight back here to pay.
             </p>
@@ -341,14 +346,14 @@ function PayScreen({
                 </>
               ) : (
                 // PLACEHOLDER legal wording: confirm with a lawyer that this can replace a checkbox.
-                "By paying you agree to the Nestaway Plus terms. No other fees."
+                "By paying you agree to the Instayhomes Plus terms. No other fees."
               )}
             </p>
           </div>
 
           <p className="mt-5 flex gap-2 text-sm leading-6 text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-            You approve the payment on your own phone. Nestaway never sees or asks for your PIN.
+            You approve the payment on your own phone. Instayhomes never sees or asks for your PIN.
           </p>
         </>
       )}
@@ -507,7 +512,7 @@ function Shell({ returnTo, user, children }: { returnTo: string; user: PlusUser 
           <Link to={returnTo} className={`-ml-2 flex w-24 items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-muted ${press}`}>
             <ArrowLeft className="size-5" /> <span className="hidden sm:inline">Back</span>
           </Link>
-          <span className="font-display text-2xl tracking-wide text-primary">NESTAWAY</span>
+          <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
           <span className="flex w-24 justify-end">
             {user && (
               <span title={user.email} className="flex size-9 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
@@ -533,5 +538,140 @@ function GoogleIcon() {
       <path fill="#FBBC05" d="M26.43 71.4c-1.2-3.6-1.88-7.45-1.88-11.4s.68-7.8 1.88-11.4V33.05H6.38A59.9 59.9 0 0 0 0 60c0 9.68 2.32 18.85 6.38 26.95L26.43 71.4Z" />
       <path fill="#EA4335" d="M60 23.86c8.81 0 16.72 3.03 22.94 8.98l17.2-17.21C89.76 5.95 76.17 0 60 0 36.55 0 16.25 13.45 6.38 33.05L26.43 48.6C31.15 34.42 44.37 23.86 60 23.86Z" />
     </svg>
+  );
+}
+
+/* ───────────── email sign-in: a drawer (phones) or small window (desktop), never a new page ───────────── */
+
+/** "mwila.banda@…" → "Mwila Banda", so the account has a name without asking for one. */
+const nameFromEmail = (email: string) =>
+  email
+    .split("@")[0]!
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || email;
+
+// DEMO: any 6-digit code signs in. The real one sends a one-time code (e.g. Supabase email OTP)
+// and checks it; nothing else here changes.
+function EmailSignIn({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const isMobile = useIsMobile();
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [busy, setBusy] = useState(false);
+  const [resent, setResent] = useState(false);
+
+  useEffect(() => {
+    if (open) return;
+    const reset = window.setTimeout(() => {
+      setStep("email");
+      setCode("");
+      setBusy(false);
+      setResent(false);
+    }, 300);
+    return () => window.clearTimeout(reset);
+  }, [open]);
+
+  const sendCode = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    window.setTimeout(() => {
+      setBusy(false);
+      setStep("code");
+    }, 700);
+  };
+
+  const verify = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    window.setTimeout(() => {
+      setPlusUser({ name: nameFromEmail(email.trim()), email: email.trim() });
+      onOpenChange(false);
+    }, 600);
+  };
+
+  const field = "h-12 w-full rounded-md border-2 bg-background px-4 text-base outline-none focus:border-foreground";
+  const primary = `inline-flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 py-3.5 text-base font-semibold text-background hover:bg-foreground/90 disabled:opacity-60 ${press}`;
+
+  const title = step === "email" ? "Continue with email" : "Check your email";
+  const description =
+    step === "email" ? "We'll send you a 6-digit code. No password needed." : `Enter the 6-digit code we sent to ${email}.`;
+
+  const body =
+    step === "email" ? (
+      <form onSubmit={sendCode} className="space-y-4">
+        <label className="block text-sm font-semibold">
+          Email
+          <input
+            required
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            autoFocus
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+            className={`mt-2 font-normal ${field}`}
+          />
+        </label>
+        <button type="submit" disabled={busy} className={primary}>
+          {busy && <Loader2 className="size-5 animate-spin" />} {busy ? "Sending code…" : "Send code"}
+        </button>
+      </form>
+    ) : (
+      <form onSubmit={verify} className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200 ease-out">
+        <label className="block text-sm font-semibold">
+          6-digit code
+          <input
+            required
+            autoFocus
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6}"
+            value={code}
+            onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="123456"
+            className={`mt-2 text-center font-normal tracking-[0.5em] ${field}`}
+          />
+        </label>
+        <button type="submit" disabled={busy || code.length !== 6} className={primary}>
+          {busy && <Loader2 className="size-5 animate-spin" />} {busy ? "Signing in…" : "Continue"}
+        </button>
+        <div className="flex justify-between text-sm">
+          <button type="button" onClick={() => setStep("email")} className="font-semibold underline underline-offset-4">
+            Use a different email
+          </button>
+          <button type="button" onClick={() => setResent(true)} disabled={resent} className="font-semibold underline underline-offset-4 disabled:no-underline disabled:opacity-60">
+            {resent ? "Code sent again" : "Resend code"}
+          </button>
+        </div>
+      </form>
+    );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
+        <DrawerContent>
+          <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
+            <DrawerTitle className="text-lg font-bold">{title}</DrawerTitle>
+            <DrawerDescription className="mb-5 mt-1 text-sm text-muted-foreground">{description}</DrawerDescription>
+            {body}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <div>
+          <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
+          <DialogDescription className="mt-1 text-sm text-muted-foreground">{description}</DialogDescription>
+        </div>
+        {body}
+      </DialogContent>
+    </Dialog>
   );
 }

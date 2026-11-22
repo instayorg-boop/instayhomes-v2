@@ -13,9 +13,9 @@ import { listingCount, matchUniversities, universities, type University } from "
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nestaway Stays — Find your next home for months" },
+      { title: "Instayhomes — Find your next home for months" },
       { name: "description", content: "Rent rooms, studios and apartments for months in cities across Europe. Book online with tenant protection." },
-      { property: "og:title", content: "Nestaway Stays — Find your next home" },
+      { property: "og:title", content: "Instayhomes — Find your next home" },
       { property: "og:description", content: "Mid-term rentals across Europe, booked online with tenant protection." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,8 +32,8 @@ const perks = [
   ["Move in worry-free", "Your payment is held until you move in. If the home isn't as described, you get your money back."],
 ];
 const faqs = [
-  ["Is Nestaway a rental agency?", "No. We're an online platform that connects tenants with verified landlords and agencies, and keeps your payment safe."],
-  ["How does Nestaway work?", "Search a city, pick a home, send a booking request and pay your first rent online once the landlord accepts."],
+  ["Is Instayhomes a rental agency?", "No. We're an online platform that connects tenants with verified landlords and agencies, and keeps your payment safe."],
+  ["How does Instayhomes work?", "Search a city, pick a home, send a booking request and pay your first rent online once the landlord accepts."],
   ["My request was accepted. What now?", "You'll get a confirmation with your contract details and the landlord's contact info to plan your move-in."],
   ["Can I cancel my stay?", "Yes, depending on the landlord's cancellation policy, which is shown on every listing."],
   ["Can I see the place before renting?", "Most listings have photos, videos and floor plans. Some landlords also offer video viewings."],
@@ -46,7 +46,7 @@ function Index() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <span className="font-display text-2xl tracking-wide text-primary">NESTAWAY</span>
+          <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
           <nav className="flex items-center gap-1 text-sm font-medium">
             {["How it works", "Pricing", "Help", "Log in", "Sign up"].map((l) => (
               <a key={l} href="#" className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
@@ -62,7 +62,7 @@ function Index() {
           <div className="absolute inset-0 bg-foreground/40" onClick={() => setMenu(false)} />
           <aside className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft animate-in slide-in-from-right">
             <div className="flex items-center justify-between">
-              <span className="font-display text-2xl text-primary">NESTAWAY</span>
+              <span className="font-display text-2xl text-primary">INSTAYHOMES</span>
               <button aria-label="Close menu" onClick={() => setMenu(false)} className="rounded-md p-2 hover:bg-muted"><X className="size-5" /></button>
             </div>
             <nav className="mt-8 flex flex-col gap-1 font-medium">
@@ -115,7 +115,7 @@ function Index() {
 
       <section className="bg-background">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 lg:flex-row lg:items-center">
-          <h2 className="text-2xl font-semibold lg:w-72">Why Nestaway?</h2>
+          <h2 className="text-2xl font-semibold lg:w-72">Why Instayhomes?</h2>
           <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
             {stats.map(([v, l, src]) => (
               <div key={l} className="relative flex h-28 overflow-hidden rounded-xl bg-stat p-4">
@@ -174,7 +174,7 @@ function Index() {
       <footer className="bg-muted py-14 text-sm">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-5">
           <div className="md:col-span-2">
-            <span className="font-display text-2xl text-primary">NESTAWAY</span>
+            <span className="font-display text-2xl text-primary">INSTAYHOMES</span>
             <p className="mt-4 text-xs">🌐 English</p>
             <div className="mt-6 max-w-xs rounded-lg border bg-card p-4">
               <p className="font-semibold">Get the app</p>
@@ -182,7 +182,7 @@ function Index() {
             </div>
           </div>
           {[
-            ["Nestaway", ["About", "Careers", "Press", "Partners", "Terms", "Privacy", "Blog"]],
+            ["Instayhomes", ["About", "Careers", "Press", "Partners", "Terms", "Privacy", "Blog"]],
             ["Tenants", ["How it works", "Pricing", "Pay rent online", "Help", "Contact us"]],
             ["Landlords", ["How it works", "Pricing", "Become a landlord", "Rent guarantee", "Guides"]],
           ].map(([h, l]) => (

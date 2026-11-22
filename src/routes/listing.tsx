@@ -1,24 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  BadgeCheck,
   BedDouble,
   Check,
   ChevronLeft,
   ChevronRight,
+  CigaretteOff,
   CookingPot,
   Expand,
-  GraduationCap,
   Heart,
   Home,
   KeyRound,
+  LogIn,
+  LogOut,
   MapPin,
   Maximize2,
+  PawPrint,
   Share2,
   ShieldCheck,
   Sofa,
   Sparkles,
   Users,
+  Volume2,
   WashingMachine,
   Wifi,
   X,
@@ -83,6 +86,7 @@ export const rooms = [
     bed: "Double bed",
     floor: "3rd floor",
     available: "Available now",
+    availableRooms: 3,
     description: "A calm, sunlit room with space to work and plenty of storage. Ideal for a longer stay in the city.",
     features: ["Work desk", "Wardrobe", "Blackout blinds", "Bed linen included"],
     images: [
@@ -100,6 +104,7 @@ export const rooms = [
     bed: "Queen bed",
     floor: "3rd floor",
     available: "Available from 1 Feb",
+    availableRooms: 2,
     description: "The largest room in the apartment, with a comfortable reading corner and views over the quiet inner courtyard.",
     features: ["Reading chair", "Large wardrobe", "Work desk", "Courtyard view"],
     images: [
@@ -117,6 +122,7 @@ export const rooms = [
     bed: "Double bed",
     floor: "3rd floor",
     available: "Available from 15 Jan",
+    availableRooms: 1,
     description: "A cosy and practical room with everything you need, including a compact workspace and generous shelving.",
     features: ["Compact desk", "Open shelving", "Wardrobe", "Bed linen included"],
     images: [
@@ -126,6 +132,8 @@ export const rooms = [
     ],
   },
 ];
+
+export const totalAvailableRooms = rooms.reduce((total, room) => total + room.availableRooms, 0);
 
 const gallerySections: PhotoSection[] = [
   { id: "general", title: "General photos", photos: generalPhotos },
@@ -149,6 +157,15 @@ const amenities = [
   { icon: Home, label: "Bills included" },
 ];
 
+const houseRules = [
+  { icon: LogIn, label: "Check-in from 14:00" },
+  { icon: LogOut, label: "Check-out before 11:00" },
+  { icon: CigaretteOff, label: "No smoking inside" },
+  { icon: Volume2, label: "Quiet hours: 22:00–07:00" },
+  { icon: PawPrint, label: "No pets" },
+  { icon: Users, label: "Overnight guests by agreement" },
+];
+
 type LightboxState = {
   title: string;
   photos: Photo[];
@@ -158,6 +175,7 @@ type LightboxState = {
 function ListingPage() {
   const [selectedRoomId, setSelectedRoomId] = useState(rooms[0]!.id);
   const [roomGalleryId, setRoomGalleryId] = useState<string | null>(null);
+  const [roomPickerOpen, setRoomPickerOpen] = useState(false);
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -165,7 +183,7 @@ function ListingPage() {
 
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? rooms[0]!;
   const roomGallery = rooms.find((room) => room.id === roomGalleryId);
-  const anyOverlayOpen = galleryOpen || Boolean(roomGallery) || Boolean(lightbox);
+  const anyOverlayOpen = galleryOpen || roomPickerOpen || Boolean(roomGallery) || Boolean(lightbox);
 
   useEffect(() => {
     if (!anyOverlayOpen) return;
@@ -177,6 +195,7 @@ function ListingPage() {
       if (event.key === "Escape") {
         if (lightbox) setLightbox(null);
         else if (roomGalleryId) setRoomGalleryId(null);
+        else if (roomPickerOpen) setRoomPickerOpen(false);
         else setGalleryOpen(false);
       }
 
@@ -194,10 +213,11 @@ function ListingPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [anyOverlayOpen, lightbox, roomGalleryId]);
+  }, [anyOverlayOpen, lightbox, roomGalleryId, roomPickerOpen]);
 
   const openRoom = (roomId: string) => {
     setSelectedRoomId(roomId);
+    setRoomPickerOpen(false);
     setRoomGalleryId(roomId);
   };
 
@@ -212,10 +232,10 @@ function ListingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background pb-20 text-foreground lg:pb-0">
       <SiteHeader />
 
-      <main className="mx-auto max-w-7xl px-8 pb-16 pt-5 sm:px-12">
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-12 sm:pt-5">
         <nav aria-label="Breadcrumb" className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
           <Link to="/search" className="flex items-center gap-1 hover:text-foreground hover:underline">
             <ArrowLeft className="size-3.5" /> Search
@@ -230,13 +250,14 @@ function ListingPage() {
           <div className="order-2 mt-5 flex flex-col justify-between gap-4 sm:order-1 sm:flex-row sm:items-start">
             <div className="min-w-0">
               <h1 className="max-w-3xl text-2xl font-bold leading-tight sm:text-3xl">Sunny shared apartment in Kreuzberg</h1>
-              <p className="mt-2 text-sm text-muted-foreground">Berlin, Germany · 3 private rooms · 2 shared bathrooms</p>
+              <p className="mt-2 text-sm text-muted-foreground">Berlin, Germany · 3 room types · 2 shared bathrooms</p>
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium">
                 <span className="flex items-center gap-1.5"><Users className="size-4 text-primary" /> Mixed gender</span>
                 <span className="flex items-center gap-1.5"><MapPin className="size-4 text-primary" /> Kreuzberg, Berlin</span>
+                <span className="flex items-center gap-1.5"><Check className="size-4 text-primary" /> {totalAvailableRooms} rooms available</span>
               </div>
             </div>
-            <div className="flex shrink-0 gap-2">
+            <div className="hidden shrink-0 gap-2 sm:flex">
               <button type="button" onClick={shareListing} className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold underline underline-offset-4 hover:bg-muted">
                 <Share2 className="size-4" /> {shared ? "Link copied" : "Share"}
               </button>
@@ -251,19 +272,33 @@ function ListingPage() {
             </div>
           </div>
 
-          <section aria-label="Property photos" className="relative order-1 -mx-8 mt-1 sm:order-2 sm:mx-0 sm:mt-5">
-            <div className="flex h-60 snap-x snap-mandatory gap-2 overflow-x-auto sm:hidden">
+          <section aria-label="Property photos" className="relative order-1 -mx-4 sm:order-2 sm:mx-0 sm:mt-5">
+            <div className="flex h-72 snap-x snap-mandatory gap-2 overflow-x-auto sm:hidden">
               {generalPhotos.slice(0, 5).map((photo, index) => (
                 <button
                   key={photo.src}
                   type="button"
                   aria-label={`Open photo gallery at image ${index + 1}`}
                   onClick={() => setLightbox({ title: "General photos", photos: generalPhotos, index })}
-                  className="h-full w-[86%] shrink-0 snap-center overflow-hidden first:ml-8 last:mr-8"
+                  className="h-full w-[88%] shrink-0 snap-center overflow-hidden"
                 >
                   <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover" />
                 </button>
               ))}
+            </div>
+
+            <div className="absolute left-4 top-4 z-10 sm:hidden">
+              <Link to="/search" aria-label="Back to search" className="flex size-10 items-center justify-center rounded-full bg-background shadow-md transition hover:bg-muted">
+                <ArrowLeft className="size-5" />
+              </Link>
+            </div>
+            <div className="absolute right-4 top-4 z-10 flex gap-2 sm:hidden">
+              <button type="button" aria-label={shared ? "Link copied" : "Share this home"} onClick={shareListing} className="flex size-10 items-center justify-center rounded-full bg-background shadow-md transition hover:bg-muted">
+                <Share2 className="size-4" />
+              </button>
+              <button type="button" aria-label={saved ? "Remove this home from saved homes" : "Save this home"} aria-pressed={saved} onClick={() => setSaved((current) => !current)} className="flex size-10 items-center justify-center rounded-full bg-background shadow-md transition hover:bg-muted">
+                <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} />
+              </button>
             </div>
 
             <div className="hidden h-[340px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl sm:grid">
@@ -280,7 +315,7 @@ function ListingPage() {
             <button
               type="button"
               onClick={() => setGalleryOpen(true)}
-              className="absolute bottom-4 right-12 flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-semibold shadow-sm hover:bg-muted sm:right-4"
+              className="absolute bottom-4 right-4 flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-semibold shadow-sm hover:bg-muted"
             >
               <Expand className="size-4" /> Show all photos
             </button>
@@ -289,68 +324,46 @@ function ListingPage() {
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
-            <section className="border-b pb-7">
-              <div className="flex items-center justify-between gap-5">
-                <div className="min-w-0">
-                  <h2 className="text-xl font-bold">Entire shared apartment hosted by Daniel</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Up to 3 tenants · Shared kitchen and living room</p>
-                </div>
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary font-display text-xl text-primary-foreground">D</span>
-              </div>
-              <div className="mt-6 space-y-4">
-                <div className="flex gap-3">
-                  <BadgeCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-                  <div><p className="text-sm font-semibold">Verified place</p><p className="mt-0.5 text-xs leading-5 text-muted-foreground">The property details and landlord identity have been checked.</p></div>
-                </div>
-                <div className="flex gap-3">
-                  <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-                  <div><p className="text-sm font-semibold">Tenant Protection included</p><p className="mt-0.5 text-xs leading-5 text-muted-foreground">Secure payments and support from booking to move-in.</p></div>
-                </div>
-                <div className="flex gap-3">
-                  <Users className="mt-0.5 size-5 shrink-0 text-primary" />
-                  <div><p className="text-sm font-semibold">Made for mid-term stays</p><p className="mt-0.5 text-xs leading-5 text-muted-foreground">A furnished home for students, professionals and newcomers.</p></div>
-                </div>
-              </div>
-            </section>
-
-            <section className="border-b py-7">
-              <h2 className="text-lg font-bold">About this home</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Set on a quiet street in Kreuzberg, this bright apartment pairs original wooden floors with simple, modern furnishings. Prepare dinner in the shared kitchen, catch up in the living room, or retreat to your own private room. Shops, cafés and public transport are all within easy walking distance.
-              </p>
-            </section>
-
-            <section aria-labelledby="room-heading" className="border-b py-8">
-              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+            <section aria-labelledby="room-heading" className="border-b pb-8">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Room types</p>
-                  <h2 id="room-heading" className="mt-1 text-xl font-bold">Where you&apos;ll sleep</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Rooms & prices</p>
+                  <h2 id="room-heading" className="mt-1 text-2xl font-bold">Choose your room</h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Compare prices, then tap <strong className="font-semibold text-foreground">View photos & select</strong> to see each room.</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Tap a room to see its photos</p>
+                <p className="shrink-0 text-sm font-semibold text-primary">{totalAvailableRooms} rooms available</p>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5" role="group" aria-label="Available room types">
+              <div className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-5">
                 {rooms.map((room) => {
                   const active = room.id === selectedRoom.id;
                   return (
-                    <button
-                      key={room.id}
-                      type="button"
-                      aria-label={`View ${room.name} photos`}
-                      aria-pressed={active}
-                      onClick={() => openRoom(room.id)}
-                      className="group min-w-0 text-left"
-                    >
-                      <span className={`block overflow-hidden rounded-lg border-2 transition ${active ? "border-primary" : "border-transparent group-hover:border-foreground/30"}`}>
-                        <img src={room.images[0]!.src} alt={`${room.shortName} bedroom`} className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
-                      </span>
-                      <span className="mt-2.5 block truncate text-sm font-semibold">{room.name}</span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">1 {room.bed.toLowerCase()} · {room.size}</span>
-                      <span className="mt-1 block text-xs font-semibold">€{room.price}<span className="font-normal text-muted-foreground"> / month</span></span>
-                    </button>
+                    <article key={room.id} className={`min-w-0 overflow-hidden rounded-xl border-2 transition ${active ? "border-primary" : "border-border"}`}>
+                      <button type="button" aria-label={`View ${room.name} photos and select it`} onClick={() => openRoom(room.id)} className="group relative block w-full text-left">
+                        <img src={room.images[0]!.src} alt={`${room.shortName} bedroom`} className="aspect-[16/10] w-full object-cover transition duration-300 group-hover:scale-[1.02] sm:aspect-[4/3]" />
+                        <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-background/95 px-2.5 py-1.5 text-xs font-semibold shadow-sm"><Expand className="size-3.5" /> {room.images.length} photos</span>
+                      </button>
+                      <div className="p-4">
+                        <h3 className="text-base font-bold">{room.name}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">{room.bed} · {room.size} · {room.floor}</p>
+                        <p className="mt-3 text-xl font-bold">€{room.price}<span className="text-xs font-normal text-muted-foreground"> / month</span></p>
+                        <p className="mt-1 text-xs font-semibold text-primary">{room.availableRooms} {room.availableRooms === 1 ? "room" : "rooms"} available</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{room.available}</p>
+                        <button type="button" onClick={() => openRoom(room.id)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
+                          <Expand className="size-4" /> View photos & select
+                        </button>
+                      </div>
+                    </article>
                   );
                 })}
               </div>
+            </section>
+
+            <section className="border-b py-8">
+              <h2 className="text-xl font-bold">About this home</h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                Set on a quiet street in Kreuzberg, this bright apartment pairs original wooden floors with simple, modern furnishings. Prepare dinner in the shared kitchen, catch up in the living room, or retreat to your own private room. Shops, cafés and public transport are all within easy walking distance.
+              </p>
             </section>
 
             <section className="border-b py-8">
@@ -363,17 +376,12 @@ function ListingPage() {
             </section>
 
             <section aria-labelledby="universities-heading" className="border-b py-8">
-              <div className="flex items-start gap-3">
-                <GraduationCap className="mt-1 size-6 shrink-0 text-primary" />
-                <div>
-                  <h2 id="universities-heading" className="text-xl font-bold">Nearby universities</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">Approximate distances from the apartment</p>
-                </div>
-              </div>
-              <ul className="mt-5 divide-y rounded-xl border bg-card px-5">
+              <h2 id="universities-heading" className="text-xl font-bold">Nearby universities</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Approximate distances from the apartment</p>
+              <ul className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {universities.map((university) => (
-                  <li key={university.name} className="flex items-center justify-between gap-5 py-4 text-sm">
-                    <span className="min-w-0 font-medium">{university.name}</span>
+                  <li key={university.name} className="flex items-center justify-between gap-4 text-sm">
+                    <span className="min-w-0">{university.name}</span>
                     <span className="shrink-0 font-semibold text-primary">{university.distance}</span>
                   </li>
                 ))}
@@ -381,21 +389,23 @@ function ListingPage() {
             </section>
 
             <section className="py-8">
-              <div className="flex items-center gap-4">
-                <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary font-display text-2xl text-primary-foreground">D</span>
-                <div className="min-w-0"><h2 className="text-lg font-bold">Hosted by Daniel</h2><p className="mt-0.5 text-xs text-muted-foreground">Nestaway landlord since 2022 · Usually replies within a day</p></div>
-              </div>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Daniel looks after this home locally and is happy to help with practical questions about the apartment and your arrival.</p>
-              <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-xs font-medium"><BadgeCheck className="size-4 text-primary" /> Identity verified</span>
+              <h2 className="text-xl font-bold">House rules</h2>
+              <ul className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                {houseRules.map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex items-center gap-3 text-sm"><Icon className="size-5 shrink-0 text-muted-foreground" /> {label}</li>
+                ))}
+              </ul>
             </section>
           </div>
 
-          <aside className="lg:sticky lg:top-6 lg:self-start">
+          <aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
             <div className="rounded-xl border bg-card p-6 shadow-soft">
               <p className="text-xs font-medium text-muted-foreground">Selected room</p>
               <h2 className="mt-1 text-lg font-bold">{selectedRoom.name}</h2>
               <p className="mt-4 text-2xl font-bold">€{selectedRoom.price}<span className="text-sm font-normal text-muted-foreground"> / month</span></p>
               <p className="mt-1 text-xs text-muted-foreground">Utilities and internet included</p>
+              <p className="mt-3 text-sm font-semibold text-primary">{selectedRoom.availableRooms} {selectedRoom.availableRooms === 1 ? "room" : "rooms"} available</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{selectedRoom.available}</p>
               <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5"><Maximize2 className="size-4" /> {selectedRoom.size}</span>
                 <span className="flex items-center gap-1.5"><BedDouble className="size-4" /> {selectedRoom.bed}</span>
@@ -406,9 +416,11 @@ function ListingPage() {
                 <div className="flex justify-between gap-4"><span className="text-muted-foreground">Minimum stay</span><span className="font-medium">3 months</span></div>
               </div>
               <button type="button" className="mt-5 w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
-                Request {selectedRoom.shortName}
+                Contact landlord
               </button>
-              <p className="mt-3 text-center text-[11px] text-muted-foreground">You won&apos;t be charged yet</p>
+              <button type="button" onClick={() => openRoom(selectedRoom.id)} className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold transition hover:bg-muted">
+                <Expand className="size-4" /> View room photos
+              </button>
               <div className="mt-5 flex gap-3 rounded-lg bg-primary/10 p-3">
                 <ShieldCheck className="size-5 shrink-0 text-primary" />
                 <p className="text-[11px] leading-5"><span className="font-semibold">Tenant Protection</span><br /><span className="text-muted-foreground">Your payment is protected until you move in.</span></p>
@@ -419,7 +431,7 @@ function ListingPage() {
       </main>
 
       <footer className="border-t bg-muted py-10">
-        <div className="mx-auto grid max-w-7xl gap-8 px-8 sm:grid-cols-2 sm:px-12 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-12 lg:grid-cols-4">
           <div>
             <Link to="/" className="font-display text-2xl text-primary">NESTAWAY</Link>
             <p className="mt-3 max-w-xs text-xs leading-5 text-muted-foreground">A simpler way to find a furnished home for the next chapter of your life.</p>
@@ -440,6 +452,47 @@ function ListingPage() {
           ))}
         </div>
       </footer>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background p-3 shadow-soft lg:hidden">
+        <div className="mx-auto flex max-w-lg items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-muted-foreground">{selectedRoom.name}</p>
+            <p className="mt-0.5 text-lg font-bold">€{selectedRoom.price}<span className="text-xs font-normal text-muted-foreground"> / month</span></p>
+          </div>
+          <button type="button" onClick={() => setRoomPickerOpen(true)} className="shrink-0 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
+            Select room
+          </button>
+        </div>
+      </div>
+
+      {roomPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-end bg-foreground/50 lg:hidden" role="dialog" aria-modal="true" aria-label="Select a room">
+          <button type="button" aria-label="Close room selector" onClick={() => setRoomPickerOpen(false)} className="absolute inset-0 cursor-default" />
+          <div className="relative max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-background p-5 shadow-soft">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold">Select a room</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Tap a room to see its photos and price.</p>
+              </div>
+              <button autoFocus type="button" aria-label="Close room selector" onClick={() => setRoomPickerOpen(false)} className="shrink-0 rounded-full border p-2 hover:bg-muted"><X className="size-5" /></button>
+            </div>
+            <div className="mt-5 space-y-3">
+              {rooms.map((room) => (
+                <button key={room.id} type="button" onClick={() => openRoom(room.id)} className={`flex w-full items-center gap-4 rounded-xl border-2 p-3 text-left transition ${room.id === selectedRoom.id ? "border-primary" : "border-border hover:border-primary/50"}`}>
+                  <img src={room.images[0]!.src} alt="" className="h-24 w-28 shrink-0 rounded-lg object-cover" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold">{room.name}</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">{room.bed} · {room.size}</span>
+                    <span className="mt-2 block text-lg font-bold">€{room.price}<span className="text-xs font-normal text-muted-foreground"> / month</span></span>
+                    <span className="mt-1 block text-xs font-semibold text-primary">{room.availableRooms} available · {room.available}</span>
+                    <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold"><Expand className="size-3.5" /> View photos & select</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {galleryOpen && (
         <PhotoGalleryDialog

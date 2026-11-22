@@ -7,3 +7,6 @@
 - [x] Refine the details page with compact room cards, room-specific photo modals, and a categorized bento gallery with lightbox navigation.
 - [x] Add mixed-gender, location, and nearby-university details, shorter property photos, wider page padding, and a footer.
 - [x] Verify the revised gallery interactions and mobile layout, then save the finished version.
+- [ ] Simplify the details page by removing both host panels and matching universities and house rules to the amenities style.
+- [ ] Make room discovery clearer with per-room availability, explicit photo buttons, and a fixed mobile room selector.
+- [ ] Verify desktop and mobile interactions, tests, and save the revised version.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { rooms } from "@/routes/listing";
+import { rooms, totalAvailableRooms } from "@/routes/listing";
 
 describe("Property room pricing", () => {
   it("keeps a separate monthly price for each selectable room", () => {
@@ -20,5 +20,14 @@ describe("Property room pricing", () => {
 
     const photoSources = rooms.flatMap((room) => room.images.map((photo) => photo.src));
     expect(new Set(photoSources).size).toBe(9);
+  });
+
+  it("tracks availability per room type and totals it for the property", () => {
+    expect(rooms.map(({ id, availableRooms }) => ({ id, availableRooms }))).toEqual([
+      { id: "aurora", availableRooms: 3 },
+      { id: "linden", availableRooms: 2 },
+      { id: "willow", availableRooms: 1 },
+    ]);
+    expect(totalAvailableRooms).toBe(6);
   });
 });

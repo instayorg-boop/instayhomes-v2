@@ -47,6 +47,7 @@ const listings = [
     size: "18 m²",
     capacity: "1 tenant",
     available: "Available now",
+    availableRooms: 6,
     rating: "4.8",
     image: "photo-1522708323590-d24dbb6b0267",
   },
@@ -59,6 +60,7 @@ const listings = [
     size: "20 m²",
     capacity: "1 tenant",
     available: "Available now",
+    availableRooms: 2,
     rating: "4.9",
     image: "photo-1505693416388-ac5ce068fe85",
   },
@@ -71,6 +73,7 @@ const listings = [
     size: "32 m²",
     capacity: "2 tenants",
     available: "Available from 1 Feb",
+    availableRooms: 1,
     rating: "4.7",
     image: "photo-1560448204-e02f11c3d0e2",
   },
@@ -83,6 +86,7 @@ const listings = [
     size: "16 m²",
     capacity: "1 tenant",
     available: "Available now",
+    availableRooms: 3,
     rating: "4.8",
     image: "photo-1560185008-b033106af5c3",
   },
@@ -95,6 +99,7 @@ const listings = [
     size: "35 m²",
     capacity: "2 tenants",
     available: "Available from 15 Jan",
+    availableRooms: 2,
     rating: "4.9",
     image: "photo-1560185127-6ed189bf02f4",
   },
@@ -107,6 +112,7 @@ const listings = [
     size: "54 m²",
     capacity: "3 tenants",
     available: "Available from 1 Mar",
+    availableRooms: 4,
     rating: "4.8",
     image: "photo-1560184897-ae75f418493e",
   },
@@ -119,6 +125,7 @@ const listings = [
     size: "15 m²",
     capacity: "1 tenant",
     available: "Available now",
+    availableRooms: 1,
     rating: "4.6",
     image: "photo-1560185893-a55cbc8c57e8",
   },
@@ -131,6 +138,7 @@ const listings = [
     size: "61 m²",
     capacity: "3 tenants",
     available: "Available from 1 Feb",
+    availableRooms: 2,
     rating: "4.9",
     image: "photo-1560185009-5bf9f2849488",
   },
@@ -143,6 +151,7 @@ const listings = [
     size: "28 m²",
     capacity: "1 tenant",
     available: "Available now",
+    availableRooms: 1,
     rating: "4.7",
     image: "photo-1560185007-cde436f6a4d0",
   },
@@ -377,7 +386,7 @@ function ListingCard({
           <span className="font-medium">★ {listing.rating}</span>
         </div>
         <p className="mt-2 text-sm font-bold">€{listing.price.toLocaleString("en")} <span className="text-xs font-normal text-muted-foreground">/ month</span></p>
-        <p className="mt-1 text-[11px] font-medium text-primary">{listing.available}</p>
+        <p className="mt-1 text-[11px] font-medium text-primary">{listing.availableRooms} {listing.availableRooms === 1 ? "room" : "rooms"} available · {listing.available}</p>
       </Link>
     </article>
   );

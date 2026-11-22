@@ -2,6 +2,7 @@ import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-
 import { ArrowLeft, Check, ChevronDown, Loader2, Lock, Mail, ShieldCheck, Smartphone, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { VerifiedIcon } from "@/components/verified-badge";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -218,7 +219,10 @@ function PayScreen({
         </div>
         <div className="absolute inset-x-4 bottom-7 text-white sm:inset-x-5 sm:bottom-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">Unlock chat with the landlord of</p>
-          <p className="mt-0.5 truncate text-2xl font-bold tracking-tight">{room ? room.shortName : "Sunny shared apartment"}</p>
+          <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-2xl font-bold tracking-tight">
+            <span className="truncate">{room ? room.shortName : "Sunny shared apartment"}</span>
+            <VerifiedIcon className="size-6 shrink-0" />
+          </p>
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
             {room && (
               <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">
@@ -226,6 +230,9 @@ function PayScreen({
               </span>
             )}
             <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">Kreuzberg, Berlin</span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/15 py-0.5 pl-1.5 pr-2.5 backdrop-blur-md">
+              <VerifiedIcon className="size-3.5" /> Tenant verified
+            </span>
           </div>
         </div>
       </div>
@@ -233,6 +240,13 @@ function PayScreen({
       <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
       <h1 className="text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
       <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
+      <Link
+        to="/"
+        hash="tenant-protection"
+        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid"
+      >
+        <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
+      </Link>
 
       <fieldset disabled={pending} className="contents">
         <div className="mt-6 rounded-xl border-2">

@@ -11,6 +11,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Motion tokens: stronger curves than the CSS defaults. Overriding --ease-out upgrades every
+   `ease-out` utility; `ease-drawer` is the iOS-like sheet curve. */
+@theme {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 /*
  * Design system definition.
  *
@@ -155,6 +162,35 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  /* Mobile: no grey tap flash (every control has its own :active state instead), no
+     font inflation in landscape, no 300ms double-tap wait, no long-press selecting labels. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Reduced motion means gentler, not none: keep fades and colour changes, drop movement. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-property: opacity, color, background-color, border-color, fill !important;
+    }
   }
 }
 

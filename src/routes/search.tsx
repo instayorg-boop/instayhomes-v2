@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -167,10 +168,13 @@ function SearchPage() {
   const [moreFilters, setMoreFilters] = useState(false);
   const [query, setQuery] = useState("Munich");
   const [searchedCity, setSearchedCity] = useState("Munich");
+  const dataMode = useDataMode();
+  const dataset = pickDataset(dataMode, listings);
+  const city = dataMode === "worst" ? worstCaseCity : searchedCity;
 
   const visibleListings = useMemo(
-    () => listings.filter((listing) => activeFilter === "All" || listing.type === activeFilter),
-    [activeFilter],
+    () => dataset.filter((listing) => activeFilter === "All" || listing.type === activeFilter),
+    [activeFilter, dataset],
   );
 
   const toggleFavourite = (id: number) => {
@@ -198,13 +202,13 @@ function SearchPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="City or neighbourhood"
-                className="h-10 w-full bg-transparent text-sm outline-none"
+                className="h-10 w-full bg-transparent text-base outline-none md:text-sm"
               />
             </label>
-            <button type="button" className="flex h-10 items-center justify-center gap-2 rounded-md border px-5 text-sm md:w-60">
+            <button type="button" className="flex h-10 items-center justify-center gap-2 rounded-md border px-5 text-sm hover:bg-muted md:w-60 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
               <CalendarDays className="size-4" /> Move-in – Move-out
             </button>
-            <button type="submit" className="h-10 rounded-md bg-primary px-8 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            <button type="submit" className="h-10 rounded-md bg-primary px-8 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
               Search
             </button>
           </form>
@@ -215,7 +219,7 @@ function SearchPage() {
                 key={filter}
                 type="button"
                 onClick={() => setActiveFilter(filter)}
-                className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition ${
+                className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97] ${
                   activeFilter === filter ? "border-foreground bg-foreground text-background" : "bg-background hover:bg-muted"
                 }`}
               >
@@ -226,14 +230,14 @@ function SearchPage() {
               type="button"
               onClick={() => setMoreFilters((current) => !current)}
               aria-expanded={moreFilters}
-              className="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium hover:bg-muted"
+              className="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]"
             >
               <SlidersHorizontal className="size-3.5" /> More filters
-              <ChevronDown className={`size-3.5 transition ${moreFilters ? "rotate-180" : ""}`} />
+              <ChevronDown className={`size-3.5 transition-transform duration-200 ease-out ${moreFilters ? "rotate-180" : ""}`} />
             </button>
           </div>
           {moreFilters && (
-            <div className="mt-3 flex flex-wrap gap-4 rounded-lg bg-muted p-4 text-xs font-medium">
+            <div className="mt-3 flex flex-wrap gap-4 rounded-lg bg-muted p-4 text-xs font-medium animate-in fade-in slide-in-from-top-1 duration-200 ease-out">
               <span className="flex items-center gap-2"><Check className="size-4 text-primary" /> Furnished</span>
               <span className="flex items-center gap-2"><Check className="size-4 text-primary" /> Bills included</span>
               <span className="flex items-center gap-2"><Check className="size-4 text-primary" /> Verified landlord</span>
@@ -246,10 +250,10 @@ function SearchPage() {
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-medium text-muted-foreground">Mid-term rentals</p>
-            <h1 className="mt-1 text-2xl font-bold">Accommodation in {searchedCity}</h1>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight">Accommodation in {city}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{visibleListings.length} furnished places available for your next stay</p>
           </div>
-          <button type="button" className="flex items-center gap-2 self-start rounded-md border px-3 py-2 text-xs font-medium sm:self-auto">
+          <button type="button" className="flex items-center gap-2 self-start rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted sm:self-auto transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
             Recommended <ChevronDown className="size-3.5" />
           </button>
         </div>
@@ -279,10 +283,10 @@ function SearchPage() {
         <nav aria-label="Search result pages" className="mt-10 flex items-center justify-center gap-2 text-sm">
           <span className="rounded-md bg-foreground px-3 py-2 text-background">1</span>
           {[2, 3, 4].map((page) => (
-            <button key={page} type="button" className="rounded-md border px-3 py-2 hover:bg-muted">{page}</button>
+            <button key={page} type="button" className="rounded-md border px-3 py-2 hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">{page}</button>
           ))}
           <span className="px-1 text-muted-foreground">…</span>
-          <button type="button" className="rounded-md border px-3 py-2 hover:bg-muted">Next</button>
+          <button type="button" className="rounded-md border px-3 py-2 hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">Next</button>
         </nav>
 
         <section className="mt-14 border-t pt-10">
@@ -339,11 +343,12 @@ function SearchPage() {
           ))}
         </div>
       </footer>
+      <DataToggle mode={dataMode} />
     </div>
   );
 }
 
-type Listing = (typeof listings)[number];
+export type Listing = (typeof listings)[number];
 
 function ListingCard({
   listing,
@@ -362,7 +367,7 @@ function ListingCard({
             src={image(listing.image)}
             alt={listing.title}
             loading="lazy"
-            className="aspect-[4/3] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            className="aspect-[4/3] w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]"
           />
         </Link>
         <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-[10px] font-semibold shadow-sm">
@@ -373,7 +378,7 @@ function ListingCard({
           aria-label={favourite ? `Remove ${listing.title} from saved homes` : `Save ${listing.title}`}
           aria-pressed={favourite}
           onClick={onToggleFavourite}
-          className="absolute right-3 top-3 rounded-full bg-background/95 p-2 shadow-sm transition hover:scale-105"
+          className="absolute right-3 top-3 rounded-full bg-background/95 p-2 shadow-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
         >
           <Heart className={`size-4 ${favourite ? "fill-primary text-primary" : ""}`} />
         </button>
@@ -407,7 +412,7 @@ function ProtectionCard() {
           <li key={item} className="flex items-center gap-2"><Check className="size-4 text-primary" /> {item}</li>
         ))}
       </ul>
-      <Link to="/listing" className="mt-5 inline-flex items-center gap-2 self-start rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground">
+      <Link to="/listing" className="mt-5 inline-flex items-center gap-2 self-start rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
         <MapPin className="size-3.5" /> Explore protected homes
       </Link>
     </aside>

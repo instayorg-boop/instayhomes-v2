@@ -11,9 +11,9 @@ export function SiteHeader() {
   return (
     <>
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" aria-label="Nestaway home" className="font-display text-2xl tracking-wide text-primary">
-            NESTAWAY
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-12">
+          <Link to="/" aria-label="Instayhomes home" className="font-display text-2xl tracking-wide text-primary">
+            INSTAYHOMES
           </Link>
           <nav aria-label="Main navigation" className="flex items-center gap-1 text-sm font-medium">
             {navItems.map((item) => (
@@ -46,7 +46,7 @@ export function SiteHeader() {
           />
           <aside className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft animate-in slide-in-from-right duration-300 ease-drawer">
             <div className="flex items-center justify-between">
-              <span className="font-display text-2xl text-primary">NESTAWAY</span>
+              <span className="font-display text-2xl text-primary">INSTAYHOMES</span>
               <button
                 type="button"
                 aria-label="Close menu"

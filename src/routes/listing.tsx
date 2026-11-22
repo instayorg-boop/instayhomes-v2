@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  BadgeCheck,
   BedDouble,
   Check,
   ChevronLeft,
@@ -28,6 +27,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { VerifiedIcon } from "@/components/verified-badge";
 import { SiteHeader } from "@/components/site-header";
 import { Availability } from "@/components/availability";
 import { PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
@@ -38,12 +38,12 @@ import { rememberListing } from "@/lib/recent";
 export const Route = createFileRoute("/listing")({
   head: () => ({
     meta: [
-      { title: "Sunny shared apartment in Kreuzberg, Berlin | Nestaway Stays" },
+      { title: "Sunny shared apartment in Kreuzberg, Berlin | Instayhomes" },
       {
         name: "description",
         content: "Explore three furnished private rooms in a bright shared apartment in Kreuzberg, Berlin, with bills included and Tenant Protection.",
       },
-      { property: "og:title", content: "Sunny shared apartment in Kreuzberg | Nestaway Stays" },
+      { property: "og:title", content: "Sunny shared apartment in Kreuzberg | Instayhomes" },
       {
         property: "og:description",
         content: "Choose your furnished private room in this bright, fully equipped Berlin apartment.",
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/listing")({
 const image = (id: string, width = 1200) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
 
-const heroImage = image("photo-1522708323590-d24dbb6b0267", 1600);
+export const heroImage = image("photo-1522708323590-d24dbb6b0267", 1600);
 
 type Photo = {
   src: string;
@@ -183,8 +183,8 @@ export const landlordWhatsApp = "";
 /** The message is written for them: they only have to press send in WhatsApp. */
 export function contactMessage(room: Room | null) {
   return room
-    ? `Hi! I found ${room.shortName} (€${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Nestaway. Is it still available?`
-    : `Hi! I found your apartment in Kreuzberg on Nestaway. Which rooms are still available?`;
+    ? `Hi! I found ${room.shortName} (€${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Instayhomes. Is it still available?`
+    : `Hi! I found your apartment in Kreuzberg on Instayhomes. Which rooms are still available?`;
 }
 
 // Press feedback shared by every button on the page (emil-design-eng: buttons must feel heard).
@@ -288,18 +288,10 @@ function ListingPage() {
         <div className="flex flex-col">
           <div className="order-2 mt-5 flex flex-col justify-between gap-4 sm:order-1 sm:flex-row sm:items-start">
             <div className="min-w-0">
-              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                  <BadgeCheck className="size-3.5" /> Tenant verified
-                </span>
-                <Link to="/" hash="tenant-protection" className="text-xs font-medium text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-foreground">
-                  Covered by Tenant Protection
-                </Link>
-              </span>
-              <h1 className="mt-2 max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
-              <p className="mt-2 flex items-start gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="mt-0.5 size-4 shrink-0" />
-                <span>Kreuzberg, Berlin · Mixed gender · 2 shared bathrooms</span>
+              {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
+              <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
               </p>
               {soonest ? (
                 <Availability
@@ -311,6 +303,23 @@ function ListingPage() {
               ) : (
                 <p className="mt-3 text-base font-medium text-muted-foreground">Fully booked right now</p>
               )}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
+                  <Users className="size-3.5 text-muted-foreground" /> Mixed gender
+                </span>
+              </div>
+              <Link
+                to="/"
+                hash="tenant-protection"
+                className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press}`}
+              >
+                <VerifiedIcon className="size-7 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">Tenant verified</span>
+                  <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+              </Link>
             </div>
             <div className="hidden shrink-0 gap-2 sm:flex">
               <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>
@@ -492,11 +501,11 @@ function ListingPage() {
       <footer className="border-t bg-muted py-10">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-12 lg:grid-cols-4">
           <div>
-            <Link to="/" className="font-display text-2xl text-primary">NESTAWAY</Link>
+            <Link to="/" className="font-display text-2xl text-primary">INSTAYHOMES</Link>
             <p className="mt-3 max-w-xs text-xs leading-5 text-muted-foreground">A simpler way to find a furnished home for the next chapter of your life.</p>
           </div>
           {[
-            ["Nestaway", ["About us", "Careers", "Partners", "Blog"]],
+            ["Instayhomes", ["About us", "Careers", "Partners", "Blog"]],
             ["Tenants", ["How it works", "Tenant Protection", "Help centre", "Contact us"]],
             ["Landlords", ["List your property", "Landlord pricing", "Rental guides", "Terms and privacy"]],
           ].map(([heading, links]) => (

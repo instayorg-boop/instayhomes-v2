@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  BadgeCheck,
   Heart,
   Home,
   Search,
@@ -10,6 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { rememberSearch } from "@/lib/recent";
 import { universityById } from "@/lib/universities";
 import { Availability } from "@/components/availability";
+import { VerifiedIcon } from "@/components/verified-badge";
 import { NoResultsIllustration } from "@/components/no-results-illustration";
 import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
 
@@ -21,12 +21,12 @@ export const Route = createFileRoute("/search")({
   }),
   head: () => ({
     meta: [
-      { title: "Rooms and apartments in Munich | Nestaway Stays" },
+      { title: "Rooms and apartments in Munich | Instayhomes" },
       {
         name: "description",
-        content: "Browse furnished rooms, studios and apartments for mid-term stays in Munich with Nestaway Tenant Protection.",
+        content: "Browse furnished rooms, studios and apartments for mid-term stays in Munich with Instayhomes Tenant Protection.",
       },
-      { property: "og:title", content: "Find your next home in Munich | Nestaway Stays" },
+      { property: "og:title", content: "Find your next home in Munich | Instayhomes" },
       {
         property: "og:description",
         content: "Compare furnished mid-term rentals and choose a place that fits your stay in Munich.",
@@ -209,7 +209,7 @@ function SearchPage() {
       <SiteHeader />
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-12">
           <form onSubmit={submitSearch} className="flex items-center gap-2 rounded-full border bg-background p-1.5 pl-4 shadow-sm">
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <label className="min-w-0 flex-1">
@@ -245,7 +245,7 @@ function SearchPage() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-12 sm:py-8">
         <h1 className="text-2xl font-bold tracking-tight">{university ? `Homes near ${university.name}` : `Accommodation in ${city}`}</h1>
         <div className="mt-1 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
@@ -301,7 +301,7 @@ function SearchPage() {
               Munich combines a lively cultural scene with green parks, reliable public transport and neighbourhoods that feel like small villages. Choose a furnished room to share city life with others, or enjoy the privacy of your own studio or apartment.
             </p>
             <p>
-              Nestaway makes it easier to arrange your home before you arrive. Browse verified places, compare what is included and send a booking request online.
+              Instayhomes makes it easier to arrange your home before you arrive. Browse verified places, compare what is included and send a booking request online.
             </p>
           </div>
           <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -327,13 +327,13 @@ function SearchPage() {
       </main>
 
       <footer className="border-t bg-muted py-10">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-12 lg:grid-cols-4">
           <div>
-            <Link to="/" className="font-display text-2xl text-primary">NESTAWAY</Link>
+            <Link to="/" className="font-display text-2xl text-primary">INSTAYHOMES</Link>
             <p className="mt-3 max-w-xs text-xs leading-5 text-muted-foreground">A simpler way to find a furnished home for the next chapter of your life.</p>
           </div>
           {[
-            ["Nestaway", ["About us", "Careers", "Partners", "Blog"]],
+            ["Instayhomes", ["About us", "Careers", "Partners", "Blog"]],
             ["Tenants", ["How it works", "Tenant Protection", "Help centre", "Contact us"]],
             ["Landlords", ["List your property", "Landlord pricing", "Rental guides", "Terms and privacy"]],
           ].map(([heading, links]) => (
@@ -384,7 +384,7 @@ function ListingCard({
           )}
         </Link>
         <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-[11px] font-semibold shadow-sm">
-          <BadgeCheck className="size-3.5 text-primary" /> Tenant verified
+          <VerifiedIcon className="size-3.5" /> Tenant verified
         </span>
         <button
           type="button"

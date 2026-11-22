@@ -7,7 +7,8 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { rememberSearch } from "@/lib/recent";
-import { universityById } from "@/lib/universities";
+import { universityById, type University } from "@/lib/universities";
+import { searchStory } from "@/lib/guides";
 import { Availability } from "@/components/availability";
 import { VerifiedIcon } from "@/components/verified-badge";
 import { NoResultsIllustration } from "@/components/no-results-illustration";
@@ -294,36 +295,7 @@ function SearchPage() {
           </div>
         )}
 
-        <section className="mt-14 border-t pt-10">
-          <h2 className="text-xl font-bold">Accommodation in Munich, Germany</h2>
-          <div className="mt-4 max-w-4xl space-y-4 text-sm leading-6 text-muted-foreground">
-            <p>
-              Munich combines a lively cultural scene with green parks, reliable public transport and neighbourhoods that feel like small villages. Choose a furnished room to share city life with others, or enjoy the privacy of your own studio or apartment.
-            </p>
-            <p>
-              Instayhomes makes it easier to arrange your home before you arrive. Browse verified places, compare what is included and send a booking request online.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["Popular neighbourhoods", ["Rooms in Schwabing", "Studios in Maxvorstadt", "Apartments in Haidhausen", "Homes in Glockenbachviertel"]],
-              ["Find your space", ["Private rooms in Munich", "Shared rooms in Munich", "Studios in Munich", "Apartments in Munich"]],
-              ["Plan your stay", ["Student accommodation", "Monthly rentals", "Furnished homes", "Pet-friendly rentals"]],
-              ["Nearby cities", ["Accommodation in Augsburg", "Accommodation in Nuremberg", "Accommodation in Stuttgart", "Accommodation in Salzburg"]],
-            ].map(([heading, links]) => (
-              <div key={heading as string}>
-                <h3 className="text-sm font-semibold">{heading}</h3>
-                <div className="mt-3 space-y-2">
-                  {(links as string[]).map((link) => (
-                    <Link key={link} to="/search" className="block text-xs text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground">
-                      {link}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <SearchStorySection university={university} />
       </main>
 
       <footer className="border-t bg-muted py-10">
@@ -414,3 +386,39 @@ function ListingCard({
   );
 }
 
+
+/** The text and links under the results, written for the university being searched. */
+function SearchStorySection({ university }: { university: University | null }) {
+  const story = searchStory(university);
+  const linkClass = "block text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground hover:decoration-foreground";
+  return (
+    <section className="mt-14 border-t pt-10">
+      <h2 className="text-xl font-bold">{story.heading}</h2>
+      <div className="mt-4 max-w-3xl space-y-4 text-sm leading-6 text-muted-foreground">
+        {story.intro.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </div>
+      <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {story.columns.map((column) => (
+          <div key={column.heading}>
+            <h3 className="text-sm font-semibold">{column.heading}</h3>
+            <div className="mt-3 space-y-2.5">
+              {column.links.map((link) =>
+                link.kind === "guide" ? (
+                  <Link key={link.slug} to="/blog/$slug" params={{ slug: link.slug }} className={linkClass}>
+                    {link.label}
+                  </Link>
+                ) : (
+                  <Link key={link.universityId} to="/search" search={{ university: link.universityId }} className={linkClass}>
+                    Homes near {link.label}
+                  </Link>
+                ),
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

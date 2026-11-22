@@ -10,4 +10,15 @@ describe("Property room pricing", () => {
       { id: "willow", price: 720 },
     ]);
   });
+
+  it("gives every room its own three-photo gallery", () => {
+    expect(rooms.map(({ id, images }) => ({ id, photoCount: images.length }))).toEqual([
+      { id: "aurora", photoCount: 3 },
+      { id: "linden", photoCount: 3 },
+      { id: "willow", photoCount: 3 },
+    ]);
+
+    const photoSources = rooms.flatMap((room) => room.images.map((photo) => photo.src));
+    expect(new Set(photoSources).size).toBe(9);
+  });
 });

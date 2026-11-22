@@ -293,64 +293,34 @@ function ListingPage() {
       <SiteHeader />
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-12 sm:pt-5">
-        <nav aria-label="Breadcrumb" className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
-          <Link to="/search" className="flex items-center gap-1 hover:text-foreground hover:underline">
-            <ArrowLeft className="size-3.5" /> Search
-          </Link>
-          <ChevronRight className="size-3" />
-          <Link to="/search" className="hover:text-foreground hover:underline">Berlin</Link>
-          <ChevronRight className="size-3" />
-          <span className="truncate text-foreground">Kreuzberg apartment</span>
-        </nav>
+        {/* Above the photos on desktop: only where you are, and share / save. */}
+        <div className="hidden items-center justify-between gap-4 sm:flex">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+            <Link to="/search" className="flex items-center gap-1 hover:text-foreground hover:underline">
+              <ArrowLeft className="size-3.5" /> Search
+            </Link>
+            <ChevronRight className="size-3" />
+            <Link to="/search" className="hover:text-foreground hover:underline">Berlin</Link>
+            <ChevronRight className="size-3" />
+            <span className="truncate text-foreground">Kreuzberg apartment</span>
+          </nav>
+          <div className="flex shrink-0 gap-1">
+            <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>
+              <Share2 className="size-4" /> {shared ? "Link copied" : "Share"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={saved}
+              onClick={() => setSaved((current) => !current)}
+              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}
+            >
+              <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} /> {saved ? "Saved" : "Save"}
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col">
-          <div className="order-2 mt-5 flex flex-col justify-between gap-4 sm:order-1 sm:flex-row sm:items-start">
-            <div className="min-w-0">
-              {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
-              <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
-              </p>
-              {soonest ? (
-                <Availability
-                  available={soonest.available}
-                  left={roomsLeft}
-                  leftLabel={(count) => `${count} rooms left`}
-                  className="mt-3 text-base"
-                />
-              ) : (
-                <p className="mt-3 text-base font-medium text-muted-foreground">Fully booked right now</p>
-              )}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
-                  <Users className="size-3.5 text-muted-foreground" /> Mixed gender
-                </span>
-              </div>
-              <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press} w-full text-left`}>
-                <VerifiedIcon className="size-7 shrink-0" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">Tenant verified</span>
-                  <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
-                </span>
-                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-              </TenantProtectionLink>
-            </div>
-            <div className="hidden shrink-0 gap-2 sm:flex">
-              <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>
-                <Share2 className="size-4" /> {shared ? "Link copied" : "Share"}
-              </button>
-              <button
-                type="button"
-                aria-pressed={saved}
-                onClick={() => setSaved((current) => !current)}
-                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}
-              >
-                <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} /> {saved ? "Saved" : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <section aria-label="Property photos" className="relative order-1 -mx-4 sm:order-2 sm:mx-0 sm:mt-5">
+          <section aria-label="Property photos" className="relative -mx-4 sm:mx-0 sm:mt-4">
             <div className="flex h-72 snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:hidden">
               {generalPhotos.slice(0, 5).map((photo, index) => (
                 <button
@@ -400,11 +370,42 @@ function ListingPage() {
           </section>
         </div>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="mt-5 grid gap-10 sm:mt-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
+          <div className="min-w-0 pb-8">
+            {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
+            <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
+            </p>
+            {soonest ? (
+              <Availability
+                available={soonest.available}
+                left={roomsLeft}
+                leftLabel={(count) => `${count} rooms left`}
+                className="mt-3 text-base"
+              />
+            ) : (
+              <p className="mt-3 text-base font-medium text-muted-foreground">Fully booked right now</p>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
+                <Users className="size-3.5 text-muted-foreground" /> Mixed gender
+              </span>
+            </div>
+            <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press} w-full text-left`}>
+              <VerifiedIcon className="size-7 shrink-0" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">Tenant verified</span>
+                <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </TenantProtectionLink>
+          </div>
+
             <LandlordRow hasPlus={Boolean(plan)} onMessage={() => contactAbout(null)} />
 
-            <section aria-labelledby="room-heading" className="border-b py-8 lg:border-b-0">
+            <section aria-labelledby="room-heading" className="pb-8">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 id="room-heading" className="text-xl font-bold">Rooms</h2>
                 <p className="shrink-0 text-sm text-muted-foreground">
@@ -752,7 +753,7 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
   const [photoFailed, setPhotoFailed] = useState(false);
   const years = landlord.yearsOnInstayhomes;
   return (
-    <section aria-labelledby="landlord-heading" className="border-b pb-8">
+    <section aria-labelledby="landlord-heading" className="pb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <span className="relative size-14 shrink-0">

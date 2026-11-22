@@ -28,6 +28,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { VerifiedIcon } from "@/components/verified-badge";
+import { TenantProtectionLink } from "@/components/tenant-protection";
 import { SiteHeader } from "@/components/site-header";
 import { Availability } from "@/components/availability";
 import { PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
@@ -308,18 +309,14 @@ function ListingPage() {
                   <Users className="size-3.5 text-muted-foreground" /> Mixed gender
                 </span>
               </div>
-              <Link
-                to="/"
-                hash="tenant-protection"
-                className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press}`}
-              >
+              <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press} w-full text-left`}>
                 <VerifiedIcon className="size-7 shrink-0" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">Tenant verified</span>
                   <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
                 </span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-              </Link>
+              </TenantProtectionLink>
             </div>
             <div className="hidden shrink-0 gap-2 sm:flex">
               <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>

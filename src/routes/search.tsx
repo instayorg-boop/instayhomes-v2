@@ -10,6 +10,7 @@ import { rememberSearch } from "@/lib/recent";
 import { universityById, type University } from "@/lib/universities";
 import { searchStory } from "@/lib/guides";
 import { Availability } from "@/components/availability";
+import { TenantProtectionLink } from "@/components/tenant-protection";
 import { VerifiedIcon } from "@/components/verified-badge";
 import { NoResultsIllustration } from "@/components/no-results-illustration";
 import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
@@ -251,9 +252,9 @@ function SearchPage() {
         <div className="mt-1 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             {visibleListings.length} furnished {visibleListings.length === 1 ? "home" : "homes"} ·{" "}
-            <Link to="/" hash="tenant-protection" className="underline decoration-dotted underline-offset-4 hover:text-foreground">
+            <TenantProtectionLink className="underline decoration-dotted underline-offset-4 hover:text-foreground">
               Covered by Tenant Protection
-            </Link>
+            </TenantProtectionLink>
           </p>
           {visibleListings.length > 1 && (
             <label className="flex items-center gap-1 text-sm">

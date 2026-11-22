@@ -3,6 +3,7 @@ import { ArrowLeft, Check, ChevronDown, Loader2, Lock, Mail, ShieldCheck, Smartp
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { VerifiedIcon } from "@/components/verified-badge";
+import { TenantProtectionLink } from "@/components/tenant-protection";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -240,13 +241,9 @@ function PayScreen({
       <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
       <h1 className="text-3xl font-bold tracking-tight">Get Instayhomes Plus</h1>
       <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
-      <Link
-        to="/"
-        hash="tenant-protection"
-        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid"
-      >
+      <TenantProtectionLink className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid">
         <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
-      </Link>
+      </TenantProtectionLink>
 
       <fieldset disabled={pending} className="contents">
         <div className="mt-6 rounded-xl border-2">

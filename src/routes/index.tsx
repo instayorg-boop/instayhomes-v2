@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, Search, ShieldCheck, CheckCircle2, ChevronDown, Globe, GraduationCap, History, Menu, X } from "lucide-react";
+import { ArrowRight, Search, ShieldCheck, CheckCircle2, ChevronDown, Globe, History, Menu, X } from "lucide-react";
 import homesImg from "@/assets/stat-homes.png";
 import partnersImg from "@/assets/stat-partners.png";
 import tenantsImg from "@/assets/stat-tenants.png";
@@ -8,7 +8,7 @@ import citiesImg from "@/assets/stat-cities.png";
 import { Availability } from "@/components/availability";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
-import { matchUniversities, universities, type University } from "@/lib/universities";
+import { listingCount, matchUniversities, universities, type University } from "@/lib/universities";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -97,13 +97,17 @@ function Index() {
       <RecentlyViewed />
 
       <section className="mx-auto max-w-7xl px-4 py-10">
-        <h2 className="text-center text-2xl font-semibold">Find a home near your university</h2>
+        <h2 className="text-center text-2xl font-semibold">Search by university</h2>
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {universities.map((uni, index) => (
             <Link key={uni.id} to="/search" search={{ university: uni.id }} className="group rounded-lg">
               <UniversityMark university={uni} size="tile" index={index} />
               <p className="mt-2 text-sm font-semibold leading-5 group-hover:underline">{uni.name}</p>
-              <p className="text-xs text-muted-foreground">{uni.city}</p>
+              <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                {uni.city}
+                <span className="size-1 rounded-full bg-current" aria-hidden />
+                <span className={uni.listings > 0 ? "font-medium text-foreground" : ""}>{listingCount(uni.listings)}</span>
+              </p>
             </Link>
           ))}
         </div>
@@ -261,8 +265,7 @@ function UniversitySearch() {
 
   return (
     <form ref={boxRef} onSubmit={submit} role="search" className="relative mt-8 flex gap-2 rounded-xl bg-background p-2 text-left text-foreground">
-      <label className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-3">
-        <GraduationCap className="size-5 shrink-0 text-muted-foreground" />
+      <label className="flex min-w-0 flex-1 items-center rounded-md px-3">
         <span className="sr-only">Search for your university</span>
         <input
           role="combobox"
@@ -322,7 +325,7 @@ function UniversitySearch() {
                 <UniversityMark university={uni} size="chip" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold">{uni.name}</span>
-                  <span className="block text-xs text-muted-foreground">{uni.city}</span>
+                  <span className="block text-xs text-muted-foreground">{uni.city} · {listingCount(uni.listings)}</span>
                 </span>
               </li>
             ))

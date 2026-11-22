@@ -15,11 +15,9 @@ import {
   LogIn,
   LogOut,
   MapPin,
-  Maximize2,
   MessageCircle,
   PawPrint,
   Share2,
-  ShieldCheck,
   Sofa,
   Sparkles,
   Users,
@@ -28,12 +26,10 @@ import {
   Wifi,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { Availability } from "@/components/availability";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ContactProvider, PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
 import { pickListing } from "./-listing-worst-case";
 import { DataToggle, useDataMode } from "./-search-worst-case";
 
@@ -179,30 +175,36 @@ type LightboxState = {
   index: number;
 };
 
-type RequestMode = "book" | "message";
+// Landlord's WhatsApp number in international format. PLACEHOLDER: comes from the listing data.
+const landlordWhatsApp = "";
 
 // Press feedback shared by every button on the page (emil-design-eng: buttons must feel heard).
 const press = "transition-[scale,background-color,border-color,color] duration-150 ease-out active:scale-[0.97]";
 
 function ListingPage() {
+  return (
+    <ContactProvider>
+      <ListingContent />
+    </ContactProvider>
+  );
+}
+
+function ListingContent() {
   const dataMode = useDataMode();
   const listing = pickListing(dataMode, { title: listingTitle, rooms });
   const listingRooms = listing.rooms;
-  const roomsLeft = listingRooms.reduce((total, room) => total + room.availableRooms, 0);
-  const firstOpenRoom = listingRooms.find((room) => room.availableRooms > 0);
+  const openRooms = listingRooms.filter((room) => room.availableRooms > 0);
+  const roomsLeft = openRooms.reduce((total, room) => total + room.availableRooms, 0);
+  const soonest = openRooms.find((room) => room.available === "Available now") ?? openRooms[0] ?? null;
+  const fromPrice = Math.min(...(openRooms.length ? openRooms : listingRooms).map((room) => room.price));
 
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const { contact } = useContactLandlord();
   const [roomGalleryId, setRoomGalleryId] = useState<string | null>(null);
-  const [roomPickerOpen, setRoomPickerOpen] = useState(false);
-  const [request, setRequest] = useState<RequestMode | null>(null);
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
-  // A booked-out room can't stay selected; fall back to the first room with space.
-  const selectedRoom =
-    listingRooms.find((room) => room.id === selectedRoomId && room.availableRooms > 0) ?? firstOpenRoom ?? null;
   const roomGallery = listingRooms.find((room) => room.id === roomGalleryId);
   const fullScreenOpen = galleryOpen || Boolean(roomGallery) || Boolean(lightbox);
 
@@ -212,6 +214,17 @@ function ListingPage() {
       .filter((room) => room.images.length > 0)
       .map((room) => ({ id: room.id, title: room.name, photos: room.images })),
   ];
+
+  // The message is written for them: they only have to press send in WhatsApp.
+  const contactAbout = (room: Room | null) => {
+    setRoomGalleryId(null);
+    contact({
+      phone: landlordWhatsApp,
+      message: room
+        ? `Hi! I found ${room.shortName} (€${room.price.toLocaleString("en")}/month) in your Kreuzberg apartment on Nestaway. Is it still available?`
+        : `Hi! I found your apartment in Kreuzberg on Nestaway. Which rooms are still available?`,
+    });
+  };
 
   useEffect(() => {
     if (!fullScreenOpen) return;
@@ -233,12 +246,6 @@ function ListingPage() {
     };
   }, [fullScreenOpen, lightbox, roomGalleryId]);
 
-  const selectRoom = (roomId: string) => {
-    setSelectedRoomId(roomId);
-    setRoomPickerOpen(false);
-    setRoomGalleryId(null);
-  };
-
   const shareListing = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -248,10 +255,6 @@ function ListingPage() {
       setShared(false);
     }
   };
-
-  const soonest = firstOpenRoom
-    ? (listingRooms.find((room) => room.availableRooms > 0 && room.available === "Available now") ?? firstOpenRoom)
-    : null;
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
@@ -359,7 +362,7 @@ function ListingPage() {
           <div className="min-w-0">
             <section aria-labelledby="room-heading" className="border-b pb-8">
               <div className="flex items-baseline justify-between gap-3">
-                <h2 id="room-heading" className="text-xl font-bold">Choose your room</h2>
+                <h2 id="room-heading" className="text-xl font-bold">Rooms</h2>
                 <p className="shrink-0 text-sm text-muted-foreground">
                   {listingRooms.length} {listingRooms.length === 1 ? "room type" : "room types"}
                 </p>
@@ -370,8 +373,7 @@ function ListingPage() {
                   <RoomCard
                     key={room.id}
                     room={room}
-                    selected={room.id === selectedRoom?.id}
-                    onSelect={() => selectRoom(room.id)}
+                    onAsk={() => contactAbout(room)}
                     onOpenPhotos={() => setRoomGalleryId(room.id)}
                   />
                 ))}
@@ -418,43 +420,26 @@ function ListingPage() {
 
           <aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
             <div className="rounded-xl border bg-card p-6 shadow-soft">
-              {selectedRoom ? (
-                <>
-                  <p className="text-xs font-medium text-muted-foreground">Your room</p>
-                  <h2 className="mt-1 text-lg font-bold leading-snug">{selectedRoom.name}</h2>
-                  <p className="mt-3 text-2xl font-bold tabular-nums">
-                    €{selectedRoom.price.toLocaleString("en")}
-                    <span className="text-sm font-normal text-muted-foreground"> / month, bills included</span>
-                  </p>
-                  <Availability available={selectedRoom.available} left={selectedRoom.availableRooms} leftLabel={(count) => `${count} left`} className="mt-2" />
-                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><Maximize2 className="size-4" /> {selectedRoom.size}</span>
-                    <span className="flex items-center gap-1.5"><BedDouble className="size-4" /> {selectedRoom.bed}</span>
-                  </div>
-                  <dl className="mt-5 space-y-2.5 border-y py-4 text-sm">
-                    <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Refundable deposit</dt><dd className="font-medium tabular-nums">€{selectedRoom.price.toLocaleString("en")}</dd></div>
-                    <div className="flex justify-between gap-4"><dt className="text-muted-foreground">One-time service fee</dt><dd className="font-medium tabular-nums">€120</dd></div>
-                    <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Minimum stay</dt><dd className="font-medium">3 months</dd></div>
-                  </dl>
-                  <button type="button" onClick={() => setRequest("book")} className={`mt-5 w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
-                    Request to book
-                  </button>
-                  <button type="button" onClick={() => setRequest("message")} className={`mt-2 flex w-full items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
-                    <MessageCircle className="size-4" /> Message landlord
-                  </button>
-                </>
+              <p className="text-2xl font-bold tabular-nums">
+                <span className="text-sm font-normal text-muted-foreground">From </span>€{fromPrice.toLocaleString("en")}
+                <span className="text-sm font-normal text-muted-foreground"> / month</span>
+              </p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Bills included</p>
+              {soonest ? (
+                <Availability available={soonest.available} left={roomsLeft} leftLabel={(count) => `${count} rooms left`} className="mt-3" />
               ) : (
-                <>
-                  <h2 className="text-lg font-bold">Fully booked right now</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">Ask the landlord about upcoming dates or save this home for later.</p>
-                  <button type="button" onClick={() => setRequest("message")} className={`mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
-                    <MessageCircle className="size-4" /> Message landlord
-                  </button>
-                </>
+                <p className="mt-3 text-sm font-medium text-muted-foreground">Fully booked right now</p>
               )}
-              <p className="mt-4 flex gap-2 text-xs leading-5 text-muted-foreground">
-                <ShieldCheck className="size-4 shrink-0 text-primary" />
-                <span><span className="font-semibold text-foreground">Tenant Protection:</span> your payment is protected until you move in.</span>
+              <dl className="mt-5 space-y-2.5 border-y py-4 text-sm">
+                <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Deposit</dt><dd className="font-medium">1 month's rent</dd></div>
+                <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Minimum stay</dt><dd className="font-medium">3 months</dd></div>
+              </dl>
+              <button type="button" onClick={() => contactAbout(null)} className={`mt-5 w-full ${whatsappButton}`}>
+                <MessageCircle className="size-4" /> Chat with landlord
+              </button>
+              <PlusHint className="mt-2 justify-center text-center" />
+              <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                Move-in date, length of stay and viewing are agreed with the landlord in the chat.
               </p>
             </div>
           </aside>
@@ -484,72 +469,21 @@ function ListingPage() {
         </div>
       </footer>
 
-      {/* Phone booking bar: what you picked, what it costs, one action. */}
+      {/* Phone bar: starting price and the one action. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          {selectedRoom ? (
-            <>
-              <button type="button" onClick={() => setRoomPickerOpen(true)} className={`min-w-0 flex-1 text-left ${press}`}>
-                <span className="flex items-baseline gap-1">
-                  <span className="text-lg font-bold tabular-nums">€{selectedRoom.price.toLocaleString("en")}</span>
-                  <span className="text-xs text-muted-foreground">/ month</span>
-                </span>
-                <span className="flex min-w-0 items-center gap-1 text-xs font-medium underline underline-offset-2">
-                  <span className="truncate">{selectedRoom.shortName}</span> · Change
-                </span>
-              </button>
-              <button type="button" onClick={() => setRequest("book")} className={`shrink-0 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground ${press}`}>
-                Request to book
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="min-w-0 flex-1 text-sm font-medium text-muted-foreground">Fully booked right now</p>
-              <button type="button" onClick={() => setRequest("message")} className={`shrink-0 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground ${press}`}>
-                Message landlord
-              </button>
-            </>
-          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-lg font-bold tabular-nums">
+              <span className="text-xs font-normal text-muted-foreground">From </span>€{fromPrice.toLocaleString("en")}
+              <span className="text-xs font-normal text-muted-foreground"> / month</span>
+            </p>
+            <PlusHint short />
+          </div>
+          <button type="button" onClick={() => contactAbout(null)} className={`shrink-0 ${whatsappButton}`}>
+            <MessageCircle className="size-4" /> Chat with landlord
+          </button>
         </div>
       </div>
-
-      {/* Room picker: a real sheet (Vaul) — drag to dismiss, momentum, exit animation. */}
-      <Drawer open={roomPickerOpen} onOpenChange={setRoomPickerOpen} shouldScaleBackground={false}>
-        <DrawerContent className="max-h-[88dvh] lg:hidden">
-          <div className="overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
-            <DrawerTitle className="text-lg font-bold">Choose your room</DrawerTitle>
-            <div className="mt-4 space-y-3">
-              {listingRooms.map((room) => {
-                const bookedOut = room.availableRooms === 0;
-                return (
-                  <button
-                    key={room.id}
-                    type="button"
-                    disabled={bookedOut}
-                    onClick={() => selectRoom(room.id)}
-                    className={`flex w-full items-center gap-4 rounded-xl border-2 p-3 text-left disabled:opacity-50 ${press} ${room.id === selectedRoom?.id ? "border-primary" : "border-border"}`}
-                  >
-                    <RoomPhoto room={room} className="h-20 w-24 shrink-0 rounded-lg" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-bold">{room.shortName}</span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">{room.bed} · {room.size}</span>
-                      <span className="mt-1 block font-bold tabular-nums">€{room.price.toLocaleString("en")}<span className="text-xs font-normal text-muted-foreground"> / month</span></span>
-                      <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mt-0.5 text-xs" />
-                    </span>
-                    {room.id === selectedRoom?.id && <Check className="size-5 shrink-0 text-primary" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      <RequestSheet
-        mode={request}
-        room={selectedRoom}
-        onClose={() => setRequest(null)}
-      />
 
       {galleryOpen && (
         <PhotoGalleryDialog
@@ -568,8 +502,8 @@ function ListingPage() {
           onOpenPhoto={(section, index) => setLightbox({ title: section.title, photos: section.photos, index })}
           footer={
             roomGallery.availableRooms > 0 ? (
-              <button type="button" onClick={() => selectRoom(roomGallery.id)} className={`w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
-                {roomGallery.id === selectedRoom?.id ? "Keep this room" : `Choose ${roomGallery.shortName}`} · €{roomGallery.price.toLocaleString("en")} / month
+              <button type="button" onClick={() => contactAbout(roomGallery)} className={`w-full ${whatsappButton}`}>
+                <MessageCircle className="size-4" /> Ask about {roomGallery.shortName} · €{roomGallery.price.toLocaleString("en")} / month
               </button>
             ) : null
           }
@@ -596,25 +530,11 @@ function RoomPhoto({ room, className = "" }: { room: Room; className?: string })
   return <img src={first.src} alt={first.alt} onError={() => setFailed(true)} className={`object-cover ${className}`} />;
 }
 
-function RoomCard({
-  room,
-  selected,
-  onSelect,
-  onOpenPhotos,
-}: {
-  room: Room;
-  selected: boolean;
-  onSelect: () => void;
-  onOpenPhotos: () => void;
-}) {
+function RoomCard({ room, onAsk, onOpenPhotos }: { room: Room; onAsk: () => void; onOpenPhotos: () => void }) {
   const bookedOut = room.availableRooms === 0;
   const photoCount = room.images.length;
   return (
-    <article
-      className={`flex min-w-0 flex-col overflow-hidden rounded-xl border-2 transition-colors duration-200 ease-out ${
-        selected ? "border-primary" : "border-border"
-      } ${bookedOut ? "opacity-60" : ""}`}
-    >
+    <article className={`flex min-w-0 flex-col overflow-hidden rounded-xl border ${bookedOut ? "opacity-60" : ""}`}>
       <button
         type="button"
         disabled={photoCount === 0}
@@ -634,115 +554,17 @@ function RoomCard({
           €{room.price.toLocaleString("en")}
           <span className="text-xs font-normal text-muted-foreground"> / month</span>
         </p>
-        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mt-1 mb-4" />
+        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mb-4 mt-1" />
         <button
           type="button"
           disabled={bookedOut}
-          aria-pressed={selected}
-          onClick={onSelect}
-          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border-2 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed ${press} ${
-            selected ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-foreground/30"
-          }`}
+          onClick={onAsk}
+          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 disabled:cursor-not-allowed disabled:text-muted-foreground ${press}`}
         >
-          {bookedOut ? "Fully booked" : selected ? <><Check className="size-4" /> Selected</> : "Select"}
+          {bookedOut ? "Fully booked" : <><MessageCircle className="size-4" /> Ask about this room</>}
         </button>
       </div>
     </article>
-  );
-}
-
-function RequestSheet({ mode, room, onClose }: { mode: RequestMode | null; room: Room | null; onClose: () => void }) {
-  const isMobile = useIsMobile();
-  const [sent, setSent] = useState(false);
-  const open = mode !== null;
-
-  useEffect(() => {
-    if (open) setSent(false);
-  }, [open]);
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSent(true);
-  };
-
-  const booking = mode === "book" && room;
-  const title = sent ? (booking ? "Request sent" : "Message sent") : booking ? "Request to book" : "Message the landlord";
-
-  const body = sent ? (
-    <div className="flex flex-col items-center py-6 text-center animate-in fade-in zoom-in-95 duration-300 ease-out">
-      <span className="flex size-12 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-600">
-        <Check className="size-6" />
-      </span>
-      <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-        {booking ? "The landlord will review your request. We'll email you as soon as they reply." : "We'll email you as soon as the landlord replies."}
-      </p>
-      <button type="button" onClick={onClose} className={`mt-6 w-full rounded-md border px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
-        Done
-      </button>
-    </div>
-  ) : (
-    <form onSubmit={submit} className="space-y-4">
-      {booking && (
-        <>
-          <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
-            <RoomPhoto room={room} className="size-14 shrink-0 rounded-md" />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{room.name}</p>
-              <p className="text-sm tabular-nums">€{room.price.toLocaleString("en")} <span className="text-muted-foreground">/ month</span></p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm font-medium">
-              Move-in
-              <input required type="date" className="mt-1 h-11 w-full rounded-md border bg-background px-3 text-base md:text-sm" />
-            </label>
-            <label className="block text-sm font-medium">
-              Stay
-              <select defaultValue="6" className="mt-1 h-11 w-full rounded-md border bg-background px-3 text-base md:text-sm">
-                {[3, 6, 9, 12].map((months) => (
-                  <option key={months} value={months}>{months} months</option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </>
-      )}
-      <label className="block text-sm font-medium">
-        {booking ? "Introduce yourself (optional)" : "Your message"}
-        <textarea
-          required={!booking}
-          rows={3}
-          placeholder={booking ? "Who you are and why you're moving" : "Ask about the room, dates or the flatmates"}
-          className="mt-1 w-full resize-none rounded-md border bg-background px-3 py-2 text-base md:text-sm"
-        />
-      </label>
-      <button type="submit" className={`w-full rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 ${press}`}>
-        {booking ? "Send request" : "Send message"}
-      </button>
-      {booking && <p className="text-center text-xs text-muted-foreground">You won't be charged until the landlord accepts.</p>}
-    </form>
-  );
-
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={(next) => !next && onClose()} shouldScaleBackground={false}>
-        <DrawerContent className="max-h-[92dvh]">
-          <div className="overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
-            <DrawerTitle className="mb-4 text-lg font-bold">{title}</DrawerTitle>
-            {body}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-w-md">
-        <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
-        {body}
-      </DialogContent>
-    </Dialog>
   );
 }
 

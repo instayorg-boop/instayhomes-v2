@@ -11,6 +11,7 @@ import {
   Heart,
   Home,
   KeyRound,
+  Phone,
   Lock,
   LogIn,
   LogOut,
@@ -403,7 +404,7 @@ function ListingPage() {
           <div className="min-w-0">
             <LandlordRow hasPlus={Boolean(plan)} onMessage={() => contactAbout(null)} />
 
-            <section aria-labelledby="room-heading" className="border-b py-8">
+            <section aria-labelledby="room-heading" className="border-b py-8 lg:border-b-0">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 id="room-heading" className="text-xl font-bold">Rooms</h2>
                 <p className="shrink-0 text-sm text-muted-foreground">
@@ -411,7 +412,7 @@ function ListingPage() {
                 </p>
               </div>
 
-              <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:gap-3 xl:grid-cols-3">
                 {listingRooms.map((room) => (
                   <RoomCard
                     key={room.id}
@@ -585,24 +586,24 @@ function RoomCard({ room, onAsk, onOpenPhotos }: { room: Room; onAsk: () => void
         onClick={onOpenPhotos}
         className="group relative block w-full overflow-hidden text-left"
       >
-        <RoomPhoto room={room} className="aspect-[16/10] w-full transition-transform duration-300 ease-out group-hover:scale-[1.02] sm:aspect-[4/3]" />
+        <RoomPhoto room={room} className="aspect-[16/10] w-full transition-transform duration-300 ease-out group-hover:scale-[1.02] sm:aspect-[4/3] lg:aspect-[16/10]" />
         <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-background/95 px-2.5 py-1.5 text-xs font-semibold shadow-sm">
           <Expand className="size-3.5" /> {photoCount === 0 ? "Photos soon" : photoCount === 1 ? "1 photo" : `${photoCount} photos`}
         </span>
       </button>
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-4 lg:p-3">
         <h3 className="line-clamp-2 font-bold" title={room.name}>{room.shortName}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{room.bed} · {room.size} · {room.floor}</p>
-        <p className="mt-3 text-xl font-bold tabular-nums">
+        <p className="mt-3 text-xl font-bold tabular-nums lg:mt-2 lg:text-lg">
           €{room.price.toLocaleString("en")}
           <span className="text-xs font-normal text-muted-foreground"> / month</span>
         </p>
-        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mb-4 mt-1" />
+        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mb-4 mt-1 lg:mb-3" />
         <button
           type="button"
           disabled={bookedOut}
           onClick={onAsk}
-          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 disabled:cursor-not-allowed disabled:text-muted-foreground ${press}`}
+          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 lg:py-2 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 disabled:cursor-not-allowed disabled:text-muted-foreground ${press}`}
         >
           {bookedOut ? "Fully booked" : <><WhatsAppIcon /> Ask about this room</>}
         </button>
@@ -776,12 +777,21 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
             <p className="text-sm text-muted-foreground">
               Verified landlord · {years} {years === 1 ? "year" : "years"} on Instayhomes
             </p>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-              {hasPlus ? <WhatsAppIcon className="size-3.5 text-[#128C4A]" /> : <Lock className="size-3.5" />}
-              WhatsApp
-              <span className="font-mono tracking-wide text-foreground">
-                {hasPlus ? landlord.whatsappDisplay : maskNumber(landlord.whatsappDisplay)}
-              </span>
+            {/* One number for WhatsApp and calls. With Plus it's tappable to call. */}
+            <p className="mt-1 flex items-center gap-1.5 text-sm">
+              <WhatsAppIcon className="size-3.5 text-[#128C4A]" />
+              <Phone className="size-3.5 text-muted-foreground" aria-hidden />
+              <span className="sr-only">WhatsApp or call:</span>
+              {hasPlus ? (
+                <a href={`tel:${landlord.whatsappDisplay.replace(/\s/g, "")}`} className="font-medium tabular-nums underline-offset-4 hover:underline">
+                  {landlord.whatsappDisplay}
+                </a>
+              ) : (
+                <>
+                  <span className="font-medium tabular-nums">{maskNumber(landlord.whatsappDisplay)}</span>
+                  <Lock className="size-3.5 text-muted-foreground" aria-label="Unlocks with Plus" />
+                </>
+              )}
             </p>
           </div>
         </div>

@@ -28,7 +28,7 @@ export const plans = [
     price: "$50",
     amount: 50,
     currency: "USD",
-    features: ["Contact every landlord on Instayhomes, as often as you like", "For tenants moving from abroad", "Priced in US dollars"],
+    features: ["A dedicated person helps you one-on-one", "We shortlist rooms and arrange viewings for you", "Nothing to pay until you've picked a place"],
   },
 ] as const;
 
@@ -149,3 +149,10 @@ export function discountedPrice(plan: Plan, percent: number | null) {
   const symbol = plan.price.replace(/[0-9.,]/g, "");
   return `${symbol}${Math.round(plan.amount * (1 - percent / 100))}`;
 }
+
+// International: talk to the team first, invoiced once they've chosen a home.
+export const intlPromise = "Tell us a little about your move. A dedicated person helps you find a home, and you only pay once you've chosen one.";
+export const intlBilling = "Invoiced once you've chosen a home";
+// PLACEHOLDER team WhatsApp number: replace with the real one.
+export const teamWhatsApp = "+260 970 000 123";
+export const teamReplyTime = "within 2 hours";

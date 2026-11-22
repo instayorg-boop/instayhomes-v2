@@ -2,6 +2,8 @@ import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-
 import { ArrowLeft, CalendarDays, Check, ChevronDown, CreditCard, Globe, Loader2, Lock, Mail, MessageSquareText, Plus, ShieldCheck, Smartphone, Users, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { universities } from "@/lib/universities";
 import { VerifiedIcon } from "@/components/verified-badge";
 import { TenantProtectionLink } from "@/components/tenant-protection";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +13,10 @@ import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
 import {
   discountedPrice,
   accessPeriod,
+  intlBilling,
+  intlPromise,
+  teamReplyTime,
+  teamWhatsApp,
   planById,
   plans,
   promoPercent,
@@ -68,6 +74,7 @@ type Receipt = { reference: string; plan: Plan; email: string; phone: string };
 type NotPaid = "failed" | "declined" | "cancelled";
 // The payment's answer decides the page: success, or a page saying why it didn't happen.
 type Result = { kind: "paid"; receipt: Receipt } | { kind: NotPaid; plan: Plan; phone: string };
+type IntlRequest = { reference: string; whatsapp: string; university: string; arriving: string; budget: string; roomName: string | null };
 
 function PlansPage() {
   const search = Route.useSearch();
@@ -79,14 +86,23 @@ function PlansPage() {
   const basePlan = planById(search.plan) ?? planById(DEFAULT_PLAN)!;
   // An applied promo code lowers the price everywhere on the payment screen.
   const promo = promoPercent(search.promo);
-  const plan = { ...basePlan, price: discountedPrice(basePlan, promo) } as Plan;
+  const plan = { ...basePlan, price: discountedPrice(basePlan, basePlan.id === "international" ? null : promo) } as Plan;
   const contact: Contact = { phone: landlordWhatsApp, message: contactMessage(room) };
   const [result, setResult] = useState<Result | null>(null);
+  const [intlRequest, setIntlRequest] = useState<IntlRequest | null>(null);
 
   const setView = (next: { plan?: string; view?: "plans" | undefined; promo?: string | undefined }) =>
     void navigate({
       search: (prev) => ({ ...prev, plan: next.plan ?? prev.plan, view: next.view, promo: "promo" in next ? next.promo : prev.promo }),
     });
+
+  if (intlRequest) {
+    return (
+      <Shell returnTo={returnTo} user={user}>
+        <IntlRequestReceived request={intlRequest} user={user} returnTo={returnTo} />
+      </Shell>
+    );
+  }
 
   if (result?.kind === "paid") {
     return (
@@ -130,6 +146,8 @@ function PlansPage() {
           promo={promo ? search.promo?.toUpperCase() : undefined}
           onPromo={(code) => setView({ promo: code })}
           onChangePlan={() => setView({ view: "plans" })}
+          onSwitchPlan={(id) => setView({ plan: id })}
+          onIntlRequest={setIntlRequest}
           onResult={setResult}
         />
       )}
@@ -148,8 +166,12 @@ function PayScreen({
   promo,
   onPromo,
   onChangePlan,
+  onSwitchPlan,
+  onIntlRequest,
   onResult,
 }: {
+  onSwitchPlan: (id: Plan["id"]) => void;
+  onIntlRequest: (request: IntlRequest) => void;
   returnTo: string;
   plan: Plan;
   room: Room | null;
@@ -217,8 +239,12 @@ function PayScreen({
     return () => window.clearTimeout(timer);
   }, [pending, attempt, plan, user, email, phone]);
 
+  const isIntl = plan.id === "international";
+
   const pay = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // International never pays here (and Enter in its fields must not start a payment).
+    if (isIntl) return;
     if (!user || pending) return;
     if (email && email !== user.email) setPlusUser({ ...user, email });
     rememberMomoNumber(phone);
@@ -248,7 +274,7 @@ function PayScreen({
           </span>
         </div>
         <div className="absolute inset-x-4 bottom-7 text-white sm:inset-x-5 sm:bottom-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">Unlock chat with the landlord of</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">{isIntl ? "You're asking about" : "Unlock chat with the landlord of"}</p>
           <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-2xl font-bold tracking-tight">
             <span className="truncate">{room ? room.shortName : "Sunny shared apartment"}</span>
             <VerifiedIcon className="size-6 shrink-0" />
@@ -265,8 +291,8 @@ function PayScreen({
       </div>
       {/* On phones the page slides over the photo's bottom edge as a rounded sheet. */}
       <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
-      <h1 className="text-2xl font-bold tracking-tight">Get Instayhomes Plus</h1>
-      <p className="mt-1 text-base text-muted-foreground">{plusPromise}</p>
+      <h1 className="text-2xl font-bold tracking-tight">{isIntl ? "Talk to our team" : "Get Instayhomes Plus"}</h1>
+      <p className="mt-1 text-base text-muted-foreground">{isIntl ? intlPromise : plusPromise}</p>
       <TenantProtectionLink className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid">
         <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
       </TenantProtectionLink>
@@ -277,7 +303,7 @@ function PayScreen({
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Your plan</p>
               <p className="font-semibold">{plan.name} · {plan.price}</p>
-              <p className="text-xs text-muted-foreground">{accessPeriod}</p>
+              <p className="text-xs text-muted-foreground">{isIntl ? intlBilling : accessPeriod}</p>
             </div>
             <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted disabled:opacity-40 ${press}`}>
               Change
@@ -311,7 +337,7 @@ function PayScreen({
           </div>
         </div>
 
-        <PayPromo applied={promo} onApply={onPromo} />
+        {!isIntl && <PayPromo applied={promo} onApply={onPromo} />}
 
         {!user ? (
           <div className="mt-6">
@@ -327,6 +353,13 @@ function PayScreen({
               Your plan is saved to your account. You'll come straight back here to pay.
             </p>
           </div>
+        ) : isIntl ? (
+          <IntlRequestForm
+            room={room}
+            user={user}
+            onSwitchToLocal={() => onSwitchPlan(recommendedPlanId)}
+            onSent={onIntlRequest}
+          />
         ) : (
           <div className="mt-6 animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out">
             <label className="block text-sm font-semibold">
@@ -379,7 +412,7 @@ function PayScreen({
         )}
       </fieldset>
 
-      {user && (
+      {user && !isIntl && (
         <>
           <div className="mt-6">
             {/* The button is the waiting state: no separate "check your phone" page. */}
@@ -470,17 +503,20 @@ function ComparePlans({
       <div className="mx-auto mt-8 grid max-w-md gap-5 lg:max-w-none lg:grid-cols-3 lg:items-stretch">
         {plans.map((option) => {
           const recommended = option.id === recommendedPlanId;
+          const intl = option.id === "international";
           const selected = option.id === current.id;
-          const price = discountedPrice(option, percent);
+          const price = discountedPrice(option, intl ? null : percent);
           return (
             <article
               key={option.id}
               className={`flex flex-col overflow-hidden rounded-2xl bg-card text-center ${
-                recommended ? "border-2 border-primary" : selected ? "border-2 border-foreground" : "border"
+                recommended ? "border-2 border-primary" : intl ? "border-2 border-blue-600" : selected ? "border-2 border-foreground" : "border"
               }`}
             >
               {recommended ? (
                 <p className="bg-primary/10 py-1.5 text-xs font-semibold text-primary">Recommended</p>
+              ) : intl ? (
+                <p className="bg-blue-50 py-1.5 text-xs font-semibold text-blue-700">For students moving from abroad</p>
               ) : (
                 // Same height as the band, so names and prices line up across the row on desktop.
                 <p className="invisible hidden py-1.5 text-xs lg:block" aria-hidden>
@@ -491,18 +527,18 @@ function ComparePlans({
                 <h2 className="text-xl font-medium">{option.name}</h2>
                 <p className={`mt-3 text-4xl font-bold tracking-tight tabular-nums ${recommended ? "text-primary" : ""}`}>
                   {price}
-                  {percent && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{option.price}</s>}
+                  {percent && !intl && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{option.price}</s>}
                   <span className="ml-1 align-middle text-xs font-semibold text-muted-foreground">{option.currency}</span>
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">{accessPeriod}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{intl ? intlBilling : accessPeriod}</p>
                 <button
                   type="button"
                   onClick={() => onChoose(option.id, applied)}
                   className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold ${press} ${
-                    recommended ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-foreground text-background hover:bg-foreground/90"
+                    recommended ? "bg-primary text-primary-foreground hover:bg-primary/90" : intl ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-foreground text-background hover:bg-foreground/90"
                   }`}
                 >
-                  {selected ? `Keep ${option.name}` : `Choose ${option.name}`}
+                  {intl ? "Talk to our team" : selected ? `Keep ${option.name}` : `Choose ${option.name}`}
                 </button>
                 <ul className="mt-6 flex-1 space-y-3 text-left">
                   {option.features.map((feature) => (
@@ -515,7 +551,7 @@ function ComparePlans({
                   </li>
                 </ul>
               </div>
-              <PromoCode applied={applied} onApply={setApplied} />
+              {intl ? <div className="mt-4 border-t px-6 py-3.5 text-sm text-muted-foreground">No payment until you choose</div> : <PromoCode applied={applied} onApply={setApplied} />}
             </article>
           );
         })}
@@ -957,6 +993,269 @@ function PayPromo({ applied, onApply }: { applied: string | undefined; onApply: 
         </button>
       </div>
       {error && <p className="mt-2 text-xs text-destructive">That code isn't valid. Check the spelling and try again.</p>}
+    </div>
+  );
+}
+
+/* ───────────── International: talk to our team, invoiced later ───────────── */
+
+const countryCodes = [
+  { code: "+260", name: "Zambia", flag: "🇿🇲" },
+  { code: "+263", name: "Zimbabwe", flag: "🇿🇼" },
+  { code: "+265", name: "Malawi", flag: "🇲🇼" },
+  { code: "+27", name: "South Africa", flag: "🇿🇦" },
+  { code: "+267", name: "Botswana", flag: "🇧🇼" },
+  { code: "+243", name: "DR Congo", flag: "🇨🇩" },
+  { code: "+255", name: "Tanzania", flag: "🇹🇿" },
+  { code: "+254", name: "Kenya", flag: "🇰🇪" },
+  { code: "+234", name: "Nigeria", flag: "🇳🇬" },
+  { code: "+91", name: "India", flag: "🇮🇳" },
+  { code: "+86", name: "China", flag: "🇨🇳" },
+  { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "+1", name: "United States", flag: "🇺🇸" },
+] as const;
+
+const budgets = ["Under K1,500", "K1,500 – K2,500", "K2,500 – K4,000", "Over K4,000"];
+
+/** The next 12 months, e.g. "Jan 2027", plus "I'm already here". */
+function arrivalOptions() {
+  const now = new Date();
+  const months = Array.from({ length: 12 }, (_, i) =>
+    new Date(now.getFullYear(), now.getMonth() + i, 1).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+  );
+  return ["I'm already here", ...months];
+}
+
+// DEMO: requests are kept in this browser only. They belong in a database table for the team.
+function saveIntlRequest(request: IntlRequest) {
+  try {
+    const key = "instayhomes-intl-requests";
+    const list = JSON.parse(window.localStorage.getItem(key) ?? "[]") as IntlRequest[];
+    window.localStorage.setItem(key, JSON.stringify([...list, request]));
+  } catch {
+    // Storage blocked: the WhatsApp message still carries everything the team needs.
+  }
+}
+
+/** One question at a time: each answer reveals the next, so the form never feels long. */
+function IntlRequestForm({
+  room,
+  user,
+  onSwitchToLocal,
+  onSent,
+}: {
+  room: Room | null;
+  user: PlusUser;
+  onSwitchToLocal: () => void;
+  onSent: (request: IntlRequest) => void;
+}) {
+  const [country, setCountry] = useState<string>("");
+  const [number, setNumber] = useState("");
+  const [university, setUniversity] = useState("");
+  const [arriving, setArriving] = useState("");
+  const [budget, setBudget] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const numberDone = country !== "" && number.replace(/\D/g, "").length >= 7;
+  const local = country === "+260";
+  const step = !numberDone ? 1 : !university ? 2 : !arriving ? 3 : !budget ? 4 : 5;
+
+  const send = () => {
+    setSending(true);
+    const request: IntlRequest = {
+      reference: `IH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      whatsapp: `${country} ${number.trim()}`,
+      university,
+      arriving,
+      budget,
+      roomName: room?.shortName ?? null,
+    };
+    saveIntlRequest(request);
+    window.setTimeout(() => onSent(request), 500);
+  };
+
+  const row = "px-4 py-3";
+  const rowLabel = "block text-xs font-semibold";
+  const trigger = "mt-1 h-auto border-0 p-0 text-base shadow-none focus:ring-0 focus:ring-offset-0 [&>span]:truncate";
+
+  return (
+    <div className="mt-6">
+      {/* Airbnb-style grouped fields: one bordered block, rows separated by lines. */}
+      <div className="overflow-hidden rounded-xl border-2 divide-y">
+        <div className={row}>
+          <span className={rowLabel}>WhatsApp number</span>
+          <div className="mt-1 flex items-center gap-2">
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger aria-label="Country code" className="h-auto w-auto shrink-0 gap-1 border-0 p-0 text-base shadow-none focus:ring-0 focus:ring-offset-0 [&_[data-name]]:hidden">
+                <SelectValue placeholder="Country" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryCodes.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    <span className="flex items-center gap-2">
+                      {c.flag} {c.code} <span className="text-muted-foreground" data-name>{c.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="h-5 w-px bg-border" aria-hidden />
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel-national"
+              value={number}
+              onChange={(event) => setNumber(event.target.value)}
+              placeholder="Your number"
+              aria-label="WhatsApp number"
+              className="min-w-0 flex-1 bg-transparent text-base outline-none"
+            />
+          </div>
+        </div>
+
+        {step >= 2 && (
+          <div className={`${row} animate-in fade-in slide-in-from-top-1 duration-200 ease-out`}>
+            <span className={rowLabel}>University</span>
+            <Select value={university} onValueChange={setUniversity}>
+              <SelectTrigger aria-label="University" className={trigger}>
+                <SelectValue placeholder="Where will you study?" />
+              </SelectTrigger>
+              <SelectContent>
+                {universities.map((u) => (
+                  <SelectItem key={u.id} value={u.name}>
+                    {u.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="Other">Another university</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {step >= 3 && (
+          <div className={`${row} animate-in fade-in slide-in-from-top-1 duration-200 ease-out`}>
+            <span className={rowLabel}>Arriving</span>
+            <Select value={arriving} onValueChange={setArriving}>
+              <SelectTrigger aria-label="Arriving" className={trigger}>
+                <SelectValue placeholder="When do you arrive?" />
+              </SelectTrigger>
+              <SelectContent>
+                {arrivalOptions().map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {step >= 4 && (
+          <div className={`${row} animate-in fade-in slide-in-from-top-1 duration-200 ease-out`}>
+            <span className={rowLabel}>Monthly budget</span>
+            <Select value={budget} onValueChange={setBudget}>
+              <SelectTrigger aria-label="Monthly budget" className={trigger}>
+                <SelectValue placeholder="How much can you spend on rent?" />
+              </SelectTrigger>
+              <SelectContent>
+                {budgets.map((b) => (
+                  <SelectItem key={b} value={b}>
+                    {b}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {/* Already in Zambia: self-service with mobile money is quicker for them and for the team. */}
+      {local && (
+        <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 animate-in fade-in duration-200">
+          <p>
+            <span className="font-semibold">Already in Zambia?</span> Assisted gives you instant access to every landlord, paid with mobile
+            money. No waiting for our team.
+          </p>
+          <button
+            type="button"
+            onClick={onSwitchToLocal}
+            className={`mt-2.5 w-full rounded-md border border-amber-300 bg-white px-4 py-2.5 font-semibold text-foreground ${press}`}
+          >
+            Switch to Assisted · K399
+          </button>
+        </div>
+      )}
+
+      {step === 5 && (
+        <div className="mt-5 animate-in fade-in slide-in-from-bottom-1 duration-200 ease-out">
+          <button
+            type="button"
+            onClick={send}
+            disabled={sending}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-5 py-3.5 text-base font-semibold ${press} ${
+              local ? "border-2 bg-background hover:bg-muted" : "bg-primary text-primary-foreground hover:bg-primary/90"
+            }`}
+          >
+            {sending && <Loader2 className="size-5 animate-spin" />} Send to our team
+          </button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">No payment now. Details also go to {user.email}.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IntlRequestReceived({ request, user, returnTo }: { request: IntlRequest; user: PlusUser | null; returnTo: string }) {
+  const firstName = user?.name.trim().split(/\s+/)[0] ?? "";
+  const message = [
+    `Hi Instayhomes! I'd like help finding a home. Ref ${request.reference}.`,
+    request.roomName ? `I'm interested in ${request.roomName}.` : null,
+    `University: ${request.university}. Arriving: ${request.arriving}. Budget: ${request.budget}.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const link = whatsappLink({ phone: teamWhatsApp, message });
+  const summary = [request.roomName, request.university, request.arriving].filter(Boolean).join(" · ");
+
+  return (
+    <div className="mx-auto max-w-md pt-6 text-center animate-in fade-in zoom-in-95 duration-300 ease-out">
+      <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-600">
+        <Check className="size-8" />
+      </span>
+      <h1 className="mt-6 text-3xl font-bold tracking-tight">{firstName ? `Thanks, ${firstName}` : "Request sent"}</h1>
+      <p className="mt-2 text-base text-muted-foreground">Message us on WhatsApp to get started. We reply {teamReplyTime}.</p>
+      <p className="mt-3 inline-block rounded-md bg-muted px-2.5 py-1 font-mono text-sm tracking-wide">{request.reference}</p>
+
+      <a href={link} target="_blank" rel="noopener noreferrer" className={`mt-6 w-full py-3.5 text-base ${whatsappButton}`}>
+        <WhatsAppIcon className="size-5" /> Message us now
+      </a>
+
+      <ol className="mt-8 space-y-4 text-left">
+        <li className="flex gap-3">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <Check className="size-3.5" />
+          </span>
+          <p className="text-sm">
+            <span className="block font-semibold">You told us about your move</span>
+            <span className="text-muted-foreground">{summary}</span>
+          </p>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold">2</span>
+          <p className="text-sm">
+            <span className="block font-semibold">We help you choose</span>
+            <span className="text-muted-foreground">Shortlist, viewings and questions for landlords</span>
+          </p>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold">3</span>
+          <p className="text-sm font-semibold">You pick a home, we send the invoice</p>
+        </li>
+      </ol>
+
+      <Link to={returnTo} className={`mt-8 flex w-full justify-center rounded-md border-2 px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
+        Back to the listing
+      </Link>
     </div>
   );
 }

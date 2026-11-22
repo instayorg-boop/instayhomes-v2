@@ -11,6 +11,7 @@ import {
   Heart,
   Home,
   KeyRound,
+  Phone,
   Lock,
   LogIn,
   LogOut,
@@ -145,6 +146,15 @@ export type Room = (typeof rooms)[number];
 export const totalAvailableRooms = rooms.reduce((total, room) => total + room.availableRooms, 0);
 
 const listingTitle = "Sunny shared apartment in Kreuzberg";
+
+// Who the home is for. PLACEHOLDER: set per listing once listings come from the database.
+type Gender = "mixed" | "male" | "female";
+const listingGender: Gender = "mixed";
+const genderLabel: Record<Gender, string> = {
+  mixed: "Male & female spaces",
+  male: "Male spaces only",
+  female: "Female spaces only",
+};
 
 const universities = [
   { name: "Humboldt-Universität zu Berlin", distance: "3.2 km" },
@@ -292,64 +302,34 @@ function ListingPage() {
       <SiteHeader />
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-12 sm:pt-5">
-        <nav aria-label="Breadcrumb" className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
-          <Link to="/search" className="flex items-center gap-1 hover:text-foreground hover:underline">
-            <ArrowLeft className="size-3.5" /> Search
-          </Link>
-          <ChevronRight className="size-3" />
-          <Link to="/search" className="hover:text-foreground hover:underline">Berlin</Link>
-          <ChevronRight className="size-3" />
-          <span className="truncate text-foreground">Kreuzberg apartment</span>
-        </nav>
+        {/* Above the photos on desktop: only where you are, and share / save. */}
+        <div className="hidden items-center justify-between gap-4 sm:flex">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+            <Link to="/search" className="flex items-center gap-1 hover:text-foreground hover:underline">
+              <ArrowLeft className="size-3.5" /> Search
+            </Link>
+            <ChevronRight className="size-3" />
+            <Link to="/search" className="hover:text-foreground hover:underline">Berlin</Link>
+            <ChevronRight className="size-3" />
+            <span className="truncate text-foreground">Kreuzberg apartment</span>
+          </nav>
+          <div className="flex shrink-0 gap-1">
+            <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>
+              <Share2 className="size-4" /> {shared ? "Link copied" : "Share"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={saved}
+              onClick={() => setSaved((current) => !current)}
+              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}
+            >
+              <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} /> {saved ? "Saved" : "Save"}
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col">
-          <div className="order-2 mt-5 flex flex-col justify-between gap-4 sm:order-1 sm:flex-row sm:items-start">
-            <div className="min-w-0">
-              {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
-              <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{listing.title}</h1>
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
-              </p>
-              {soonest ? (
-                <Availability
-                  available={soonest.available}
-                  left={roomsLeft}
-                  leftLabel={(count) => `${count} rooms left`}
-                  className="mt-3 text-base"
-                />
-              ) : (
-                <p className="mt-3 text-base font-medium text-muted-foreground">Fully booked right now</p>
-              )}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
-                  <Users className="size-3.5 text-muted-foreground" /> Mixed gender
-                </span>
-              </div>
-              <TenantProtectionLink className={`mt-4 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 ${press} w-full text-left`}>
-                <VerifiedIcon className="size-7 shrink-0" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">Tenant verified</span>
-                  <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
-                </span>
-                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-              </TenantProtectionLink>
-            </div>
-            <div className="hidden shrink-0 gap-2 sm:flex">
-              <button type="button" onClick={shareListing} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}>
-                <Share2 className="size-4" /> {shared ? "Link copied" : "Share"}
-              </button>
-              <button
-                type="button"
-                aria-pressed={saved}
-                onClick={() => setSaved((current) => !current)}
-                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted ${press}`}
-              >
-                <Heart className={`size-4 ${saved ? "fill-primary text-primary" : ""}`} /> {saved ? "Saved" : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <section aria-label="Property photos" className="relative order-1 -mx-4 sm:order-2 sm:mx-0 sm:mt-5">
+          <section aria-label="Property photos" className="relative -mx-4 sm:mx-0 sm:mt-4">
             <div className="flex h-72 snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:hidden">
               {generalPhotos.slice(0, 5).map((photo, index) => (
                 <button
@@ -399,11 +379,48 @@ function ListingPage() {
           </section>
         </div>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="mt-5 grid gap-10 sm:mt-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
+          <div className="min-w-0 pb-8">
+            {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
+            <h1 className="max-w-3xl text-balance text-center text-2xl font-bold leading-tight tracking-tight sm:text-3xl lg:text-left">{listing.title}</h1>
+            {/* Phones and tablets: centred, location and gender side by side, availability below.
+                Desktop: location, availability and gender on one left-aligned line. */}
+            <div className="mt-2 flex flex-col items-center gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-5 lg:gap-y-2">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 lg:contents">
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground lg:order-1">
+                  <MapPin className="size-4 shrink-0" /> Kreuzberg, Berlin
+                </p>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm lg:order-3">
+                  <Users className="size-3.5 text-muted-foreground" /> {genderLabel[listingGender]}
+                </span>
+              </div>
+              <div className="lg:order-2">
+                {soonest ? (
+                  <Availability
+                    available={soonest.available}
+                    left={roomsLeft}
+                    leftLabel={(count) => `${count} rooms left`}
+                    className="text-base lg:text-sm"
+                  />
+                ) : (
+                  <p className="text-base font-medium text-muted-foreground lg:text-sm">Fully booked right now</p>
+                )}
+              </div>
+            </div>
+            <TenantProtectionLink className={`mx-auto mt-5 flex max-w-sm items-center gap-3 rounded-xl border p-3 hover:border-foreground/30 lg:hidden ${press} w-full text-left`}>
+              <VerifiedIcon className="size-7 shrink-0" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">Tenant verified</span>
+                <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </TenantProtectionLink>
+          </div>
+
             <LandlordRow hasPlus={Boolean(plan)} onMessage={() => contactAbout(null)} />
 
-            <section aria-labelledby="room-heading" className="border-b py-8">
+            <section aria-labelledby="room-heading" className="pb-8">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 id="room-heading" className="text-xl font-bold">Rooms</h2>
                 <p className="shrink-0 text-sm text-muted-foreground">
@@ -411,7 +428,7 @@ function ListingPage() {
                 </p>
               </div>
 
-              <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:gap-3 xl:grid-cols-3">
                 {listingRooms.map((room) => (
                   <RoomCard
                     key={room.id}
@@ -484,6 +501,14 @@ function ListingPage() {
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 Move-in date, length of stay and viewing are agreed with the landlord in the chat.
               </p>
+              <TenantProtectionLink className={`group mt-5 flex w-full items-center gap-3 border-t pt-4 text-left ${press}`}>
+                <VerifiedIcon className="size-6 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">Tenant verified</span>
+                  <span className="block text-xs text-muted-foreground">Covered by Tenant Protection</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+              </TenantProtectionLink>
             </div>
           </aside>
         </div>
@@ -585,24 +610,24 @@ function RoomCard({ room, onAsk, onOpenPhotos }: { room: Room; onAsk: () => void
         onClick={onOpenPhotos}
         className="group relative block w-full overflow-hidden text-left"
       >
-        <RoomPhoto room={room} className="aspect-[16/10] w-full transition-transform duration-300 ease-out group-hover:scale-[1.02] sm:aspect-[4/3]" />
+        <RoomPhoto room={room} className="aspect-[16/10] w-full transition-transform duration-300 ease-out group-hover:scale-[1.02] sm:aspect-[4/3] lg:aspect-[16/10]" />
         <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-background/95 px-2.5 py-1.5 text-xs font-semibold shadow-sm">
           <Expand className="size-3.5" /> {photoCount === 0 ? "Photos soon" : photoCount === 1 ? "1 photo" : `${photoCount} photos`}
         </span>
       </button>
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-4 lg:p-3">
         <h3 className="line-clamp-2 font-bold" title={room.name}>{room.shortName}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{room.bed} · {room.size} · {room.floor}</p>
-        <p className="mt-3 text-xl font-bold tabular-nums">
+        <p className="mt-3 text-xl font-bold tabular-nums lg:mt-2 lg:text-lg">
           €{room.price.toLocaleString("en")}
           <span className="text-xs font-normal text-muted-foreground"> / month</span>
         </p>
-        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mb-4 mt-1" />
+        <Availability available={room.available} left={room.availableRooms} leftLabel={(count) => `${count} left`} className="mb-4 mt-1 lg:mb-3" />
         <button
           type="button"
           disabled={bookedOut}
           onClick={onAsk}
-          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 disabled:cursor-not-allowed disabled:text-muted-foreground ${press}`}
+          className={`mt-auto flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 lg:py-2 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 disabled:cursor-not-allowed disabled:text-muted-foreground ${press}`}
         >
           {bookedOut ? "Fully booked" : <><WhatsAppIcon /> Ask about this room</>}
         </button>
@@ -751,7 +776,7 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
   const [photoFailed, setPhotoFailed] = useState(false);
   const years = landlord.yearsOnInstayhomes;
   return (
-    <section aria-labelledby="landlord-heading" className="border-b pb-8">
+    <section aria-labelledby="landlord-heading" className="pb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <span className="relative size-14 shrink-0">
@@ -776,12 +801,21 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
             <p className="text-sm text-muted-foreground">
               Verified landlord · {years} {years === 1 ? "year" : "years"} on Instayhomes
             </p>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-              {hasPlus ? <WhatsAppIcon className="size-3.5 text-[#128C4A]" /> : <Lock className="size-3.5" />}
-              WhatsApp
-              <span className="font-mono tracking-wide text-foreground">
-                {hasPlus ? landlord.whatsappDisplay : maskNumber(landlord.whatsappDisplay)}
-              </span>
+            {/* One number for WhatsApp and calls. With Plus it's tappable to call. */}
+            <p className="mt-1 flex items-center gap-1.5 text-sm">
+              <WhatsAppIcon className="size-3.5 text-[#128C4A]" />
+              <Phone className="size-3.5 text-muted-foreground" aria-hidden />
+              <span className="sr-only">WhatsApp or call:</span>
+              {hasPlus ? (
+                <a href={`tel:${landlord.whatsappDisplay.replace(/\s/g, "")}`} className="font-medium tabular-nums underline-offset-4 hover:underline">
+                  {landlord.whatsappDisplay}
+                </a>
+              ) : (
+                <>
+                  <span className="font-medium tabular-nums">{maskNumber(landlord.whatsappDisplay)}</span>
+                  <Lock className="size-3.5 text-muted-foreground" aria-label="Unlocks with Plus" />
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -790,8 +824,8 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
           onClick={onMessage}
           className={
             hasPlus
-              ? `shrink-0 sm:w-auto ${whatsappButton}`
-              : `inline-flex shrink-0 items-center justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 ${press}`
+              ? `shrink-0 sm:w-auto lg:hidden ${whatsappButton}`
+              : `inline-flex shrink-0 items-center lg:hidden justify-center gap-2 rounded-md border-2 px-5 py-3 text-sm font-semibold text-[#128C4A] hover:bg-[#128C4A]/5 ${press}`
           }
         >
           <WhatsAppIcon /> Message landlord

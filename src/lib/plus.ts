@@ -19,7 +19,7 @@ export const plans = [
     price: "K399",
     amount: 399,
     currency: "ZMW",
-    features: ["Contact every landlord on Instayhomes, as often as you like", "A Instayhomes agent helps you shortlist rooms", "Help arranging viewings with landlords"],
+    features: ["Contact every landlord on Instayhomes, as often as you like", "An Instayhomes agent helps you shortlist rooms", "Help arranging viewings with landlords"],
   },
   {
     id: "international",
@@ -129,4 +129,22 @@ export function rememberMomoNumber(phone: string) {
   } catch {
     // Storage blocked: they type it next time.
   }
+}
+
+// Promo codes. PLACEHOLDER: real codes and their discounts belong in the database and must be
+// checked on the server when the payment is created; this list only drives the demo.
+const promoCodes: Record<string, number> = { STUDENT10: 10 };
+export const recommendedPlanId: PlanId = "assisted";
+
+/** The discount (percent) for a code, or null if it isn't valid. */
+export function promoPercent(code: string | null | undefined) {
+  if (!code) return null;
+  return promoCodes[code.trim().toUpperCase()] ?? null;
+}
+
+/** "K399" with 10% off → "K359". Keeps the currency sign, rounds to a whole amount. */
+export function discountedPrice(plan: Plan, percent: number | null) {
+  if (!percent) return plan.price;
+  const symbol = plan.price.replace(/[0-9.,]/g, "");
+  return `${symbol}${Math.round(plan.amount * (1 - percent / 100))}`;
 }

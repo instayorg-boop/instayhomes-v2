@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, ChevronDown, Loader2, Lock, Mail, ShieldCheck, Smartphone, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, ChevronDown, CreditCard, Globe, Loader2, Lock, Mail, MessageSquareText, Plus, ShieldCheck, Smartphone, Users, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { VerifiedIcon } from "@/components/verified-badge";
@@ -9,8 +9,11 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { useIsMobile } from "@/hooks/use-mobile";
 import { whatsappButton, whatsappLink } from "@/components/contact-landlord";
 import {
+  discountedPrice,
   planById,
   plans,
+  promoPercent,
+  recommendedPlanId,
   plusPromise,
   rememberMomoNumber,
   rememberedMomoNumber,
@@ -32,6 +35,7 @@ type PlansSearch = {
   room?: string | undefined;
   plan?: string | undefined;
   view?: "plans" | undefined;
+  promo?: string | undefined;
 };
 
 const str = (value: unknown) => (typeof value === "string" ? value : undefined);
@@ -42,6 +46,7 @@ export const Route = createFileRoute("/plans")({
     room: str(search["room"]),
     plan: str(search["plan"]),
     view: search["view"] === "plans" ? "plans" : undefined,
+    promo: str(search["promo"]),
   }),
   head: () => ({
     meta: [
@@ -70,12 +75,17 @@ function PlansPage() {
   const currentPlan = usePlus();
   const returnTo = safeReturnPath(search.from);
   const room = rooms.find((item) => item.id === search.room) ?? null;
-  const plan = planById(search.plan) ?? planById(DEFAULT_PLAN)!;
+  const basePlan = planById(search.plan) ?? planById(DEFAULT_PLAN)!;
+  // An applied promo code lowers the price everywhere on the payment screen.
+  const promo = promoPercent(search.promo);
+  const plan = { ...basePlan, price: discountedPrice(basePlan, promo) } as Plan;
   const contact: Contact = { phone: landlordWhatsApp, message: contactMessage(room) };
   const [result, setResult] = useState<Result | null>(null);
 
-  const setView = (next: { plan?: string; view?: "plans" | undefined }) =>
-    void navigate({ search: (prev) => ({ ...prev, plan: next.plan ?? prev.plan, view: next.view }) });
+  const setView = (next: { plan?: string; view?: "plans" | undefined; promo?: string | undefined }) =>
+    void navigate({
+      search: (prev) => ({ ...prev, plan: next.plan ?? prev.plan, view: next.view, promo: "promo" in next ? next.promo : prev.promo }),
+    });
 
   if (result?.kind === "paid") {
     return (
@@ -104,7 +114,12 @@ function PlansPage() {
   return (
     <Shell returnTo={returnTo} user={user} photoFirst={search.view !== "plans"}>
       {search.view === "plans" ? (
-        <ComparePlans current={plan} onChoose={(id) => setView({ plan: id, view: undefined })} onClose={() => setView({ view: undefined })} />
+        <ComparePlans
+          current={basePlan}
+          promo={search.promo}
+          onChoose={(id, code) => setView({ plan: id, view: undefined, promo: code })}
+          onClose={() => setView({ view: undefined })}
+        />
       ) : (
         <PayScreen plan={plan} room={room} user={user} returnTo={returnTo} onChangePlan={() => setView({ view: "plans" })} onResult={setResult} />
       )}
@@ -399,39 +414,159 @@ function PayScreen({
 
 /* ───────────── "Change" → compare plans ───────────── */
 
-function ComparePlans({ current, onChoose, onClose }: { current: Plan; onChoose: (id: Plan["id"]) => void; onClose: () => void }) {
+function featureIcon(feature: string) {
+  const f = feature.toLowerCase();
+  if (f.includes("contact") || f.includes("whatsapp")) return <WhatsAppIcon className="size-4 text-[#128C4A]" />;
+  if (f.includes("agent")) return <Users className="size-4 text-muted-foreground" />;
+  if (f.includes("viewing")) return <CalendarDays className="size-4 text-muted-foreground" />;
+  if (f.includes("abroad")) return <Globe className="size-4 text-muted-foreground" />;
+  if (f.includes("dollar")) return <CreditCard className="size-4 text-muted-foreground" />;
+  return <MessageSquareText className="size-4 text-muted-foreground" />;
+}
+
+/** The page behind "Change": the plans stacked on phones, side by side on desktop. */
+function ComparePlans({
+  current,
+  promo,
+  onChoose,
+  onClose,
+}: {
+  current: Plan;
+  promo: string | undefined;
+  onChoose: (id: Plan["id"], promo: string | undefined) => void;
+  onClose: () => void;
+}) {
+  // One promo code for the page: applying it on any card applies to all plans.
+  const [applied, setApplied] = useState<string | undefined>(promoPercent(promo) ? promo?.toUpperCase() : undefined);
+  const percent = promoPercent(applied);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
       <button type="button" onClick={onClose} className={`-ml-2 flex items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-muted ${press}`}>
         <ArrowLeft className="size-4" /> Back to payment
       </button>
-      <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Choose your plan</h1>
-      <p className="mt-3 max-w-xl text-base text-muted-foreground">{plusPromise}</p>
-      <div className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-5">
+      <h1 className="mt-4 text-center text-3xl font-medium tracking-tight sm:text-4xl">A plan for you</h1>
+      <p className="mx-auto mt-2 max-w-xl text-center text-base text-muted-foreground">{plusPromise}</p>
+      {percent && (
+        <p className="mx-auto mt-4 w-fit rounded-full bg-emerald-600/10 px-3 py-1 text-sm font-medium text-emerald-700 animate-in fade-in duration-200">
+          {applied} applied: {percent}% off every plan
+        </p>
+      )}
+
+      <div className="mx-auto mt-8 grid max-w-md gap-5 lg:max-w-none lg:grid-cols-3 lg:items-stretch">
         {plans.map((option) => {
+          const recommended = option.id === recommendedPlanId;
           const selected = option.id === current.id;
+          const price = discountedPrice(option, percent);
           return (
-            <article key={option.id} className={`flex flex-col rounded-2xl border-2 bg-card p-6 sm:p-8 ${selected ? "border-foreground" : ""}`}>
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-bold">{option.name}</h2>
-                {selected && <span className="rounded-full bg-foreground px-2.5 py-0.5 text-xs font-semibold text-background">Selected</span>}
-              </div>
-              <p className="mt-3 text-5xl font-bold tracking-tight tabular-nums sm:text-6xl">{option.price}</p>
-              <ul className="mt-6 flex-1 space-y-3 border-t pt-6">
-                {option.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm">
-                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {feature}
+            <article
+              key={option.id}
+              className={`flex flex-col overflow-hidden rounded-2xl bg-card text-center ${
+                recommended ? "border-2 border-primary" : selected ? "border-2 border-foreground" : "border"
+              }`}
+            >
+              {recommended ? (
+                <p className="bg-primary/10 py-1.5 text-xs font-semibold text-primary">Recommended</p>
+              ) : (
+                // Same height as the band, so names and prices line up across the row on desktop.
+                <p className="invisible hidden py-1.5 text-xs lg:block" aria-hidden>
+                  Recommended
+                </p>
+              )}
+              <div className="flex flex-1 flex-col px-6 pb-2 pt-6">
+                <h2 className="text-xl font-medium">{option.name}</h2>
+                <p className={`mt-3 text-4xl font-bold tracking-tight tabular-nums ${recommended ? "text-primary" : ""}`}>
+                  {price}
+                  {percent && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{option.price}</s>}
+                  <span className="ml-1 align-middle text-xs font-semibold text-muted-foreground">{option.currency}</span>
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">one payment</p>
+                <button
+                  type="button"
+                  onClick={() => onChoose(option.id, applied)}
+                  className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold ${press} ${
+                    recommended ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-foreground text-background hover:bg-foreground/90"
+                  }`}
+                >
+                  {selected ? `Keep ${option.name}` : `Choose ${option.name}`}
+                </button>
+                <ul className="mt-6 flex-1 space-y-3 text-left">
+                  {option.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 text-sm">
+                      <span className="mt-0.5 shrink-0">{featureIcon(feature)}</span> {feature}
+                    </li>
+                  ))}
+                  <li className="flex items-start gap-3 text-sm">
+                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> Covered by Tenant Protection
                   </li>
-                ))}
-              </ul>
-              <button type="button" onClick={() => onChoose(option.id)} className={`mt-8 ${darkButton}`}>
-                {selected ? `Keep ${option.name}` : `Choose ${option.name}`}
-              </button>
+                </ul>
+              </div>
+              <PromoCode applied={applied} onApply={setApplied} />
             </article>
           );
         })}
       </div>
     </div>
+  );
+}
+
+function PromoCode({ applied, onApply }: { applied: string | undefined; onApply: (code: string | undefined) => void }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState(false);
+
+  if (applied) {
+    return (
+      <div className="mt-4 flex items-center justify-center gap-2 border-t px-6 py-3.5 text-sm">
+        <Check className="size-4 text-emerald-600" /> <span className="font-medium">{applied}</span>
+        <button type="button" onClick={() => onApply(undefined)} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          Remove
+        </button>
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="mt-4 flex w-full items-center justify-center gap-1.5 border-t px-6 py-3.5 text-sm font-semibold hover:bg-muted/60">
+        <Plus className="size-4" /> Add promo code
+      </button>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (promoPercent(code)) {
+          onApply(code.trim().toUpperCase());
+          setError(false);
+        } else {
+          setError(true);
+        }
+      }}
+      className="mt-4 border-t px-4 py-3 text-left animate-in fade-in duration-200"
+    >
+      <div className="flex gap-2">
+        <input
+          autoFocus
+          value={code}
+          onChange={(event) => {
+            setCode(event.target.value);
+            setError(false);
+          }}
+          aria-label="Promo code"
+          aria-invalid={error}
+          placeholder="Promo code"
+          autoCapitalize="characters"
+          className="h-10 min-w-0 flex-1 rounded-md border-2 bg-background px-3 text-base uppercase outline-none focus:border-foreground md:text-sm"
+        />
+        <button type="submit" className={`shrink-0 rounded-md bg-foreground px-4 text-sm font-semibold text-background ${press}`}>
+          Apply
+        </button>
+      </div>
+      {error && <p className="mt-2 text-xs text-destructive">That code isn't valid. Check the spelling and try again.</p>}
+    </form>
   );
 }
 

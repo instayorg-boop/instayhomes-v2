@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  BadgeCheck,
   Heart,
   Home,
   Search,
-  ShieldCheck,
 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { NoResultsIllustration } from "@/components/no-results-illustration";
 import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
 
 export const Route = createFileRoute("/search")({
@@ -250,15 +251,11 @@ function SearchPage() {
             </label>
           )}
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <ShieldCheck className="size-4 shrink-0 text-primary" />
-          Every home is verified and covered by Tenant Protection.
-        </p>
 
         {visibleListings.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center rounded-xl border border-dashed px-6 py-16 text-center">
-            <Home className="size-8 text-muted-foreground" />
-            <h2 className="mt-4 font-semibold">No homes match this search</h2>
+          <div className="mt-8 flex flex-col items-center px-6 py-10 text-center">
+            <NoResultsIllustration className="w-56 sm:w-64" />
+            <h2 className="mt-6 text-lg font-semibold">No homes match this search</h2>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">Try another home type or a nearby neighbourhood.</p>
             {activeFilter !== "All" && (
               <button type="button" onClick={() => setActiveFilter("All")} className="mt-5 rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
@@ -368,6 +365,9 @@ function ListingCard({
             />
           )}
         </Link>
+        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-[11px] font-semibold shadow-sm">
+          <BadgeCheck className="size-3.5 text-primary" /> Tenant verified
+        </span>
         <button
           type="button"
           aria-label={favourite ? `Remove ${listing.title} from saved homes` : `Save ${listing.title}`}
@@ -388,9 +388,26 @@ function ListingCard({
         </p>
         <p className="mt-2 text-base">
           <span className="font-bold">€{listing.price.toLocaleString("en")}</span>
-          <span className="text-sm text-muted-foreground"> / month · {listing.available.replace(/^Available /, "").replace(/^now$/, "available now")}</span>
+          <span className="text-sm text-muted-foreground"> / month</span>
         </p>
+        <Availability listing={listing} />
       </Link>
     </article>
+  );
+}
+
+function Availability({ listing }: { listing: Listing }) {
+  if (listing.availableRooms === 0) {
+    return <p className="mt-1.5 text-sm font-medium text-muted-foreground">Fully booked</p>;
+  }
+  const now = listing.available === "Available now";
+  return (
+    <p className={`mt-1.5 flex items-center gap-1.5 text-sm font-semibold ${now ? "text-emerald-600" : "text-primary"}`}>
+      <span className="size-2 shrink-0 rounded-full bg-current" aria-hidden />
+      {listing.available}
+      {listing.availableRooms > 1 && (
+        <span className="font-normal text-muted-foreground">· {listing.availableRooms} rooms</span>
+      )}
+    </p>
   );
 }

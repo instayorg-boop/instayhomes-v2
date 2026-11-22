@@ -209,7 +209,7 @@ function SearchPage() {
       <SiteHeader />
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-12">
           <form onSubmit={submitSearch} className="flex items-center gap-2 rounded-full border bg-background p-1.5 pl-4 shadow-sm">
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <label className="min-w-0 flex-1">
@@ -245,7 +245,7 @@ function SearchPage() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-12 sm:py-8">
         <h1 className="text-2xl font-bold tracking-tight">{university ? `Homes near ${university.name}` : `Accommodation in ${city}`}</h1>
         <div className="mt-1 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
@@ -327,7 +327,7 @@ function SearchPage() {
       </main>
 
       <footer className="border-t bg-muted py-10">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-12 lg:grid-cols-4">
           <div>
             <Link to="/" className="font-display text-2xl text-primary">INSTAYHOMES</Link>
             <p className="mt-3 max-w-xs text-xs leading-5 text-muted-foreground">A simpler way to find a furnished home for the next chapter of your life.</p>

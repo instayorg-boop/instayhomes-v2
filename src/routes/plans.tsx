@@ -508,7 +508,7 @@ function Shell({ returnTo, user, children }: { returnTo: string; user: PlusUser 
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-12">
           <Link to={returnTo} className={`-ml-2 flex w-24 items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-muted ${press}`}>
             <ArrowLeft className="size-5" /> <span className="hidden sm:inline">Back</span>
           </Link>
@@ -522,7 +522,7 @@ function Shell({ returnTo, user, children }: { returnTo: string; user: PlusUser 
           </span>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 sm:pt-10">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-12 sm:pt-10">{children}</main>
     </div>
   );
 }

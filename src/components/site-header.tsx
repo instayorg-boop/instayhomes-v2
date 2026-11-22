@@ -11,7 +11,7 @@ export function SiteHeader() {
   return (
     <>
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-12">
           <Link to="/" aria-label="Instayhomes home" className="font-display text-2xl tracking-wide text-primary">
             INSTAYHOMES
           </Link>

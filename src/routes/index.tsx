@@ -45,7 +45,7 @@ function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-12">
           <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
           <nav className="flex items-center gap-1 text-sm font-medium">
             {["How it works", "Pricing", "Help", "Log in", "Sign up"].map((l) => (
@@ -96,7 +96,7 @@ function Index() {
 
       <RecentlyViewed />
 
-      <section className="mx-auto max-w-7xl px-4 py-10">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-12">
         <h2 className="text-center text-2xl font-semibold">Search by university</h2>
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {universities.map((uni, index) => (
@@ -114,7 +114,7 @@ function Index() {
       </section>
 
       <section className="bg-background">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 lg:flex-row lg:items-center">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-12 lg:flex-row lg:items-center">
           <h2 className="text-2xl font-semibold lg:w-72">Why Instayhomes?</h2>
           <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
             {stats.map(([v, l, src]) => (
@@ -130,7 +130,7 @@ function Index() {
       </section>
 
       <section id="tenant-protection" className="scroll-mt-4 bg-primary text-primary-foreground">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 md:grid-cols-2 md:px-12">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-12 md:grid-cols-2">
           <div>
             <h2 className="font-display text-5xl leading-none md:text-6xl">TENANT<br />PROTECTION</h2>
             <ul className="mt-8 space-y-5">
@@ -172,7 +172,7 @@ function Index() {
       </section>
 
       <footer className="bg-muted py-14 text-sm">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-5">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-12 md:grid-cols-5">
           <div className="md:col-span-2">
             <span className="font-display text-2xl text-primary">INSTAYHOMES</span>
             <p className="mt-4 text-xs">🌐 English</p>
@@ -355,7 +355,7 @@ function RecentlyViewed() {
   const recent = useRecentListing();
   if (!recent) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-10">
+    <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-12">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
         <History className="size-5 text-muted-foreground" /> Continue where you left off
       </h2>

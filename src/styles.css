@@ -196,3 +196,9 @@
 
 @utility bg-hero { background: linear-gradient(180deg, oklch(0.95 0.03 255), var(--background)); }
 @utility shadow-soft { box-shadow: 0 12px 40px -12px oklch(0.4 0.1 262 / 0.25); }
+
+/* Light sweep across the Pay button while the phone prompt is open. */
+@keyframes pay-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}

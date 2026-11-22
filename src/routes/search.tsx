@@ -1,21 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   BadgeCheck,
-  CalendarDays,
-  Check,
-  ChevronDown,
   Heart,
-  MapPin,
+  Home,
   Search,
-  ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
 } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { rememberSearch } from "@/lib/recent";
+import { universityById } from "@/lib/universities";
+import { Availability } from "@/components/availability";
+import { NoResultsIllustration } from "@/components/no-results-illustration";
 import { DataToggle, pickDataset, useDataMode, worstCaseCity } from "./-search-worst-case";
 
+type SearchParams = { university?: string | undefined };
+
 export const Route = createFileRoute("/search")({
+  validateSearch: (search: Record<string, unknown>): SearchParams => ({
+    university: typeof search["university"] === "string" ? search["university"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Rooms and apartments in Munich | Nestaway Stays" },
@@ -161,20 +164,33 @@ const listings = [
 const filters = ["All", "Private room", "Studio", "Apartment"] as const;
 
 type Filter = (typeof filters)[number];
+type Sort = "recommended" | "price-asc" | "price-desc";
 
 function SearchPage() {
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
   const [favourites, setFavourites] = useState<number[]>([]);
-  const [moreFilters, setMoreFilters] = useState(false);
+  const [sort, setSort] = useState<Sort>("recommended");
   const [query, setQuery] = useState("Munich");
   const [searchedCity, setSearchedCity] = useState("Munich");
   const dataMode = useDataMode();
   const dataset = pickDataset(dataMode, listings);
   const city = dataMode === "worst" ? worstCaseCity : searchedCity;
+  const university = universityById(Route.useSearch().university);
+
+  // Arriving here for a university (from the home page search or its tiles) is a search worth
+  // offering again as "Continue your search".
+  useEffect(() => {
+    if (university) rememberSearch({ label: university.name, universityId: university.id });
+  }, [university]);
 
   const visibleListings = useMemo(
-    () => dataset.filter((listing) => activeFilter === "All" || listing.type === activeFilter),
-    [activeFilter, dataset],
+    () => {
+      const matches = dataset.filter((listing) => activeFilter === "All" || listing.type === activeFilter);
+      if (sort === "price-asc") return [...matches].sort((x, y) => x.price - y.price);
+      if (sort === "price-desc") return [...matches].sort((x, y) => y.price - x.price);
+      return matches;
+    },
+    [activeFilter, dataset, sort],
   );
 
   const toggleFavourite = (id: number) => {
@@ -193,101 +209,90 @@ function SearchPage() {
       <SiteHeader />
 
       <section className="border-b bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-          <form onSubmit={submitSearch} className="flex flex-col gap-2 rounded-xl border bg-background p-2 shadow-sm md:flex-row">
-            <label className="flex flex-1 items-center gap-2 rounded-md px-3">
-              <Search className="size-4 shrink-0 text-muted-foreground" />
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+          <form onSubmit={submitSearch} className="flex items-center gap-2 rounded-full border bg-background p-1.5 pl-4 shadow-sm">
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <label className="min-w-0 flex-1">
               <span className="sr-only">City or neighbourhood</span>
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="City or neighbourhood"
-                className="h-10 w-full bg-transparent text-base outline-none md:text-sm"
+                enterKeyHint="search"
+                className="h-9 w-full bg-transparent text-base outline-none md:text-sm"
               />
             </label>
-            <button type="button" className="flex h-10 items-center justify-center gap-2 rounded-md border px-5 text-sm hover:bg-muted md:w-60 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
-              <CalendarDays className="size-4" /> Move-in – Move-out
-            </button>
-            <button type="submit" className="h-10 rounded-md bg-primary px-8 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
+            <button type="submit" className="h-9 shrink-0 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
               Search
             </button>
           </form>
 
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {filters.map((filter) => (
               <button
                 key={filter}
                 type="button"
                 onClick={() => setActiveFilter(filter)}
-                className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97] ${
+                aria-pressed={activeFilter === filter}
+                className={`whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-medium transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97] ${
                   activeFilter === filter ? "border-foreground bg-foreground text-background" : "bg-background hover:bg-muted"
                 }`}
               >
                 {filter === "All" ? "All homes" : `${filter}s`}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => setMoreFilters((current) => !current)}
-              aria-expanded={moreFilters}
-              className="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]"
-            >
-              <SlidersHorizontal className="size-3.5" /> More filters
-              <ChevronDown className={`size-3.5 transition-transform duration-200 ease-out ${moreFilters ? "rotate-180" : ""}`} />
-            </button>
           </div>
-          {moreFilters && (
-            <div className="mt-3 flex flex-wrap gap-4 rounded-lg bg-muted p-4 text-xs font-medium animate-in fade-in slide-in-from-top-1 duration-200 ease-out">
-              <span className="flex items-center gap-2"><Check className="size-4 text-primary" /> Furnished</span>
-              <span className="flex items-center gap-2"><Check className="size-4 text-primary" /> Bills included</span>
-              <span className="flex items-center gap-2"><Check className="size-4 text-primary" /> Verified landlord</span>
-            </div>
-          )}
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Mid-term rentals</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight">Accommodation in {city}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{visibleListings.length} furnished places available for your next stay</p>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <h1 className="text-2xl font-bold tracking-tight">{university ? `Homes near ${university.name}` : `Accommodation in ${city}`}</h1>
+        <div className="mt-1 flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            {visibleListings.length} furnished {visibleListings.length === 1 ? "home" : "homes"} ·{" "}
+            <Link to="/" hash="tenant-protection" className="underline decoration-dotted underline-offset-4 hover:text-foreground">
+              Covered by Tenant Protection
+            </Link>
+          </p>
+          {visibleListings.length > 1 && (
+            <label className="flex items-center gap-1 text-sm">
+              <span className="sr-only">Sort homes</span>
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as Sort)}
+                className="cursor-pointer rounded-md bg-transparent py-1 text-base font-medium outline-none hover:text-primary md:text-sm"
+              >
+                <option value="recommended">Recommended</option>
+                <option value="price-asc">Lowest price</option>
+                <option value="price-desc">Highest price</option>
+              </select>
+            </label>
+          )}
+        </div>
+
+        {visibleListings.length === 0 ? (
+          <div className="mt-8 flex flex-col items-center px-6 py-10 text-center">
+            <NoResultsIllustration className="w-56 sm:w-64" />
+            <h2 className="mt-6 text-lg font-semibold">No homes match this search</h2>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">Try another home type or a nearby neighbourhood.</p>
+            {activeFilter !== "All" && (
+              <button type="button" onClick={() => setActiveFilter("All")} className="mt-5 rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
+                Show all homes
+              </button>
+            )}
           </div>
-          <button type="button" className="flex items-center gap-2 self-start rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted sm:self-auto transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
-            Recommended <ChevronDown className="size-3.5" />
-          </button>
-        </div>
-
-        <div className="mt-6 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-          {visibleListings.slice(0, 5).map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              favourite={favourites.includes(listing.id)}
-              onToggleFavourite={() => toggleFavourite(listing.id)}
-            />
-          ))}
-
-          {activeFilter === "All" && <ProtectionCard />}
-
-          {visibleListings.slice(5).map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              favourite={favourites.includes(listing.id)}
-              onToggleFavourite={() => toggleFavourite(listing.id)}
-            />
-          ))}
-        </div>
-
-        <nav aria-label="Search result pages" className="mt-10 flex items-center justify-center gap-2 text-sm">
-          <span className="rounded-md bg-foreground px-3 py-2 text-background">1</span>
-          {[2, 3, 4].map((page) => (
-            <button key={page} type="button" className="rounded-md border px-3 py-2 hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">{page}</button>
-          ))}
-          <span className="px-1 text-muted-foreground">…</span>
-          <button type="button" className="rounded-md border px-3 py-2 hover:bg-muted transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">Next</button>
-        </nav>
+        ) : (
+          <div className="mt-6 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleListings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                favourite={favourites.includes(listing.id)}
+                onToggleFavourite={() => toggleFavourite(listing.id)}
+              />
+            ))}
+          </div>
+        )}
 
         <section className="mt-14 border-t pt-10">
           <h2 className="text-xl font-bold">Accommodation in Munich, Germany</h2>
@@ -359,18 +364,26 @@ function ListingCard({
   favourite: boolean;
   onToggleFavourite: () => void;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
   return (
     <article className="group">
       <div className="relative overflow-hidden rounded-xl bg-muted">
-        <Link to="/listing" aria-label={`View ${listing.title}`}>
-          <img
-            src={image(listing.image)}
-            alt={listing.title}
-            loading="lazy"
-            className="aspect-[4/3] w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]"
-          />
+        <Link to="/listing" aria-label={`View ${listing.title}`} className="block aspect-[4/3]">
+          {imageFailed ? (
+            <span className="flex size-full items-center justify-center">
+              <Home className="size-8 text-muted-foreground/60" />
+            </span>
+          ) : (
+            <img
+              src={image(listing.image)}
+              alt={listing.title}
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+              className="size-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]"
+            />
+          )}
         </Link>
-        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-[10px] font-semibold shadow-sm">
+        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-[11px] font-semibold shadow-sm">
           <BadgeCheck className="size-3.5 text-primary" /> Tenant verified
         </span>
         <button
@@ -384,37 +397,20 @@ function ListingCard({
         </button>
       </div>
       <Link to="/listing" className="mt-3 block">
-        <h2 className="text-sm font-semibold leading-5 group-hover:underline">{listing.title}</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">{listing.area}</p>
-        <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-          <span className="text-muted-foreground">{listing.size} · {listing.capacity}</span>
-          <span className="font-medium">★ {listing.rating}</span>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="line-clamp-2 text-sm font-semibold leading-5 group-hover:underline" title={listing.title}>{listing.title}</h2>
+          {listing.rating && <span className="shrink-0 text-sm">★ {listing.rating}</span>}
         </div>
-        <p className="mt-2 text-sm font-bold">€{listing.price.toLocaleString("en")} <span className="text-xs font-normal text-muted-foreground">/ month</span></p>
-        <p className="mt-1 text-[11px] font-medium text-primary">{listing.availableRooms} {listing.availableRooms === 1 ? "room" : "rooms"} available · {listing.available}</p>
+        <p className="mt-0.5 truncate text-sm text-muted-foreground" title={listing.area}>
+          {listing.area.replace(/, Munich$/, "")} · {listing.size}
+        </p>
+        <p className="mt-2 text-base">
+          <span className="font-bold">€{listing.price.toLocaleString("en")}</span>
+          <span className="text-sm text-muted-foreground"> / month</span>
+        </p>
+        <Availability available={listing.available} left={listing.availableRooms} className="mt-1.5" />
       </Link>
     </article>
   );
 }
 
-function ProtectionCard() {
-  return (
-    <aside className="flex min-h-72 flex-col justify-center rounded-xl border border-primary/20 bg-primary/10 p-7">
-      <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
-        <ShieldCheck className="size-6" />
-      </span>
-      <p className="mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">
-        <Sparkles className="size-4" /> Worry-free renting
-      </p>
-      <h2 className="mt-2 font-display text-3xl leading-tight">YOUR NEXT HOME, PROTECTED.</h2>
-      <ul className="mt-4 space-y-2 text-xs">
-        {["Secure online payments", "Support throughout your stay", "Help if your plans change"].map((item) => (
-          <li key={item} className="flex items-center gap-2"><Check className="size-4 text-primary" /> {item}</li>
-        ))}
-      </ul>
-      <Link to="/listing" className="mt-5 inline-flex items-center gap-2 self-start rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]">
-        <MapPin className="size-3.5" /> Explore protected homes
-      </Link>
-    </aside>
-  );
-}

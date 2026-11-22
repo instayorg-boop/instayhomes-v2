@@ -272,7 +272,7 @@ function ListingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
+    <div className="min-h-svh bg-background pb-24 text-foreground lg:pb-0">
       <SiteHeader />
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-12 sm:pt-5">

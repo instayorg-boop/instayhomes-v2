@@ -207,7 +207,7 @@ function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-svh bg-background text-foreground">
       <SiteHeader />
 
       <section className="border-b bg-card">

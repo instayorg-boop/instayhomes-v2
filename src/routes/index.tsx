@@ -39,7 +39,7 @@ function Index() {
   const [open, setOpen] = useState<number | null>(null);
   const [menu, setMenu] = useState(false);
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-svh bg-background text-foreground">
       <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-12">
           <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>

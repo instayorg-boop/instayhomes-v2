@@ -172,6 +172,14 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Stop the page's rubber-band bounce at the top and bottom, which drags fixed bars
+     (like the listing's "Chat with landlord" bar) along with it. Sheets and galleries
+     keep their own scrolling with overscroll-contain. */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+
   button,
   a,
   [role="button"] {

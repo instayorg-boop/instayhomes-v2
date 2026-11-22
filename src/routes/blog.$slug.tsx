@@ -20,7 +20,7 @@ function GuideComingSoon() {
   const title = guideTitle(slug) ?? "This guide";
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-svh bg-background text-foreground">
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-12 sm:py-24">
         <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-muted">

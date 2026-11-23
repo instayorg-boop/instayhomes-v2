@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { openHowItWorks } from "@/components/welcome-stories";
 
 const navItems = ["How it works", "Pricing", "Help", "Log in", "Sign up"];
 
@@ -17,7 +18,12 @@ export function SiteHeader() {
           </Link>
           <nav aria-label="Main navigation" className="flex items-center gap-1 text-sm font-medium">
             {navItems.map((item) => (
-              <a key={item} href="#" className="hidden rounded-md px-3 py-2 hover:bg-muted lg:block">
+              <a
+                key={item}
+                href="#"
+                onClick={item === "How it works" ? (event) => { event.preventDefault(); openHowItWorks(); } : undefined}
+                className="hidden rounded-md px-3 py-2 hover:bg-muted lg:block"
+              >
                 {item}
               </a>
             ))}
@@ -58,7 +64,12 @@ export function SiteHeader() {
             </div>
             <nav aria-label="Menu navigation" className="mt-8 flex flex-col gap-1 font-medium">
               {[...navItems, "I'm a landlord"].map((item) => (
-                <a key={item} href="#" className="rounded-md px-3 py-3 hover:bg-muted">
+                <a
+                  key={item}
+                  href="#"
+                  onClick={item === "How it works" ? (event) => { event.preventDefault(); setMenuOpen(false); openHowItWorks(); } : undefined}
+                  className="rounded-md px-3 py-3 hover:bg-muted"
+                >
                   {item}
                 </a>
               ))}

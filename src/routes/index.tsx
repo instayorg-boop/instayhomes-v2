@@ -6,6 +6,7 @@ import partnersImg from "@/assets/stat-partners.png";
 import tenantsImg from "@/assets/stat-tenants.png";
 import citiesImg from "@/assets/stat-cities.png";
 import { Availability } from "@/components/availability";
+import { openHowItWorks } from "@/components/welcome-stories";
 import { ProtectionPerks, protectionImage } from "@/components/tenant-protection";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
@@ -45,7 +46,7 @@ function Index() {
           <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
           <nav className="flex items-center gap-1 text-sm font-medium">
             {["How it works", "Pricing", "Help", "Log in", "Sign up"].map((l) => (
-              <a key={l} href="#" className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
+              <a key={l} href="#" onClick={l === "How it works" ? (e) => { e.preventDefault(); openHowItWorks(); } : undefined} className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
             ))}
             <a href="#" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</a>
             <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1 rounded-md p-2 hover:bg-muted"><Menu className="size-5" /></button>
@@ -63,7 +64,7 @@ function Index() {
             </div>
             <nav className="mt-8 flex flex-col gap-1 font-medium">
               {["How it works", "Pricing", "Help", "Log in", "Sign up", "I'm a landlord"].map((l) => (
-                <a key={l} href="#" className="rounded-md px-3 py-3 hover:bg-muted">{l}</a>
+                <a key={l} href="#" onClick={l === "How it works" ? (e) => { e.preventDefault(); setMenu(false); openHowItWorks(); } : undefined} className="rounded-md px-3 py-3 hover:bg-muted">{l}</a>
               ))}
             </nav>
             <div className="mt-auto border-t pt-4">

@@ -7,9 +7,10 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const protectionPerks = [
-  ["Covered if plans fall through", "If your landlord cancels late or delays your move-in, we help you find a new place or cover a short hotel stay."],
-  ["Help when you need it", "Something wrong with your rental? Our support team steps in quickly."],
-  ["Move in worry-free", "Your payment is held until you move in. If the home isn't as described, you get your money back."],
+  // PLACEHOLDER: "eligible for a refund" needs the refund policy (amount, time limit, how it's paid back).
+  ["Not as shown, or no longer available?", "Tell us and you're eligible for a refund of your plan."],
+  ["Bad experience with a landlord?", "Report it. Our team steps in, and you're eligible for a refund."],
+  ["Real people, fast", "Our team is on WhatsApp whenever you need us."],
 ] as const;
 
 export const protectionImage =

@@ -39,6 +39,16 @@ const faqs = [
 function Index() {
   const [open, setOpen] = useState<number | null>(null);
   const [menu, setMenu] = useState(false);
+  const navigate = useNavigate();
+  const homeNav = (e: React.MouseEvent, item: string) => {
+    if (item === "How it works") {
+      e.preventDefault();
+      openHowItWorks();
+    } else if (item === "Log in" || item === "Sign up") {
+      e.preventDefault();
+      void navigate({ to: "/login", search: { from: "/" } });
+    }
+  };
   return (
     <div className="min-h-svh bg-background text-foreground">
       <header className="border-b bg-background">
@@ -46,7 +56,7 @@ function Index() {
           <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
           <nav className="flex items-center gap-1 text-sm font-medium">
             {["How it works", "Pricing", "Help", "Log in", "Sign up"].map((l) => (
-              <a key={l} href="#" onClick={l === "How it works" ? (e) => { e.preventDefault(); openHowItWorks(); } : undefined} className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
+              <a key={l} href="#" onClick={(e) => { homeNav(e, l); }} className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
             ))}
             <a href="#" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</a>
             <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1 rounded-md p-2 hover:bg-muted"><Menu className="size-5" /></button>
@@ -64,7 +74,7 @@ function Index() {
             </div>
             <nav className="mt-8 flex flex-col gap-1 font-medium">
               {["How it works", "Pricing", "Help", "Log in", "Sign up", "I'm a landlord"].map((l) => (
-                <a key={l} href="#" onClick={l === "How it works" ? (e) => { e.preventDefault(); setMenu(false); openHowItWorks(); } : undefined} className="rounded-md px-3 py-3 hover:bg-muted">{l}</a>
+                <a key={l} href="#" onClick={(e) => { setMenu(false); homeNav(e, l); }} className="rounded-md px-3 py-3 hover:bg-muted">{l}</a>
               ))}
             </nav>
             <div className="mt-auto border-t pt-4">

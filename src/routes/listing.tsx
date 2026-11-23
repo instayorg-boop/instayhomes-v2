@@ -33,6 +33,7 @@ import { TenantProtectionLink } from "@/components/tenant-protection";
 import { SiteHeader } from "@/components/site-header";
 import { Availability } from "@/components/availability";
 import { PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
+import { cn } from "@/lib/utils";
 import { pickListing } from "./-listing-worst-case";
 import { DataToggle, useDataMode } from "./-search-worst-case";
 import { rememberListing } from "@/lib/recent";
@@ -538,16 +539,16 @@ function ListingPage() {
       </footer>
 
       {/* Phone bar: starting price and the one action. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold tabular-nums">
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <p className="whitespace-nowrap text-lg font-bold tabular-nums">
               <span className="text-xs font-normal text-muted-foreground">From </span>K{fromPrice.toLocaleString("en")}
               <span className="text-xs font-normal text-muted-foreground"> / month</span>
             </p>
             <PlusHint short />
           </div>
-          <button type="button" onClick={() => contactAbout(null)} className={`shrink-0 ${whatsappButton}`}>
+          <button type="button" onClick={() => contactAbout(null)} className={cn("shrink-0", whatsappButton, "rounded-lg py-4")}>
             <WhatsAppIcon /> Chat with landlord
           </button>
         </div>

@@ -258,8 +258,8 @@ function PayScreen({
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
       {/* What they're unlocking stays in view, so paying reads as the last step of contacting. */}
-      {/* Same card as "Your plan" below (border, padding, type), so the page reads as one set. */}
-      <div className="flex items-center gap-3 rounded-xl border-2 p-4">
+      {/* Light grey card, with the same padding and type as "Your plan" below. */}
+      <div className="flex items-center gap-3 rounded-xl bg-muted p-4">
         {/* The room's photo, or the property's main photo when they're asking about the whole home. */}
         <img src={room?.images[0]?.src ?? heroImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
         <div className="min-w-0 flex-1">
@@ -270,7 +270,7 @@ function PayScreen({
           </p>
           <p className="text-xs text-muted-foreground">{room ? "Per month · Kreuzberg, Berlin" : "Kreuzberg, Berlin"}</p>
         </div>
-        <Link to={returnTo} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted ${press}`}>
+        <Link to={returnTo} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-background ${press}`}>
           View
         </Link>
       </div>

@@ -241,6 +241,9 @@ function PayScreen({
   }, [pending, attempt, plan, user, email, phone]);
 
   const isIntl = plan.id === "international";
+  const isRecommended = plan.id === recommendedPlanId;
+  // The plan's price before any promo code, shown struck through when a code is applied.
+  const fullPrice = plans.find((option) => option.id === plan.id)?.price ?? plan.price;
 
   const pay = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -279,14 +282,32 @@ function PayScreen({
       </TenantProtectionLink>
 
       <fieldset disabled={pending} className="contents">
-        <div className="mt-6 rounded-xl border-2">
-          <div className="flex items-center justify-between gap-4 p-4">
+        {/* The chosen plan, drawn like its card on the plans page: same coloured border and band,
+            name, big price and feature icons. */}
+        <div className={`mt-6 overflow-hidden rounded-2xl border-2 bg-card ${isRecommended ? "border-primary" : isIntl ? "border-blue-600" : "border-foreground"}`}>
+          <p
+            className={`flex items-center justify-between px-5 py-1.5 text-xs font-semibold ${
+              isRecommended ? "bg-primary/10 text-primary" : isIntl ? "bg-blue-50 text-blue-700" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            <span>Your plan</span>
+            <span>{isRecommended ? "Recommended" : isIntl ? "For students moving from abroad" : ""}</span>
+          </p>
+          <div className="flex items-start justify-between gap-4 px-5 pb-5 pt-4">
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Your plan</p>
-              <p className="font-semibold">{plan.name} · {plan.price}</p>
-              <p className="text-xs text-muted-foreground">{isIntl ? intlBilling : accessPeriod}</p>
+              <h2 className="text-xl font-medium">{plan.name}</h2>
+              <p className={`mt-1 text-4xl font-bold tracking-tight tabular-nums ${isRecommended ? "text-primary" : ""}`}>
+                {plan.price}
+                {fullPrice !== plan.price && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{fullPrice}</s>}
+                <span className="ml-1 align-middle text-xs font-semibold text-muted-foreground">{plan.currency}</span>
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{isIntl ? intlBilling : accessPeriod}</p>
             </div>
-            <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted disabled:opacity-40 ${press}`}>
+            <button
+              type="button"
+              onClick={onChangePlan}
+              className={`mt-1 shrink-0 rounded-full border-2 px-4 py-1.5 text-sm font-semibold hover:bg-muted disabled:opacity-40 ${press}`}
+            >
               Change
             </button>
           </div>
@@ -295,7 +316,7 @@ function PayScreen({
             aria-expanded={showIncluded}
             aria-controls="plan-included"
             onClick={() => setShowIncluded((open) => !open)}
-            className="flex w-full items-center justify-between border-t px-4 py-3 text-sm font-medium hover:bg-muted/60"
+            className="flex w-full items-center justify-between border-t px-5 py-3.5 text-sm font-medium hover:bg-muted/60"
           >
             What's included
             <ChevronDown className={`size-4 transition-transform duration-200 ease-out ${showIncluded ? "rotate-180" : ""}`} />
@@ -307,12 +328,15 @@ function PayScreen({
             style={{ gridTemplateRows: showIncluded ? "1fr" : "0fr" }}
           >
             <div className="overflow-hidden">
-              <ul className="space-y-2.5 px-4 pb-4 pt-1">
+              <ul className="space-y-3 px-5 pb-5 pt-1">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5 text-sm">
-                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {feature}
+                  <li key={feature} className="flex items-start gap-3 text-sm">
+                    <span className="mt-0.5 shrink-0">{featureIcon(feature)}</span> {feature}
                   </li>
                 ))}
+                <li className="flex items-start gap-3 text-sm">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> Covered by Tenant Protection
+                </li>
               </ul>
             </div>
           </div>

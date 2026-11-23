@@ -255,17 +255,21 @@ function PayScreen({
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
       {/* What they're unlocking stays in view, so paying reads as the last step of contacting. */}
-      <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
+      {/* Same card as "Your plan" below (border, padding, type), so the page reads as one set. */}
+      <div className="flex items-center gap-3 rounded-xl border-2 p-4">
         {/* The room's photo, or the property's main photo when they're asking about the whole home. */}
         <img src={room?.images[0]?.src ?? heroImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">{isIntl ? "You're asking about" : "Unlock chat with the landlord of"}</p>
           <p className="flex min-w-0 items-center gap-1 font-semibold">
-            <span className="truncate">{room ? `${room.shortName} · K${room.price.toLocaleString("en")}/month` : "Sunny shared apartment"}</span>
+            <span className="truncate">{room ? `${room.shortName} · K${room.price.toLocaleString("en")}` : "Sunny shared apartment"}</span>
             <VerifiedIcon className="size-4 shrink-0" />
           </p>
-          <p className="text-xs text-muted-foreground">Kreuzberg, Berlin</p>
+          <p className="text-xs text-muted-foreground">{room ? "Per month · Kreuzberg, Berlin" : "Kreuzberg, Berlin"}</p>
         </div>
+        <Link to={returnTo} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted ${press}`}>
+          View
+        </Link>
       </div>
 
       <h1 className="mt-7 text-2xl font-bold tracking-tight">{isIntl ? "Talk to our team" : "Get Instayhomes Plus"}</h1>

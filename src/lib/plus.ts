@@ -82,7 +82,7 @@ export function safeReturnPath(from: unknown) {
 
 // DEMO sign-in (stands in for "Continue with Google"). Replace with real auth; the payment
 // flow only needs usePlusUser() and to be sent back to the same /plans URL after sign-in.
-export type PlusUser = { name: string; email: string };
+export type PlusUser = { name: string; email: string; university?: string | undefined };
 const USER_KEY = "instayhomes-user-demo";
 
 function readUser(): string | null {
@@ -156,3 +156,26 @@ export const intlBilling = "Invoiced once you've chosen a home";
 // PLACEHOLDER team WhatsApp number: replace with the real one.
 export const teamWhatsApp = "+260 970 000 123";
 export const teamReplyTime = "within 2 hours";
+
+// DEMO accounts: which emails have signed up in this browser, so returning students skip the
+// "What should we call you?" step. Real accounts come from the auth backend.
+const ACCOUNTS_KEY = "instayhomes-accounts-demo";
+
+export function findAccount(email: string): PlusUser | null {
+  try {
+    const list = JSON.parse(window.localStorage.getItem(ACCOUNTS_KEY) ?? "[]") as PlusUser[];
+    return list.find((user) => user.email.toLowerCase() === email.trim().toLowerCase()) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveAccount(user: PlusUser) {
+  try {
+    const list = JSON.parse(window.localStorage.getItem(ACCOUNTS_KEY) ?? "[]") as PlusUser[];
+    const rest = list.filter((u) => u.email.toLowerCase() !== user.email.toLowerCase());
+    window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...rest, user]));
+  } catch {
+    // Storage blocked: they'll be asked their name again next time.
+  }
+}

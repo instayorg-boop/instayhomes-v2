@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { openHowItWorks } from "@/components/welcome-stories";
@@ -7,6 +7,16 @@ const navItems = ["How it works", "Pricing", "Help", "Log in", "Sign up"];
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const navClick = (event: React.MouseEvent, item: string) => {
+    if (item === "How it works") {
+      event.preventDefault();
+      openHowItWorks();
+    } else if (item === "Log in" || item === "Sign up") {
+      event.preventDefault();
+      void navigate({ to: "/login", search: { from: window.location.pathname + window.location.search } });
+    }
+  };
   const [language, setLanguage] = useState("English");
 
   return (
@@ -21,7 +31,7 @@ export function SiteHeader() {
               <a
                 key={item}
                 href="#"
-                onClick={item === "How it works" ? (event) => { event.preventDefault(); openHowItWorks(); } : undefined}
+                onClick={(event) => navClick(event, item)}
                 className="hidden rounded-md px-3 py-2 hover:bg-muted lg:block"
               >
                 {item}
@@ -67,7 +77,10 @@ export function SiteHeader() {
                 <a
                   key={item}
                   href="#"
-                  onClick={item === "How it works" ? (event) => { event.preventDefault(); setMenuOpen(false); openHowItWorks(); } : undefined}
+                  onClick={(event) => {
+                    setMenuOpen(false);
+                    navClick(event, item);
+                  }}
                   className="rounded-md px-3 py-3 hover:bg-muted"
                 >
                   {item}

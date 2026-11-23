@@ -130,7 +130,7 @@ function PlansPage() {
   }
 
   return (
-    <Shell returnTo={returnTo} user={user} photoFirst={search.view !== "plans"}>
+    <Shell returnTo={returnTo} user={user}>
       {search.view === "plans" ? (
         <ComparePlans
           current={basePlan}
@@ -241,6 +241,9 @@ function PayScreen({
   }, [pending, attempt, plan, user, email, phone]);
 
   const isIntl = plan.id === "international";
+  const isRecommended = plan.id === recommendedPlanId;
+  // The plan's price before any promo code, shown struck through when a code is applied.
+  const fullPrice = plans.find((option) => option.id === plan.id)?.price ?? plan.price;
 
   const pay = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -255,58 +258,56 @@ function PayScreen({
   return (
     <form onSubmit={pay} className="mx-auto max-w-md animate-in fade-in duration-200 ease-out">
       {/* What they're unlocking stays in view, so paying reads as the last step of contacting. */}
-      {/* The room's photo (or the property's main photo for the whole home), darkened towards the
-          bottom with the name over it. Edge to edge on phones, a rounded card on wider screens. */}
-      <div className="relative -mx-4 h-60 overflow-hidden sm:mx-0 sm:h-52 sm:rounded-2xl">
-        <img src={room?.images[0]?.src ?? heroImage} alt="" className="absolute inset-0 size-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/80 sm:from-black/15 sm:via-black/35" aria-hidden />
-        {/* Phones have no top bar here, so back, logo and account sit on the photo. */}
-        <div className="absolute inset-x-4 top-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between sm:hidden">
-          <Link to={returnTo} aria-label="Back" className={`flex size-9 items-center justify-center rounded-full bg-white/90 text-foreground shadow ${press}`}>
-            <ArrowLeft className="size-5" />
-          </Link>
-          <span className="font-display text-xl tracking-wide text-white drop-shadow">INSTAYHOMES</span>
-          <span className="flex size-9 items-center justify-center">
-            {user && (
-              <span title={user.email} className="flex size-9 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-foreground shadow">
-                {user.name.trim().charAt(0).toUpperCase() || "?"}
-              </span>
-            )}
-          </span>
-        </div>
-        <div className="absolute inset-x-4 bottom-7 text-white sm:inset-x-5 sm:bottom-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">{isIntl ? "You're asking about" : "Unlock chat with the landlord of"}</p>
-          <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-2xl font-bold tracking-tight">
-            <span className="truncate">{room ? room.shortName : "Sunny shared apartment"}</span>
-            <VerifiedIcon className="size-6 shrink-0" />
+      {/* Light grey card, with the same padding and type as "Your plan" below. */}
+      <div className="flex items-center gap-3 rounded-xl bg-muted p-4">
+        {/* The room's photo, or the property's main photo when they're asking about the whole home. */}
+        <img src={room?.images[0]?.src ?? heroImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted-foreground">{isIntl ? "You're asking about" : "Unlock chat with the landlord of"}</p>
+          <p className="flex min-w-0 items-center gap-1 font-semibold">
+            <span className="truncate">{room ? `${room.shortName} · K${room.price.toLocaleString("en")}` : "Sunny shared apartment"}</span>
+            <VerifiedIcon className="size-4 shrink-0" />
           </p>
-          <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
-            {room && (
-              <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">
-                K{room.price.toLocaleString("en")}/month
-              </span>
-            )}
-            <span className="rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 backdrop-blur-md">Kreuzberg, Berlin</span>
-          </div>
+          <p className="text-xs text-muted-foreground">{room ? "Per month · Kreuzberg, Berlin" : "Kreuzberg, Berlin"}</p>
         </div>
+        <Link to={returnTo} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-background ${press}`}>
+          View
+        </Link>
       </div>
-      {/* On phones the page slides over the photo's bottom edge as a rounded sheet. */}
-      <div className="relative -mx-4 -mt-4 rounded-t-[1.25rem] bg-background px-4 pt-6 sm:mx-0 sm:mt-0 sm:rounded-none sm:px-0">
-      <h1 className="text-2xl font-bold tracking-tight">{isIntl ? "Talk to our team" : "Get Instayhomes Plus"}</h1>
+
+      <h1 className="mt-7 text-2xl font-bold tracking-tight">{isIntl ? "Talk to our team" : "Get Instayhomes Plus"}</h1>
       <p className="mt-1 text-base text-muted-foreground">{isIntl ? intlPromise : plusPromise}</p>
       <TenantProtectionLink className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-dotted underline-offset-4 hover:decoration-solid">
         <ShieldCheck className="size-4 text-emerald-600" /> Covered by Tenant Protection
       </TenantProtectionLink>
 
       <fieldset disabled={pending} className="contents">
-        <div className="mt-6 rounded-xl border-2">
-          <div className="flex items-center justify-between gap-4 p-4">
+        {/* The chosen plan, drawn like its card on the plans page: same coloured border and band,
+            name, big price and feature icons. */}
+        <div className={`mt-6 overflow-hidden rounded-2xl border-2 bg-card ${isRecommended ? "border-primary" : isIntl ? "border-blue-600" : "border-foreground"}`}>
+          <p
+            className={`flex items-center justify-between px-5 py-1.5 text-xs font-semibold ${
+              isRecommended ? "bg-primary/10 text-primary" : isIntl ? "bg-blue-50 text-blue-700" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            <span>Your plan</span>
+            <span>{isRecommended ? "Recommended" : isIntl ? "For students moving from abroad" : ""}</span>
+          </p>
+          <div className="flex items-start justify-between gap-4 px-5 pb-5 pt-4">
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Your plan</p>
-              <p className="font-semibold">{plan.name} · {plan.price}</p>
-              <p className="text-xs text-muted-foreground">{isIntl ? intlBilling : accessPeriod}</p>
+              <h2 className="text-xl font-medium">{plan.name}</h2>
+              <p className={`mt-1 text-4xl font-bold tracking-tight tabular-nums ${isRecommended ? "text-primary" : ""}`}>
+                {plan.price}
+                {fullPrice !== plan.price && <s className="ml-2 align-middle text-base font-medium text-muted-foreground">{fullPrice}</s>}
+                <span className="ml-1 align-middle text-xs font-semibold text-muted-foreground">{plan.currency}</span>
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{isIntl ? intlBilling : accessPeriod}</p>
             </div>
-            <button type="button" onClick={onChangePlan} className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold underline underline-offset-4 hover:bg-muted disabled:opacity-40 ${press}`}>
+            <button
+              type="button"
+              onClick={onChangePlan}
+              className={`mt-1 shrink-0 rounded-full border-2 px-4 py-1.5 text-sm font-semibold hover:bg-muted disabled:opacity-40 ${press}`}
+            >
               Change
             </button>
           </div>
@@ -315,7 +316,7 @@ function PayScreen({
             aria-expanded={showIncluded}
             aria-controls="plan-included"
             onClick={() => setShowIncluded((open) => !open)}
-            className="flex w-full items-center justify-between border-t px-4 py-3 text-sm font-medium hover:bg-muted/60"
+            className="flex w-full items-center justify-between border-t px-5 py-3.5 text-sm font-medium hover:bg-muted/60"
           >
             What's included
             <ChevronDown className={`size-4 transition-transform duration-200 ease-out ${showIncluded ? "rotate-180" : ""}`} />
@@ -327,12 +328,15 @@ function PayScreen({
             style={{ gridTemplateRows: showIncluded ? "1fr" : "0fr" }}
           >
             <div className="overflow-hidden">
-              <ul className="space-y-2.5 px-4 pb-4 pt-1">
+              <ul className="space-y-3 px-5 pb-5 pt-1">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5 text-sm">
-                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {feature}
+                  <li key={feature} className="flex items-start gap-3 text-sm">
+                    <span className="mt-0.5 shrink-0">{featureIcon(feature)}</span> {feature}
                   </li>
                 ))}
+                <li className="flex items-start gap-3 text-sm">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> Covered by Tenant Protection
+                </li>
               </ul>
             </div>
           </div>
@@ -455,7 +459,6 @@ function PayScreen({
           </p>
         </>
       )}
-      </div>
     </form>
   );
 }
@@ -730,17 +733,14 @@ function Shell({
   returnTo,
   user,
   children,
-  photoFirst = false,
 }: {
   returnTo: string;
   user: PlusUser | null;
   children: ReactNode;
-  /** Phones: no top bar; the page's photo runs to the top with back and logo on it. */
-  photoFirst?: boolean;
 }) {
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <header className={`border-b ${photoFirst ? "max-sm:hidden" : ""}`}>
+      <header className="border-b">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-12">
           <Link to={returnTo} className={`-ml-2 flex w-24 items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-muted ${press}`}>
             <ArrowLeft className="size-5" /> <span className="hidden sm:inline">Back</span>
@@ -755,7 +755,7 @@ function Shell({
           </span>
         </div>
       </header>
-      <main className={`mx-auto max-w-7xl px-4 pb-16 sm:px-12 sm:pt-10 ${photoFirst ? "pt-0" : "pt-6"}`}>{children}</main>
+      <main className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-12 sm:pt-10">{children}</main>
     </div>
   );
 }

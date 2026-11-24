@@ -31,6 +31,7 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { VerifiedIcon } from "@/components/verified-badge";
 import { TenantProtectionLink } from "@/components/tenant-protection";
 import { SiteHeader } from "@/components/site-header";
+import { FooterLink } from "@/components/site-footer";
 import { Availability } from "@/components/availability";
 import { PlusHint, useContactLandlord, whatsappButton } from "@/components/contact-landlord";
 import { cn } from "@/lib/utils";
@@ -530,7 +531,7 @@ function ListingPage() {
               <h2 className="text-sm font-semibold">{heading}</h2>
               <div className="mt-3 space-y-2">
                 {(links as string[]).map((link) => (
-                  <a key={link} href="#" className="block text-xs text-muted-foreground hover:underline">{link}</a>
+                  <FooterLink key={link} label={link} className="block text-xs text-muted-foreground hover:underline" />
                 ))}
               </div>
             </div>

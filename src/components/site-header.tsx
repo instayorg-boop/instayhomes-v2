@@ -3,7 +3,7 @@ import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { openHowItWorks } from "@/components/welcome-stories";
 
-const navItems = ["How it works", "Pricing", "Help", "Log in", "Sign up"];
+const navItems = ["How it works", "Pricing", "Guides", "Help", "Log in", "Sign up"];
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,6 +15,9 @@ export function SiteHeader() {
     } else if (item === "Log in" || item === "Sign up") {
       event.preventDefault();
       void navigate({ to: "/login", search: { from: window.location.pathname + window.location.search } });
+    } else if (item === "Help" || item === "Guides") {
+      event.preventDefault();
+      void navigate({ to: item === "Help" ? "/help" : "/blog" });
     }
   };
   const [language, setLanguage] = useState("English");

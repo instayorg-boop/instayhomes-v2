@@ -7,6 +7,7 @@ import tenantsImg from "@/assets/stat-tenants.png";
 import citiesImg from "@/assets/stat-cities.png";
 import { Availability } from "@/components/availability";
 import { openHowItWorks } from "@/components/welcome-stories";
+import { FooterLink } from "@/components/site-footer";
 import { ProtectionPerks, protectionImage } from "@/components/tenant-protection";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
@@ -47,6 +48,15 @@ function Index() {
     } else if (item === "Log in" || item === "Sign up") {
       e.preventDefault();
       void navigate({ to: "/login", search: { from: "/" } });
+    } else if (item === "Help" || item === "Guides") {
+      e.preventDefault();
+      void navigate({ to: item === "Help" ? "/help" : "/blog" });
+    } else if (item === "I'm a landlord") {
+      e.preventDefault();
+      void navigate({ to: "/landlords" });
+    } else if (item === "Pricing") {
+      e.preventDefault();
+      void navigate({ to: "/plans", search: { view: "plans", from: "/" } });
     }
   };
   return (
@@ -55,10 +65,10 @@ function Index() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-12">
           <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
           <nav className="flex items-center gap-1 text-sm font-medium">
-            {["How it works", "Pricing", "Help", "Log in", "Sign up"].map((l) => (
+            {["How it works", "Pricing", "Guides", "Help", "Log in", "Sign up"].map((l) => (
               <a key={l} href="#" onClick={(e) => { homeNav(e, l); }} className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
             ))}
-            <a href="#" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</a>
+            <Link to="/landlords" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</Link>
             <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1 rounded-md p-2 hover:bg-muted"><Menu className="size-5" /></button>
           </nav>
         </div>
@@ -73,7 +83,7 @@ function Index() {
               <button aria-label="Close menu" onClick={() => setMenu(false)} className="rounded-md p-2 hover:bg-muted"><X className="size-5" /></button>
             </div>
             <nav className="mt-8 flex flex-col gap-1 font-medium">
-              {["How it works", "Pricing", "Help", "Log in", "Sign up", "I'm a landlord"].map((l) => (
+              {["How it works", "Pricing", "Guides", "Help", "Log in", "Sign up", "I'm a landlord"].map((l) => (
                 <a key={l} href="#" onClick={(e) => { setMenu(false); homeNav(e, l); }} className="rounded-md px-3 py-3 hover:bg-muted">{l}</a>
               ))}
             </nav>
@@ -163,7 +173,7 @@ function Index() {
             </div>
           ))}
         </div>
-        <a href="#" className="mt-6 inline-block text-sm font-semibold underline">Visit our Help Center</a>
+        <Link to="/help" className="mt-6 inline-block text-sm font-semibold underline">Visit our Help Center</Link>
       </section>
 
       <section className="px-4 pb-20 pt-8 text-center">
@@ -182,13 +192,13 @@ function Index() {
             </div>
           </div>
           {[
-            ["Instayhomes", ["About", "Careers", "Press", "Partners", "Terms", "Privacy", "Blog"]],
-            ["Tenants", ["How it works", "Pricing", "Pay rent online", "Help", "Contact us"]],
-            ["Landlords", ["How it works", "Pricing", "Become a landlord", "Rent guarantee", "Guides"]],
+            ["Instayhomes", ["About", "Blog", "Terms", "Privacy"]],
+            ["Tenants", ["How it works", "Pricing", "Help", "Contact us"]],
+            ["Landlords", ["List your property", "Rental guides"]],
           ].map(([h, l]) => (
             <div key={h as string}>
               <p className="font-semibold">{h}</p>
-              {(l as string[]).map((x) => <a key={x} href="#" className="mt-2 block text-xs text-muted-foreground hover:underline">{x}</a>)}
+              {(l as string[]).map((x) => <FooterLink key={x} label={x} className="mt-2 block text-xs text-muted-foreground hover:underline" />)}
             </div>
           ))}
         </div>

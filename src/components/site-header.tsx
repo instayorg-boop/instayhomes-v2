@@ -3,7 +3,7 @@ import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { openHowItWorks } from "@/components/welcome-stories";
 
-const navItems = ["How it works", "Pricing", "Help", "Log in", "Sign up"];
+const navItems = ["How it works", "Pricing", "Guides", "Help", "Log in", "Sign up"];
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,6 +15,15 @@ export function SiteHeader() {
     } else if (item === "Log in" || item === "Sign up") {
       event.preventDefault();
       void navigate({ to: "/login", search: { from: window.location.pathname + window.location.search } });
+    } else if (item === "Help" || item === "Guides") {
+      event.preventDefault();
+      void navigate({ to: item === "Help" ? "/help" : "/blog" });
+    } else if (item === "I'm a landlord") {
+      event.preventDefault();
+      void navigate({ to: "/landlords" });
+    } else if (item === "Pricing") {
+      event.preventDefault();
+      void navigate({ to: "/plans", search: { view: "plans", from: window.location.pathname + window.location.search } });
     }
   };
   const [language, setLanguage] = useState("English");
@@ -37,9 +46,9 @@ export function SiteHeader() {
                 {item}
               </a>
             ))}
-            <a href="#" className="hidden rounded-md border border-foreground/30 px-3 py-2 sm:block">
+            <Link to="/landlords" className="hidden rounded-md border border-foreground/30 px-3 py-2 sm:block">
               I&apos;m a landlord
-            </a>
+            </Link>
             <button
               type="button"
               aria-label="Open menu"

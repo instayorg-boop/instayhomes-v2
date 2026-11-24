@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { FooterLink } from "@/components/site-footer";
 import { rememberSearch } from "@/lib/recent";
 import { universityById, type University } from "@/lib/universities";
 import { searchStory } from "@/lib/guides";
@@ -306,15 +307,15 @@ function SearchPage() {
             <p className="mt-3 max-w-xs text-xs leading-5 text-muted-foreground">A simpler way to find a furnished home for the next chapter of your life.</p>
           </div>
           {[
-            ["Instayhomes", ["About us", "Careers", "Partners", "Blog"]],
+            ["Instayhomes", ["About us", "Blog", "Terms", "Privacy"]],
             ["Tenants", ["How it works", "Tenant Protection", "Help centre", "Contact us"]],
-            ["Landlords", ["List your property", "Landlord pricing", "Rental guides", "Terms and privacy"]],
+            ["Landlords", ["List your property", "Rental guides"]],
           ].map(([heading, links]) => (
             <div key={heading as string}>
               <h2 className="text-sm font-semibold">{heading}</h2>
               <div className="mt-3 space-y-2">
                 {(links as string[]).map((link) => (
-                  <a key={link} href="#" className="block text-xs text-muted-foreground hover:underline">{link}</a>
+                  <FooterLink key={link} label={link} className="block text-xs text-muted-foreground hover:underline" />
                 ))}
               </div>
             </div>

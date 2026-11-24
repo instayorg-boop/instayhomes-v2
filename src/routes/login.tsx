@@ -187,17 +187,17 @@ function StartStep({ room, onEmail, onGoogle }: { room: Room | null; onEmail: (e
       </form>
       <p className="mt-3 text-xs leading-5 text-muted-foreground">
         We'll email you a 6-digit code to log in. By continuing you agree to our{" "}
-        <a href="#" className="font-medium text-foreground underline underline-offset-2">Terms</a> and{" "}
-        <a href="#" className="font-medium text-foreground underline underline-offset-2">Privacy Policy</a>.
+        <Link to="/terms" className="font-medium text-foreground underline underline-offset-2">Terms</Link> and{" "}
+        <Link to="/privacy" className="font-medium text-foreground underline underline-offset-2">Privacy Policy</Link>.
       </p>
 
       <div className="mt-auto pt-10 lg:mt-10 lg:pt-0">
         <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
           Are you a landlord?
         </div>
-        <a href="#" className={`flex w-full justify-center rounded-lg border-2 px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
+        <Link to="/landlords" className={`flex w-full justify-center rounded-lg border-2 px-5 py-3 text-sm font-semibold hover:bg-muted ${press}`}>
           List your property
-        </a>
+        </Link>
       </div>
     </>
   );

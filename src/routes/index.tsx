@@ -51,6 +51,12 @@ function Index() {
     } else if (item === "Help" || item === "Guides") {
       e.preventDefault();
       void navigate({ to: item === "Help" ? "/help" : "/blog" });
+    } else if (item === "I'm a landlord") {
+      e.preventDefault();
+      void navigate({ to: "/landlords" });
+    } else if (item === "Pricing") {
+      e.preventDefault();
+      void navigate({ to: "/plans", search: { view: "plans", from: "/" } });
     }
   };
   return (
@@ -62,7 +68,7 @@ function Index() {
             {["How it works", "Pricing", "Guides", "Help", "Log in", "Sign up"].map((l) => (
               <a key={l} href="#" onClick={(e) => { homeNav(e, l); }} className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
             ))}
-            <a href="#" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</a>
+            <Link to="/landlords" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</Link>
             <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1 rounded-md p-2 hover:bg-muted"><Menu className="size-5" /></button>
           </nav>
         </div>
@@ -186,9 +192,9 @@ function Index() {
             </div>
           </div>
           {[
-            ["Instayhomes", ["About", "Careers", "Press", "Partners", "Terms", "Privacy", "Blog"]],
-            ["Tenants", ["How it works", "Pricing", "Pay rent online", "Help", "Contact us"]],
-            ["Landlords", ["How it works", "Pricing", "Become a landlord", "Rent guarantee", "Guides"]],
+            ["Instayhomes", ["About", "Blog", "Terms", "Privacy"]],
+            ["Tenants", ["How it works", "Pricing", "Help", "Contact us"]],
+            ["Landlords", ["List your property", "Rental guides"]],
           ].map(([h, l]) => (
             <div key={h as string}>
               <p className="font-semibold">{h}</p>

@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { TenantProtectionLink } from "@/components/tenant-protection";
+import { openHowItWorks } from "@/components/welcome-stories";
 
 /** Footer labels that have a page. Everything else is still a placeholder link. */
-const pages: Record<string, "/about" | "/help" | "/blog"> = {
+const pages: Record<string, "/about" | "/help" | "/blog" | "/terms" | "/privacy" | "/landlords"> = {
   About: "/about",
   "About us": "/about",
   Help: "/help",
@@ -12,6 +14,12 @@ const pages: Record<string, "/about" | "/help" | "/blog"> = {
   Blog: "/blog",
   Guides: "/blog",
   "Rental guides": "/blog",
+  Terms: "/terms",
+  "Terms of use": "/terms",
+  Privacy: "/privacy",
+  "Privacy policy": "/privacy",
+  "List your property": "/landlords",
+  "I'm a landlord": "/landlords",
 };
 
 /** A footer link by its label: a real page when there is one, otherwise "#". */
@@ -24,17 +32,42 @@ export function FooterLink({
   className?: string;
   children?: ReactNode;
 }) {
+  const text = children ?? label;
+  if (label === "Pricing") {
+    return (
+      <Link to="/plans" search={{ view: "plans" }} className={className}>
+        {text}
+      </Link>
+    );
+  }
+  if (label === "Tenant Protection") {
+    return <TenantProtectionLink className={className ?? ""}>{text}</TenantProtectionLink>;
+  }
+  if (label === "How it works") {
+    return (
+      <a
+        href="#"
+        onClick={(event) => {
+          event.preventDefault();
+          openHowItWorks();
+        }}
+        className={className}
+      >
+        {text}
+      </a>
+    );
+  }
   const to = pages[label];
   if (to) {
     return (
       <Link to={to} className={className}>
-        {children ?? label}
+        {text}
       </Link>
     );
   }
   return (
     <a href="#" className={className}>
-      {children ?? label}
+      {text}
     </a>
   );
 }

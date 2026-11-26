@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LandlordsRouteImport } from './routes/landlords'
 import { Route as ListingRouteImport } from './routes/listing'
@@ -19,8 +20,16 @@ import { Route as PlansRouteImport } from './routes/plans'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminSubscribersRouteImport } from './routes/admin.subscribers'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AdminBlogIndexRouteImport } from './routes/admin.blog.index'
+import { Route as AdminBlogSlugRouteImport } from './routes/admin.blog.$slug'
+import { Route as AdminListingsIndexRouteImport } from './routes/admin.listings.index'
+import { Route as AdminListingsIdRouteImport } from './routes/admin.listings.$id'
+import { Route as AdminPromosIndexRouteImport } from './routes/admin.promos.index'
+import { Route as AdminPromosCodeRouteImport } from './routes/admin.promos.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -72,6 +86,16 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSubscribersRoute = AdminSubscribersRouteImport.update({
+  id: '/subscribers',
+  path: '/subscribers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -82,10 +106,41 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminBlogIndexRoute = AdminBlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBlogSlugRoute = AdminBlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminListingsIndexRoute = AdminListingsIndexRouteImport.update({
+  id: '/listings/',
+  path: '/listings/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminListingsIdRoute = AdminListingsIdRouteImport.update({
+  id: '/listings/$id',
+  path: '/listings/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPromosIndexRoute = AdminPromosIndexRouteImport.update({
+  id: '/promos/',
+  path: '/promos/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPromosCodeRoute = AdminPromosCodeRouteImport.update({
+  id: '/promos/$code',
+  path: '/promos/$code',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/help': typeof HelpRoute
   '/landlords': typeof LandlordsRoute
   '/listing': typeof ListingRoute
@@ -94,8 +149,16 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin/subscribers': typeof AdminSubscribersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/admin/blog/$slug': typeof AdminBlogSlugRoute
+  '/admin/listings/$id': typeof AdminListingsIdRoute
+  '/admin/promos/$code': typeof AdminPromosCodeRoute
+  '/admin/blog/': typeof AdminBlogIndexRoute
+  '/admin/listings/': typeof AdminListingsIndexRoute
+  '/admin/promos/': typeof AdminPromosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,13 +171,22 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin/subscribers': typeof AdminSubscribersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/admin/blog/$slug': typeof AdminBlogSlugRoute
+  '/admin/listings/$id': typeof AdminListingsIdRoute
+  '/admin/promos/$code': typeof AdminPromosCodeRoute
+  '/admin/blog': typeof AdminBlogIndexRoute
+  '/admin/listings': typeof AdminListingsIndexRoute
+  '/admin/promos': typeof AdminPromosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/help': typeof HelpRoute
   '/landlords': typeof LandlordsRoute
   '/listing': typeof ListingRoute
@@ -123,14 +195,23 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin/subscribers': typeof AdminSubscribersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/admin/blog/$slug': typeof AdminBlogSlugRoute
+  '/admin/listings/$id': typeof AdminListingsIdRoute
+  '/admin/promos/$code': typeof AdminPromosCodeRoute
+  '/admin/blog/': typeof AdminBlogIndexRoute
+  '/admin/listings/': typeof AdminListingsIndexRoute
+  '/admin/promos/': typeof AdminPromosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/help'
     | '/landlords'
     | '/listing'
@@ -139,8 +220,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/search'
     | '/terms'
+    | '/admin/subscribers'
     | '/blog/$slug'
+    | '/admin/'
     | '/blog/'
+    | '/admin/blog/$slug'
+    | '/admin/listings/$id'
+    | '/admin/promos/$code'
+    | '/admin/blog/'
+    | '/admin/listings/'
+    | '/admin/promos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,12 +242,21 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/search'
     | '/terms'
+    | '/admin/subscribers'
     | '/blog/$slug'
+    | '/admin'
     | '/blog'
+    | '/admin/blog/$slug'
+    | '/admin/listings/$id'
+    | '/admin/promos/$code'
+    | '/admin/blog'
+    | '/admin/listings'
+    | '/admin/promos'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/help'
     | '/landlords'
     | '/listing'
@@ -167,13 +265,22 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/search'
     | '/terms'
+    | '/admin/subscribers'
     | '/blog/$slug'
+    | '/admin/'
     | '/blog/'
+    | '/admin/blog/$slug'
+    | '/admin/listings/$id'
+    | '/admin/promos/$code'
+    | '/admin/blog/'
+    | '/admin/listings/'
+    | '/admin/promos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   HelpRoute: typeof HelpRoute
   LandlordsRoute: typeof LandlordsRoute
   ListingRoute: typeof ListingRoute
@@ -200,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -258,6 +372,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/subscribers': {
+      id: '/admin/subscribers'
+      path: '/subscribers'
+      fullPath: '/admin/subscribers'
+      preLoaderRoute: typeof AdminSubscribersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -272,12 +400,79 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/blog/': {
+      id: '/admin/blog/'
+      path: '/blog'
+      fullPath: '/admin/blog/'
+      preLoaderRoute: typeof AdminBlogIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/blog/$slug': {
+      id: '/admin/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/admin/blog/$slug'
+      preLoaderRoute: typeof AdminBlogSlugRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/listings/': {
+      id: '/admin/listings/'
+      path: '/listings'
+      fullPath: '/admin/listings/'
+      preLoaderRoute: typeof AdminListingsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/listings/$id': {
+      id: '/admin/listings/$id'
+      path: '/listings/$id'
+      fullPath: '/admin/listings/$id'
+      preLoaderRoute: typeof AdminListingsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/promos/': {
+      id: '/admin/promos/'
+      path: '/promos'
+      fullPath: '/admin/promos/'
+      preLoaderRoute: typeof AdminPromosIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/promos/$code': {
+      id: '/admin/promos/$code'
+      path: '/promos/$code'
+      fullPath: '/admin/promos/$code'
+      preLoaderRoute: typeof AdminPromosCodeRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminSubscribersRoute: typeof AdminSubscribersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminBlogSlugRoute: typeof AdminBlogSlugRoute
+  AdminListingsIdRoute: typeof AdminListingsIdRoute
+  AdminPromosCodeRoute: typeof AdminPromosCodeRoute
+  AdminBlogIndexRoute: typeof AdminBlogIndexRoute
+  AdminListingsIndexRoute: typeof AdminListingsIndexRoute
+  AdminPromosIndexRoute: typeof AdminPromosIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminSubscribersRoute: AdminSubscribersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminBlogSlugRoute: AdminBlogSlugRoute,
+  AdminListingsIdRoute: AdminListingsIdRoute,
+  AdminPromosCodeRoute: AdminPromosCodeRoute,
+  AdminBlogIndexRoute: AdminBlogIndexRoute,
+  AdminListingsIndexRoute: AdminListingsIndexRoute,
+  AdminPromosIndexRoute: AdminPromosIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   HelpRoute: HelpRoute,
   LandlordsRoute: LandlordsRoute,
   ListingRoute: ListingRoute,

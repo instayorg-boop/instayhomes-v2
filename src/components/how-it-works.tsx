@@ -151,7 +151,7 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
       <h2 id="how-h" className={titleClassName}>
         How it works
       </h2>
-      <p className="mt-2 text-[17px] text-muted-foreground">From search to keys in three steps.</p>
+      <p className="mt-1.5 text-[15px] text-muted-foreground md:text-[17px]">From search to keys in three steps.</p>
 
       <ol
         ref={row}
@@ -160,22 +160,22 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
         onPointerCancel={() => hold(false)}
         onFocus={() => hold(true)}
         onBlur={() => hold(false)}
-        className="relative -mx-5 mt-8 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-12 sm:scroll-px-12 sm:px-12 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+        className="relative -mx-5 mt-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-12 sm:scroll-px-12 sm:px-12 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-5 lg:mt-8 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {steps.map((step, i) => (
-          <li key={step.title} className="w-[84%] shrink-0 snap-start sm:w-[58%] lg:w-auto">
+          <li key={step.title} className="w-[80%] shrink-0 snap-start sm:w-[58%] lg:w-auto">
             <div
               aria-hidden
-              className={`flex h-[340px] items-center justify-center overflow-hidden rounded-3xl p-6 sm:h-[360px] ${step.tint}`}
+              className={`flex h-[300px] items-center justify-center overflow-hidden rounded-3xl p-5 sm:h-[360px] sm:p-6 ${step.tint}`}
             >
               {step.picture}
             </div>
-            <div className="px-1 pt-5">
-              <p className="text-sm font-bold text-primary">Step {i + 1}</p>
-              <h3 className="mt-1 text-[22px] font-extrabold leading-tight tracking-[-0.035em]">
+            <div className="px-1 pt-4 md:pt-5">
+              <p className="text-[13px] font-bold text-primary md:text-sm">Step {i + 1}</p>
+              <h3 className="mt-1 text-lg font-extrabold md:text-[22px] leading-tight tracking-[-0.035em]">
                 {step.title}
               </h3>
-              <p className="mt-1.5 text-[17px] text-muted-foreground">{step.text}</p>
+              <p className="mt-1 text-sm text-muted-foreground md:mt-1.5 md:text-[17px]">{step.text}</p>
             </div>
           </li>
         ))}

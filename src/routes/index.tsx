@@ -43,7 +43,7 @@ const faqs = [
   ["What if the listing is fake or not as shown?", "Tell us within your 30 days of access. Under Tenant Protection you're eligible for a full refund or free unlock credit, whichever you prefer."],
 ] as const;
 
-const sectionTitle = "text-3xl font-extrabold leading-tight tracking-[-0.045em] md:text-[40px]";
+const sectionTitle = "text-[26px] font-extrabold leading-tight tracking-[-0.045em] md:text-[38px]";
 
 function Index() {
   const [open, setOpen] = useState<number | null>(0);
@@ -91,47 +91,47 @@ function Index() {
         </div>
       )}
 
-      <section aria-label="Find a room" className="relative flex min-h-[460px] flex-col text-white md:min-h-[680px]">
+      <section aria-label="Find a room" className="relative flex min-h-[460px] flex-col text-white md:min-h-[540px] lg:min-h-[560px]">
         <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_55%]" fetchPriority="high" />
         {/* A light fade at the top and bottom only, so the white text stays readable. */}
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_22%,rgba(0,0,0,0.05)_32%,rgba(0,0,0,0.62)_100%)]" />
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.2)_45%,rgba(0,0,0,0)_70%)]" />
 
-        <header className="relative mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-5 sm:px-12">
-          <span className="font-display text-[26px] tracking-wide">INSTAYHOMES</span>
+        <header className="relative mx-auto flex h-16 w-full md:h-20 max-w-7xl items-center justify-between px-5 sm:px-12">
+          <span className="font-display text-[22px] tracking-wide md:text-[26px]">INSTAYHOMES</span>
           <nav className="flex items-center gap-1 text-[15px] font-medium">
             {["How it works", "Pricing", "Guides", "Help", "Log in"].map((l) => (
               <a key={l} href="#" onClick={(e) => { homeNav(e, l); }} className="hidden rounded-full px-3 py-2 hover:bg-white/15 md:block">{l}</a>
             ))}
             <Link to="/landlords" className="ml-1.5 hidden rounded-full bg-white px-4 py-2.5 font-semibold text-foreground transition-[scale] duration-150 ease-out active:scale-[0.97] sm:block">I'm a landlord</Link>
-            <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1.5 flex size-11 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm transition-[scale] duration-150 ease-out active:scale-95 md:hidden">
+            <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1.5 flex size-10 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm transition-[scale] duration-150 ease-out active:scale-95 md:hidden">
               <Menu className="size-5" />
             </button>
           </nav>
         </header>
 
-        <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-4 px-5 pb-7 pt-10 sm:px-12 md:gap-5 md:pb-16">
-          <h1 className="max-w-5xl text-balance text-[clamp(24px,7.5vw,29px)] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
+        <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-3 px-5 pb-6 pt-10 sm:px-12 md:gap-4 md:pb-12">
+          <h1 className="max-w-5xl text-balance text-[clamp(22px,6.4vw,26px)] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-5xl lg:text-[60px]">
             Student accommodation near your university
           </h1>
-          <p className="-mt-1 max-w-2xl text-pretty text-base font-semibold leading-snug [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl md:leading-normal">
+          <p className="max-w-xl text-pretty text-sm font-semibold leading-snug [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-lg">
             Hostels, boarding houses and student apartments from verified landlords. Unlock and chat with them on WhatsApp.
           </p>
           <UniversitySearch />
           <ContinueSearch />
-          <a href="#tenant-protection" onClick={scrollToProtection} className="inline-flex items-center gap-2 self-start text-[15px] font-semibold underline-offset-4 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] hover:underline">
-            <ShieldCheck className="size-[18px]" /> Covered by Tenant Protection
+          <a href="#tenant-protection" onClick={scrollToProtection} className="inline-flex items-center gap-1.5 self-start text-[13px] font-semibold underline-offset-4 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] hover:underline md:text-[15px]">
+            <ShieldCheck className="size-4" /> Covered by Tenant Protection
           </a>
         </div>
       </section>
 
       <RecentlyViewed />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-20 px-5 pt-14 sm:px-12 md:gap-28 md:pt-20">
+      <main className="mx-auto flex max-w-7xl flex-col gap-14 px-5 pt-10 sm:px-12 md:gap-24 md:pt-16">
         <section aria-labelledby="uni-h">
           <h2 id="uni-h" className={sectionTitle}>Search by university</h2>
-          <p className="mt-2 text-[17px] text-muted-foreground">Homes close to {universities.length} universities across Zambia.</p>
-          <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <p className="mt-1.5 text-[15px] md:text-[17px] text-muted-foreground">Homes close to {universities.length} universities across Zambia.</p>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:mt-7 lg:grid-cols-5">
             {universities.map((uni, index) => (
               <Link key={uni.id} to="/search" search={{ university: uni.id }} className="group rounded-lg">
                 <UniversityMark university={uni} size="tile" index={index} />
@@ -148,19 +148,19 @@ function Index() {
 
         <HowItWorks titleClassName={sectionTitle} />
 
-        <section id="tenant-protection" aria-labelledby="tp-h" className="grid scroll-mt-6 items-center gap-8 rounded-[28px] bg-muted p-5 md:grid-cols-2 md:gap-16 md:p-8">
-          <img src={protectionPhoto} alt="A student smiling while chatting at a table" loading="lazy" className="aspect-[5/4] w-full rounded-[20px] object-cover object-[center_35%]" />
-          <div>
+        <section id="tenant-protection" aria-labelledby="tp-h" className="-mx-5 grid scroll-mt-6 items-center bg-muted sm:-mx-12 md:mx-0 md:grid-cols-2 md:gap-16 md:rounded-[28px] md:p-8">
+          <img src={protectionPhoto} alt="A student smiling while chatting at a table" loading="lazy" className="aspect-[4/3] w-full object-cover object-[center_35%] md:aspect-[5/4] md:rounded-[20px]" />
+          <div className="px-5 pb-8 pt-6 sm:px-12 md:p-0">
             <h2 id="tp-h" className={`text-primary ${sectionTitle}`}>Tenant Protection</h2>
-            <ul className="mt-6 space-y-5">
+            <ul className="mt-4 space-y-4 md:mt-6 md:space-y-5">
               {protectionPerks.map(([title, body]) => (
                 <li key={title} className="flex gap-3.5">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary md:size-7">
                     <Check className="size-3.5" strokeWidth={3} />
                   </span>
                   <span>
-                    <span className="block text-[17px] font-bold">{title}</span>
-                    <span className="block text-muted-foreground">{body}</span>
+                    <span className="block text-[15px] font-bold md:text-[17px]">{title}</span>
+                    <span className="block text-sm text-muted-foreground md:text-base">{body}</span>
                   </span>
                 </li>
               ))}
@@ -171,7 +171,7 @@ function Index() {
         <section aria-labelledby="faq-h" className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] md:gap-16">
           <div>
             <h2 id="faq-h" className={sectionTitle}>Your questions, answered</h2>
-            <p className="mt-3 text-[17px] text-muted-foreground">
+            <p className="mt-2 text-[15px] md:text-[17px] text-muted-foreground">
               Can't find what you need?{" "}
               <Link to="/help" className="font-semibold text-foreground underline underline-offset-4">Visit the Help Center</Link>
             </p>
@@ -179,13 +179,13 @@ function Index() {
           <div className="border-t">
             {faqs.map(([q, a], i) => (
               <div key={q} className="border-b">
-                <button onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} className="flex w-full items-center justify-between gap-4 py-5 text-left text-lg font-semibold">
+                <button onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} className="flex w-full items-center justify-between gap-4 py-4 text-left text-base font-semibold md:py-5 md:text-lg">
                   {q}
                   <Plus className={`size-5 shrink-0 transition-transform duration-200 ease-out ${open === i ? "rotate-45" : ""}`} />
                 </button>
                 <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open === i ? "1fr" : "0fr" }}>
-                  <p className="overflow-hidden text-[17px] text-muted-foreground">
-                    <span className="block max-w-2xl pb-5">{a}</span>
+                  <p className="overflow-hidden text-[15px] md:text-[17px] text-muted-foreground">
+                    <span className="block max-w-2xl pb-4 md:pb-5">{a}</span>
                   </p>
                 </div>
               </div>
@@ -193,25 +193,25 @@ function Index() {
           </div>
         </section>
 
-        <section aria-labelledby="cta-h" className="relative flex min-h-[440px] items-end overflow-hidden rounded-[28px] text-white md:items-center">
+        <section aria-labelledby="cta-h" className="relative -mx-5 flex min-h-[360px] items-end overflow-hidden text-white sm:-mx-12 md:mx-0 md:min-h-[420px] md:items-center md:rounded-[28px]">
           <img src={ctaPhoto} alt="Four friends laughing at something on a phone" loading="lazy" className="absolute inset-0 size-full object-cover" />
           <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.2)_55%,rgba(0,0,0,0)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.3)_45%,rgba(0,0,0,0)_75%)]" />
-          <div className="relative max-w-lg p-7 md:p-16">
-            <h2 id="cta-h" className="text-4xl font-extrabold leading-[1.03] tracking-[-0.05em] md:text-[52px]">The endless hunt is over</h2>
-            <p className="mt-4 text-lg font-semibold">Rooms near your campus. Landlords one message away.</p>
-            <Link to="/search" className="mt-6 inline-flex h-13 items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]">
+          <div className="relative max-w-lg px-5 pb-8 pt-7 sm:px-12 md:p-16">
+            <h2 id="cta-h" className="text-[28px] font-extrabold leading-[1.03] tracking-[-0.05em] md:text-[48px]">The endless hunt is over</h2>
+            <p className="mt-2 text-[15px] font-semibold md:mt-4 md:text-lg">Rooms near your campus. Landlords one message away.</p>
+            <Link to="/search" className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[15px] font-bold md:mt-6 md:px-6 md:py-3.5 md:text-base text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]">
               Find a room <ArrowRight className="size-[18px]" />
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="mt-20 border-t md:mt-28">
-        <div className="mx-auto max-w-7xl px-5 pb-8 pt-12 sm:px-12">
-          <div className="grid gap-10 md:grid-cols-5">
-            <div className="md:col-span-2">
+      <footer className="mt-14 border-t md:mt-24">
+        <div className="mx-auto max-w-7xl px-5 pb-8 pt-10 sm:px-12 md:pt-12">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-5 md:gap-10">
+            <div className="col-span-2">
               <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
-              <p className="mt-2 max-w-xs text-[15px] text-muted-foreground">Student accommodation near universities in Zambia: hostels, boarding houses and apartments.</p>
+              <p className="mt-2 max-w-xs text-sm text-muted-foreground md:text-[15px]">Student accommodation near universities in Zambia: hostels, boarding houses and apartments.</p>
             </div>
             {[
               ["Instayhomes", ["About", "Blog", "Terms", "Privacy"]],
@@ -219,12 +219,12 @@ function Index() {
               ["Landlords", ["List your property", "Rental guides"]],
             ].map(([h, l]) => (
               <div key={h as string}>
-                <p className="text-[15px] font-bold">{h}</p>
-                {(l as string[]).map((x) => <FooterLink key={x} label={x} className="mt-2.5 block text-[15px] text-muted-foreground hover:text-foreground hover:underline" />)}
+                <p className="text-sm font-bold md:text-[15px]">{h}</p>
+                {(l as string[]).map((x) => <FooterLink key={x} label={x} className="mt-2 block text-sm text-muted-foreground hover:text-foreground hover:underline md:mt-2.5 md:text-[15px]" />)}
               </div>
             ))}
           </div>
-          <div className="mt-10 flex flex-wrap justify-between gap-3 border-t pt-6 text-sm text-muted-foreground">
+          <div className="mt-8 flex flex-wrap justify-between gap-3 border-t pt-5 text-[13px] text-muted-foreground md:mt-10 md:pt-6 md:text-sm">
             <span>© {new Date().getFullYear()} Instayhomes · Made in Lusaka</span>
             <span className="inline-flex items-center gap-1.5"><Globe className="size-4" /> English</span>
           </div>
@@ -300,7 +300,7 @@ function UniversitySearch() {
   };
 
   return (
-    <form ref={boxRef} onSubmit={submit} role="search" className="relative mt-2 flex w-full max-w-2xl gap-2 rounded-xl bg-background p-2 text-left text-foreground">
+    <form ref={boxRef} onSubmit={submit} role="search" className="relative mt-1 flex w-full max-w-2xl gap-2 rounded-xl bg-background p-1.5 text-left text-foreground md:p-2">
       <label className="flex min-w-0 flex-1 items-center rounded-md px-3">
         <span className="sr-only">Search for your university</span>
         <input
@@ -330,10 +330,10 @@ function UniversitySearch() {
           placeholder="Search for your university"
           autoComplete="off"
           enterKeyHint="search"
-          className="h-11 w-full min-w-0 bg-transparent text-base outline-none md:text-sm"
+          className="h-10 w-full min-w-0 bg-transparent text-base outline-none md:h-11 md:text-sm"
         />
       </label>
-      <button type="submit" className="flex h-11 shrink-0 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] md:px-10">
+      <button type="submit" className="flex h-10 shrink-0 items-center gap-2 rounded-md bg-primary px-4 md:h-11 md:px-5 text-sm font-semibold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] md:px-10">
         <Search className="size-4 md:hidden" /> <span className="max-md:sr-only">Search</span>
       </button>
 
@@ -391,13 +391,13 @@ function RecentlyViewed() {
   const recent = useRecentListing();
   if (!recent) return null;
   return (
-    <section className="mx-auto max-w-7xl px-5 pt-12 sm:px-12">
-      <h2 className="flex items-center gap-2 text-lg font-semibold">
-        <History className="size-5 text-muted-foreground" /> Continue where you left off
+    <section className="mx-auto max-w-7xl px-5 pt-8 sm:px-12 md:pt-12">
+      <h2 className="flex items-center gap-2 text-base font-semibold md:text-lg">
+        <History className="size-[18px] text-muted-foreground md:size-5" /> Continue where you left off
       </h2>
       {/* Same card as the search results, so a home looks the same wherever it appears. */}
-      <div className="mt-4 grid gap-x-5 sm:grid-cols-2 lg:grid-cols-4">
-        <Link to={recent.href} className="group block">
+      <div className="mt-3 grid gap-x-5 sm:grid-cols-2 md:mt-4 lg:grid-cols-4">
+        <Link to={recent.href} className="group block w-[64%] max-w-[260px] sm:w-auto sm:max-w-none">
           <span className="block aspect-[4/3] overflow-hidden rounded-xl bg-muted">
             <img src={recent.image} alt={recent.title} loading="lazy" className="size-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]" />
           </span>

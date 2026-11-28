@@ -160,13 +160,13 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
         onPointerCancel={() => hold(false)}
         onFocus={() => hold(true)}
         onBlur={() => hold(false)}
-        className="relative -mx-5 mt-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-12 sm:scroll-px-12 sm:px-12 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-5 lg:mt-8 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+        className="relative -mx-5 mt-5 flex snap-x snap-mandatory scroll-px-5 gap-3 sm:gap-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-12 sm:scroll-px-12 sm:px-12 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-5 lg:mt-8 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {steps.map((step, i) => (
-          <li key={step.title} className="w-[80%] shrink-0 snap-start sm:w-[58%] lg:w-auto">
+          <li key={step.title} className="w-[88%] shrink-0 snap-start sm:w-[58%] lg:w-auto">
             <div
               aria-hidden
-              className={`flex h-[300px] items-center justify-center overflow-hidden rounded-3xl p-5 sm:h-[360px] sm:p-6 ${step.tint}`}
+              className={`flex h-[340px] items-center justify-center overflow-hidden rounded-3xl px-4 py-6 sm:h-[360px] sm:p-6 ${step.tint}`}
             >
               {step.picture}
             </div>

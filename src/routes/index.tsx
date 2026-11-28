@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { AnimatePresence, animate, motion } from "motion/react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check, Globe, History, Menu, Plus, Search, ShieldCheck, X } from "lucide-react";
 import ctaPhoto from "@/assets/cta-students.webp";
@@ -69,10 +70,24 @@ function Index() {
   };
   return (
     <div className="min-h-svh bg-background text-foreground">
+      <AnimatePresence>
       {menu && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-foreground/40" onClick={() => setMenu(false)} />
-          <aside className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft animate-in slide-in-from-right">
+          <motion.div
+            className="absolute inset-0 bg-foreground/40"
+            onClick={() => setMenu(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+          <motion.aside
+            className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-background p-6 shadow-soft"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 380, damping: 38 }}
+          >
             <div className="flex items-center justify-between">
               <span className="font-display text-2xl text-primary">INSTAYHOMES</span>
               <button aria-label="Close menu" onClick={() => setMenu(false)} className="rounded-md p-2 hover:bg-muted"><X className="size-5" /></button>
@@ -87,9 +102,10 @@ function Index() {
                 <Globe className="size-5" /> Language: English
               </button>
             </div>
-          </aside>
+          </motion.aside>
         </div>
       )}
+      </AnimatePresence>
 
       <section aria-label="Find a room" className="relative flex min-h-[460px] flex-col text-white md:min-h-[540px] lg:min-h-[560px]">
         <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_55%]" fetchPriority="high" />
@@ -183,11 +199,20 @@ function Index() {
                   {q}
                   <Plus className={`size-5 shrink-0 transition-transform duration-200 ease-out ${open === i ? "rotate-45" : ""}`} />
                 </button>
-                <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open === i ? "1fr" : "0fr" }}>
-                  <p className="overflow-hidden text-[15px] md:text-[17px] text-muted-foreground">
-                    <span className="block max-w-2xl pb-4 md:pb-5">{a}</span>
-                  </p>
-                </div>
+                <AnimatePresence initial={false}>
+                  {open === i && (
+                    <motion.div
+                      key="answer"
+                      className="overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                    >
+                      <p className="max-w-2xl pb-4 text-[15px] text-muted-foreground md:pb-5 md:text-[17px]">{a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
@@ -234,8 +259,8 @@ function Index() {
   );
 }
 
-/** Smoothly brings the Tenant Protection section into view (instantly for reduced-motion users).
- *  Animated by hand rather than with `scroll-behavior: smooth`, which some browsers skip. */
+/** Glides down to the Tenant Protection section with Motion (instantly for reduced-motion
+ *  users). Any wheel, touch or key input hands control straight back to the user. */
 function scrollToProtection(event: React.MouseEvent<HTMLAnchorElement>) {
   const target = document.getElementById("tenant-protection");
   if (!target) return;
@@ -247,23 +272,20 @@ function scrollToProtection(event: React.MouseEvent<HTMLAnchorElement>) {
     window.scrollTo(0, end);
     return;
   }
-  // Longer trips take a little longer, within 450–900ms; strong ease-in-out for on-screen movement.
-  const duration = Math.min(900, Math.max(450, Math.abs(end - start) * 0.4));
-  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-  const began = performance.now();
-  // Any wheel, touch or key input hands control back to the user immediately.
-  let cancelled = false;
-  const cancel = () => (cancelled = true);
+  // Longer trips take a little longer, within 0.6-1.1s, with a soft ease-in-out.
+  const duration = Math.min(1.1, Math.max(0.6, Math.abs(end - start) / 1800));
+  const glide = animate(start, end, {
+    duration,
+    ease: [0.65, 0, 0.35, 1],
+    onUpdate: (y) => window.scrollTo(0, y),
+  });
   const events = ["wheel", "touchstart", "keydown"] as const;
-  events.forEach((name) => window.addEventListener(name, cancel, { once: true, passive: true }));
-  const step = (now: number) => {
-    if (cancelled) return;
-    const t = Math.min(1, (now - began) / duration);
-    window.scrollTo(0, start + (end - start) * ease(t));
-    if (t < 1) requestAnimationFrame(step);
-    else events.forEach((name) => window.removeEventListener(name, cancel));
+  const cancel = () => {
+    glide.stop();
+    events.forEach((name) => window.removeEventListener(name, cancel));
   };
-  requestAnimationFrame(step);
+  events.forEach((name) => window.addEventListener(name, cancel, { once: true, passive: true }));
+  void glide.then(() => events.forEach((name) => window.removeEventListener(name, cancel)));
 }
 
 /** One search box: type a university (or its short name or city) and pick from the suggestions. */

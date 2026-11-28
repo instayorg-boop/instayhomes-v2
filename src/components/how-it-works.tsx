@@ -3,6 +3,7 @@
 // a timer bar under the row moves to the next step on its own, so nobody has to swipe to see
 // them all. On desktop all three fit side by side, so the timer is not needed.
 import { Pause, Play } from "lucide-react";
+import { animate, type AnimationPlaybackControls } from "motion/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AirtelLogo, MtnLogo } from "@/components/payment-logos";
 import { VerifiedIcon } from "@/components/verified-badge";
@@ -36,14 +37,15 @@ const steps: { title: string; text: string; picture: ReactNode; tint: string }[]
 export function HowItWorks({ titleClassName }: { titleClassName: string }) {
   const row = useRef<HTMLOListElement>(null);
   const fills = useRef<(HTMLSpanElement | null)[]>([]);
-  const timer = useRef<Animation | null>(null);
+  const timer = useRef<AnimationPlaybackControls | null>(null);
+  const slide = useRef<AnimationPlaybackControls | null>(null);
   const [active, setActive] = useState(0);
   // Auto-advance only where the steps are a swipeable row and motion is welcome.
   const [carousel, setCarousel] = useState(false);
   const [playing, setPlaying] = useState(true);
   const holding = useRef(false); // a finger or pointer is on the row
   const onScreen = useRef(false);
-  const ourScroll = useRef(0); // when we last scrolled the row ourselves
+  const sliding = useRef(false); // we are moving the row ourselves
 
   useEffect(() => {
     const narrow = window.matchMedia("(max-width: 1023px)");
@@ -65,13 +67,37 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
     else t.pause();
   }, [playing]);
 
+  /** Glide the row to a step. Snapping is switched off while we move it, so the browser
+   *  doesn't fight the animation frame by frame. */
   const scrollToStep = useCallback((index: number) => {
     const el = row.current;
     const card = el?.children[index] as HTMLElement | undefined;
     if (!el || !card) return;
-    ourScroll.current = Date.now();
     const padding = parseFloat(getComputedStyle(el).paddingLeft) || 0;
-    el.scrollTo({ left: card.offsetLeft - padding, behavior: "smooth" });
+    const target = Math.min(card.offsetLeft - padding, el.scrollWidth - el.clientWidth);
+    slide.current?.stop();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.scrollLeft = target;
+      return;
+    }
+    sliding.current = true;
+    el.style.scrollSnapType = "none";
+    slide.current = animate(el.scrollLeft, target, {
+      type: "spring",
+      stiffness: 260,
+      damping: 34,
+      onUpdate: (x) => {
+        el.scrollLeft = x;
+      },
+      onComplete: () => {
+        el.style.scrollSnapType = "";
+        sliding.current = false;
+      },
+      onStop: () => {
+        el.style.scrollSnapType = "";
+        sliding.current = false;
+      },
+    });
   }, []);
 
   // Only run the timer while the section is on screen.
@@ -89,25 +115,41 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
     return () => observer.disconnect();
   }, [syncTimer]);
 
-  // The timer: fill the active bar, then move to the next step.
+  useEffect(() => syncTimer(), [syncTimer]);
+
+  // The bars: earlier steps fill, later steps empty, and the active one fills over STEP_MS,
+  // then the row moves on. Motion drives every bar, so they never get out of step.
   useEffect(() => {
-    const fill = fills.current[active];
-    if (!carousel || !fill) return;
-    const t = fill.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], {
-      duration: STEP_MS,
-      easing: "linear",
-      fill: "forwards",
+    const settle: AnimationPlaybackControls[] = [];
+    fills.current.forEach((fill, i) => {
+      if (fill && i !== active) {
+        settle.push(animate(fill, { scaleX: i < active ? 1 : 0 }, { duration: 0.25, ease: "easeOut" }));
+      }
     });
+    const fill = fills.current[active];
+    if (!fill) return;
+    if (!carousel) {
+      settle.push(animate(fill, { scaleX: 1 }, { duration: 0.25, ease: "easeOut" }));
+      return () => settle.forEach((a) => a.stop());
+    }
+    const t = animate(
+      fill,
+      { scaleX: [0, 1] },
+      {
+        duration: STEP_MS / 1000,
+        ease: "linear",
+        onComplete: () => {
+          const next = (active + 1) % steps.length;
+          setActive(next);
+          scrollToStep(next);
+        },
+      },
+    );
     timer.current = t;
-    t.onfinish = () => {
-      const next = (active + 1) % steps.length;
-      setActive(next);
-      scrollToStep(next);
-    };
     syncTimer();
     return () => {
-      t.onfinish = null;
-      t.cancel();
+      t.stop();
+      settle.forEach((a) => a.stop());
       timer.current = null;
     };
   }, [active, carousel, scrollToStep, syncTimer]);
@@ -118,9 +160,9 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
     if (!el) return;
     let settle: ReturnType<typeof setTimeout> | undefined;
     const onScroll = () => {
+      if (sliding.current) return;
       clearTimeout(settle);
       settle = setTimeout(() => {
-        if (Date.now() - ourScroll.current < 900) return;
         const padding = parseFloat(getComputedStyle(el).paddingLeft) || 0;
         let nearest = 0;
         let best = Infinity;
@@ -143,6 +185,8 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
 
   const hold = (on: boolean) => {
     holding.current = on;
+    // A finger on the row takes over from any glide in progress.
+    if (on) slide.current?.stop();
     syncTimer();
   };
 
@@ -200,10 +244,8 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
                 ref={(el) => {
                   fills.current[i] = el;
                 }}
-                className="block h-full origin-left rounded-full bg-primary"
-                style={{
-                  transform: `scaleX(${i < active || (i === active && !carousel) ? 1 : 0})`,
-                }}
+                className="block h-full origin-left rounded-full bg-primary will-change-transform"
+                style={{ transform: `scaleX(${i === 0 ? 1 : 0})` }}
               />
             </span>
           </button>

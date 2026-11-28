@@ -40,7 +40,7 @@ const faqs = [
   ["How does it work?", "Search near your university and browse for free. When you find a room you like, get Instayhomes Plus to message the landlord and book a viewing."],
   ["What is Instayhomes Plus?", "A one-time payment by mobile money, from K199, that lets you message landlords for 30 days. It doesn't renew automatically."],
   ["Do I pay rent through Instayhomes?", "No. Rent and deposit are agreed between you and the landlord. Always view the room before you pay anything."],
-  ["What if the home isn't as shown?", "Tell us within your 30 days. Under Tenant Protection you're eligible for a refund of your plan."],
+  ["What if the listing is fake or not as shown?", "Tell us within your 30 days of access. Under Tenant Protection you're eligible for a full refund or free unlock credit, whichever you prefer."],
 ] as const;
 
 const sectionTitle = "text-3xl font-extrabold leading-tight tracking-[-0.045em] md:text-[40px]";

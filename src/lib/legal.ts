@@ -19,7 +19,7 @@ export const terms: LegalDoc = {
     "Browsing is free. Messaging landlords needs an Instayhomes Plus plan.",
     "A plan gives you 30 days of access and isn't renewed automatically.",
     "Your rental agreement is between you and the landlord, not us.",
-    "If a home isn't as shown, you're eligible for a refund of your plan.",
+    "If a listing is fake, already taken or not as advertised, you're eligible for a full refund or free unlock credit.",
   ],
   sections: [
     {
@@ -43,15 +43,17 @@ export const terms: LegalDoc = {
       id: "refunds",
       title: "Refunds",
       paragraphs: [
-        "Under Tenant Protection, you're eligible for a refund of your plan if a home you contacted isn't as shown or is no longer available, and you tell us within your 30 days of access.",
-        "To ask for a refund, message our team with the listing and what was wrong. We'll review it and, if it's eligible, return the money to the mobile money number you paid from.",
+        "Under Tenant Protection, you're eligible for a full refund of your plan, or free unlock credit instead, if a listing you contacted turns out to be fake, already taken, or not as advertised. Tell us within your 30 days of access.",
+        "You choose which you'd like. A refund goes back to the mobile money number you paid from. Free unlock credit gives you a new 30 days of access at no cost.",
+        "To ask, message our team with the listing and what was wrong. We'll review it and reply on WhatsApp.",
       ],
     },
     {
       id: "landlords-and-listings",
       title: "Landlords and listings",
       paragraphs: [
-        "We check that landlords own or manage the homes they list before their listings go up. Checked landlords have a blue tick.",
+        "We vet every landlord and check their property photos before a listing goes live. Checked landlords have a blue tick.",
+        "Landlords must honour the rent, deposit and move-in date shown on their listing. We flag unfair lease terms, and we remove and ban landlords who are dishonest.",
         "Your rental agreement, rent and deposit are between you and the landlord. Instayhomes isn't a party to that agreement and doesn't collect rent. Always view a home before you pay any rent or deposit.",
       ],
     },

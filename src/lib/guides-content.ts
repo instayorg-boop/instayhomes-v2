@@ -107,7 +107,7 @@ export const guides: Guide[] = [
       { type: "h2", text: "If something feels wrong" },
       {
         type: "p",
-        text: "Stop and don't send money. If you found the home on Instayhomes, report it from the listing or message our team on WhatsApp. Tenant Protection means you're eligible for a refund of your plan if a home isn't as shown.",
+        text: "Stop and don't send money. If you found the home on Instayhomes, report it from the listing or message our team on WhatsApp. Tenant Protection means you're eligible for a full refund or free unlock credit if a listing is fake or not as shown.",
       },
     ],
   }),
@@ -381,7 +381,7 @@ export const guides: Guide[] = [
       },
       {
         type: "quote",
-        text: "If a home isn't as shown, Tenant Protection means you're eligible for a refund of your plan.",
+        text: "If a listing is fake, already taken or not as advertised, Tenant Protection means you're eligible for a full refund or free unlock credit.",
       },
     ],
   }),

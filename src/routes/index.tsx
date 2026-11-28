@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check, Globe, History, Menu, Plus, Search, ShieldCheck, X } from "lucide-react";
 import ctaPhoto from "@/assets/cta-students.webp";
+import heroPhoto from "@/assets/hero-house.webp";
 import protectionPhoto from "@/assets/protection-student.webp";
 import { Availability } from "@/components/availability";
 import { openHowItWorks } from "@/components/welcome-stories";
@@ -33,8 +34,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const heroPhoto =
-  "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=2000&q=70";
 
 const faqs = [
   ["Is Instayhomes a rental agency?", "No. We list homes near universities from landlords we've checked, and connect you with them directly on WhatsApp."],
@@ -93,7 +92,7 @@ function Index() {
       )}
 
       <section aria-label="Find a room" className="relative flex min-h-[640px] flex-col text-white md:min-h-[680px]">
-        <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_40%]" fetchPriority="high" />
+        <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_55%]" fetchPriority="high" />
         {/* A light fade at the top and bottom only, so the white text stays readable. */}
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_22%,rgba(0,0,0,0.05)_32%,rgba(0,0,0,0.62)_100%)]" />
 

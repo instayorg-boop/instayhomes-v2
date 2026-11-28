@@ -35,7 +35,7 @@ export function FooterLink({
   const text = children ?? label;
   if (label === "Pricing") {
     return (
-      <Link to="/plans" search={{ view: "plans" }} className={className}>
+      <Link to="/pricing" className={className}>
         {text}
       </Link>
     );

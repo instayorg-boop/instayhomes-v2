@@ -91,7 +91,7 @@ function Index() {
         </div>
       )}
 
-      <section aria-label="Find a room" className="relative flex min-h-[640px] flex-col text-white md:min-h-[680px]">
+      <section aria-label="Find a room" className="relative flex min-h-[460px] flex-col text-white md:min-h-[680px]">
         <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_55%]" fetchPriority="high" />
         {/* A light fade at the top and bottom only, so the white text stays readable. */}
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_22%,rgba(0,0,0,0.05)_32%,rgba(0,0,0,0.62)_100%)]" />
@@ -110,11 +110,11 @@ function Index() {
           </nav>
         </header>
 
-        <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-5 px-5 pb-10 sm:px-12 md:pb-16">
-          <h1 className="max-w-5xl text-balance text-[36px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
+        <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-4 px-5 pb-7 pt-10 sm:px-12 md:gap-5 md:pb-16">
+          <h1 className="max-w-5xl text-balance text-[clamp(24px,7.5vw,29px)] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
             Student accommodation near your university
           </h1>
-          <p className="-mt-1 max-w-2xl text-pretty text-lg font-semibold [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl">
+          <p className="-mt-1 max-w-2xl text-pretty text-base font-semibold leading-snug [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl md:leading-normal">
             Hostels, boarding houses and student apartments from verified landlords. Unlock and chat with them on WhatsApp.
           </p>
           <UniversitySearch />

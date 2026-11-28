@@ -23,7 +23,7 @@ export function SiteHeader() {
       void navigate({ to: "/landlords" });
     } else if (item === "Pricing") {
       event.preventDefault();
-      void navigate({ to: "/plans", search: { view: "plans", from: window.location.pathname + window.location.search } });
+      void navigate({ to: "/pricing" });
     }
   };
   const [language, setLanguage] = useState("English");

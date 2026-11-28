@@ -65,7 +65,7 @@ function Index() {
       void navigate({ to: "/landlords" });
     } else if (item === "Pricing") {
       e.preventDefault();
-      void navigate({ to: "/plans", search: { view: "plans", from: "/" } });
+      void navigate({ to: "/pricing" });
     }
   };
   return (

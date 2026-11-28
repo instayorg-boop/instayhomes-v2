@@ -17,6 +17,7 @@ import { Route as LandlordsRouteImport } from './routes/landlords'
 import { Route as ListingRouteImport } from './routes/listing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PlansRouteImport } from './routes/plans'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -69,6 +70,11 @@ const LoginRoute = LoginRouteImport.update({
 const PlansRoute = PlansRouteImport.update({
   id: '/plans',
   path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/listing': typeof ListingRoute
   '/login': typeof LoginRoute
   '/plans': typeof PlansRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/listing': typeof ListingRoute
   '/login': typeof LoginRoute
   '/plans': typeof PlansRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/listing': typeof ListingRoute
   '/login': typeof LoginRoute
   '/plans': typeof PlansRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/listing'
     | '/login'
     | '/plans'
+    | '/pricing'
     | '/privacy'
     | '/search'
     | '/terms'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/listing'
     | '/login'
     | '/plans'
+    | '/pricing'
     | '/privacy'
     | '/search'
     | '/terms'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/listing'
     | '/login'
     | '/plans'
+    | '/pricing'
     | '/privacy'
     | '/search'
     | '/terms'
@@ -286,6 +298,7 @@ export interface RootRouteChildren {
   ListingRoute: typeof ListingRoute
   LoginRoute: typeof LoginRoute
   PlansRoute: typeof PlansRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   SearchRoute: typeof SearchRoute
   TermsRoute: typeof TermsRoute
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/plans'
       fullPath: '/plans'
       preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -478,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   ListingRoute: ListingRoute,
   LoginRoute: LoginRoute,
   PlansRoute: PlansRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   SearchRoute: SearchRoute,
   TermsRoute: TermsRoute,

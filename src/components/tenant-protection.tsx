@@ -7,10 +7,25 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const protectionPerks = [
-  // PLACEHOLDER: "eligible for a refund" needs the refund policy (amount, time limit, how it's paid back).
-  ["Not as shown, or no longer available?", "Tell us and you're eligible for a refund of your plan."],
-  ["Bad experience with a landlord?", "Report it. Our team steps in, and you're eligible for a refund."],
-  ["Real people, fast", "Our team is on WhatsApp whenever you need us."],
+  // The Terms (src/lib/legal.ts), Help and home page answers promise the same: within 30 days of
+  // access, the student chooses a full refund or free unlock credit; landlords honour the listed
+  // rent, deposit and move-in date; dishonest landlords are banned.
+  [
+    "Guaranteed access-fee refund",
+    "If a listing is fake, already taken, or not as advertised, you're eligible for a full refund or free unlock credit. No stress.",
+  ],
+  [
+    "Verified landlords and real places",
+    "We vet every landlord and check property photos before a listing goes live.",
+  ],
+  [
+    "No hidden price hikes",
+    "Landlords must honour the rent, deposit and move-in date shown on the listing.",
+  ],
+  [
+    "Support when things go wrong",
+    "We keep a record of the landlords you contact, flag unfair lease terms, and ban dishonest landlords.",
+  ],
 ] as const;
 
 export const protectionImage =

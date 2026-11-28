@@ -109,7 +109,7 @@ const faqs: Faq[] = [
     id: "refund",
     topic: "protection",
     q: "Can I get a refund?",
-    a: "Yes. If a home isn't as shown, or is no longer available, Tenant Protection makes you eligible for a refund of your plan. Tell us within your 30 days of access.",
+    a: "Yes. If a listing is fake, already taken, or not as advertised, Tenant Protection makes you eligible for a full refund of your plan or free unlock credit, whichever you prefer. Tell us within your 30 days of access.",
     popular: true,
     offerChat: true,
   },

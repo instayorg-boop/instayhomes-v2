@@ -1,14 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, Search, ShieldCheck, ChevronDown, Globe, History, Menu, X } from "lucide-react";
-import homesImg from "@/assets/stat-homes.png";
-import partnersImg from "@/assets/stat-partners.png";
-import tenantsImg from "@/assets/stat-tenants.png";
-import citiesImg from "@/assets/stat-cities.png";
+import { ArrowRight, Check, Globe, History, Menu, Plus, Search, ShieldCheck, X } from "lucide-react";
+import ctaPhoto from "@/assets/cta-students.webp";
 import { Availability } from "@/components/availability";
 import { openHowItWorks } from "@/components/welcome-stories";
 import { FooterLink } from "@/components/site-footer";
-import { ProtectionPerks, protectionImage } from "@/components/tenant-protection";
+import { protectionImage, protectionPerks } from "@/components/tenant-protection";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
 import { listingCount, matchUniversities, universities, type University } from "@/lib/universities";
@@ -16,10 +13,17 @@ import { listingCount, matchUniversities, universities, type University } from "
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Instayhomes — Find your next home for months" },
-      { name: "description", content: "Rent rooms, studios and apartments for months in cities across Europe. Book online with tenant protection." },
-      { property: "og:title", content: "Instayhomes — Find your next home" },
-      { property: "og:description", content: "Mid-term rentals across Europe, booked online with tenant protection." },
+      { title: "Instayhomes | Student rooms near universities in Zambia" },
+      {
+        name: "description",
+        content:
+          "Find a room near your university in Zambia. Real homes from checked landlords: message them on WhatsApp and move in for the semester.",
+      },
+      { property: "og:title", content: "Instayhomes | Find a room near your university" },
+      {
+        property: "og:description",
+        content: "Student rooms near universities in Zambia, from checked landlords you message on WhatsApp.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -27,18 +31,27 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const img = (id: string, w = 500) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
-const stats = [["110,000+", "Homes listed", homesImg], ["400+", "University partners", partnersImg], ["180,000+", "Happy tenants", tenantsImg], ["175+", "Cities", citiesImg]] as const;
+const heroPhoto =
+  "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=2000&q=70";
+
+const steps = [
+  ["Find a room near campus", "Search by university and browse real photos, prices and move-in dates for free."],
+  ["Get Instayhomes Plus", "One payment by mobile money, from K199, unlocks chat with landlords for 30 days."],
+  ["Chat and view on WhatsApp", "Message the landlord directly, book a viewing, and only pay rent once you've seen it."],
+] as const;
+
 const faqs = [
-  ["Is Instayhomes a rental agency?", "No. We're an online platform that connects tenants with verified landlords and agencies, and keeps your payment safe."],
-  ["How does Instayhomes work?", "Search a city, pick a home, send a booking request and pay your first rent online once the landlord accepts."],
-  ["My request was accepted. What now?", "You'll get a confirmation with your contract details and the landlord's contact info to plan your move-in."],
-  ["Can I cancel my stay?", "Yes, depending on the landlord's cancellation policy, which is shown on every listing."],
-  ["Can I see the place before renting?", "Most listings have photos, videos and floor plans. Some landlords also offer video viewings."],
-];
+  ["Is Instayhomes a rental agency?", "No. We list homes near universities from landlords we've checked, and connect you with them directly on WhatsApp."],
+  ["How does it work?", "Search near your university and browse for free. When you find a room you like, get Instayhomes Plus to message the landlord and book a viewing."],
+  ["What is Instayhomes Plus?", "A one-time payment by mobile money, from K199, that lets you message landlords for 30 days. It doesn't renew automatically."],
+  ["Do I pay rent through Instayhomes?", "No. Rent and deposit are agreed between you and the landlord. Always view the room before you pay anything."],
+  ["What if the home isn't as shown?", "Tell us within your 30 days. Under Tenant Protection you're eligible for a refund of your plan."],
+] as const;
+
+const sectionTitle = "text-3xl font-bold leading-tight tracking-[-0.03em] md:text-[40px]";
 
 function Index() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(0);
   const [menu, setMenu] = useState(false);
   const navigate = useNavigate();
   const homeNav = (e: React.MouseEvent, item: string) => {
@@ -61,19 +74,6 @@ function Index() {
   };
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-12">
-          <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
-          <nav className="flex items-center gap-1 text-sm font-medium">
-            {["How it works", "Pricing", "Guides", "Help", "Log in", "Sign up"].map((l) => (
-              <a key={l} href="#" onClick={(e) => { homeNav(e, l); }} className="hidden rounded-md px-3 py-2 hover:bg-muted md:block">{l}</a>
-            ))}
-            <Link to="/landlords" className="rounded-md border border-foreground/30 px-3 py-2">I'm a landlord</Link>
-            <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1 rounded-md p-2 hover:bg-muted"><Menu className="size-5" /></button>
-          </nav>
-        </div>
-      </header>
-
       {menu && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-foreground/40" onClick={() => setMenu(false)} />
@@ -96,117 +96,161 @@ function Index() {
         </div>
       )}
 
-      <section className="relative bg-primary px-4 pb-32 pt-16 text-primary-foreground">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="font-display text-5xl md:text-7xl">FIND YOUR NEXT HOME</h1>
-          <p className="mt-3 text-xl font-semibold md:text-2xl">Rent a place, stay for months.</p>
-          <a href="#tenant-protection" onClick={scrollToProtection} className="mt-4 inline-flex items-center gap-2 rounded-md text-sm underline decoration-dotted underline-offset-4 hover:decoration-solid">
-            <ShieldCheck className="size-4" /> Covered by Tenant Protection
-          </a>
+      <section aria-label="Find a room" className="relative flex min-h-[640px] flex-col text-white md:min-h-[680px]">
+        <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_40%]" fetchPriority="high" />
+        {/* A light fade at the top and bottom only, so the white text stays readable. */}
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_22%,rgba(0,0,0,0.05)_32%,rgba(0,0,0,0.62)_100%)]" />
+
+        <header className="relative mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-5 sm:px-12">
+          <span className="font-display text-[26px] tracking-wide">INSTAYHOMES</span>
+          <nav className="flex items-center gap-1 text-[15px] font-medium">
+            {["How it works", "Pricing", "Guides", "Help", "Log in"].map((l) => (
+              <a key={l} href="#" onClick={(e) => { homeNav(e, l); }} className="hidden rounded-full px-3 py-2 hover:bg-white/15 md:block">{l}</a>
+            ))}
+            <Link to="/landlords" className="ml-1.5 hidden rounded-full bg-white px-4 py-2.5 font-semibold text-foreground transition-[scale] duration-150 ease-out active:scale-[0.97] sm:block">I'm a landlord</Link>
+            <button aria-label="Open menu" onClick={() => setMenu(true)} className="ml-1.5 flex size-11 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm transition-[scale] duration-150 ease-out active:scale-95 md:hidden">
+              <Menu className="size-5" />
+            </button>
+          </nav>
+        </header>
+
+        <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-5 px-5 pb-10 sm:px-12 md:pb-16">
+          <h1 className="max-w-3xl text-balance text-[40px] font-bold leading-[1.04] tracking-[-0.035em] sm:text-6xl lg:text-[72px]">
+            Find a room near your university
+          </h1>
+          <p className="-mt-1 max-w-xl text-lg text-white/90 md:text-xl">
+            Real homes from checked landlords. Message them on WhatsApp and move in for the semester.
+          </p>
           <UniversitySearch />
           <ContinueSearch />
+          <a href="#tenant-protection" onClick={scrollToProtection} className="inline-flex items-center gap-2 self-start text-[15px] font-medium underline-offset-4 hover:underline">
+            <ShieldCheck className="size-[18px]" /> Covered by Tenant Protection
+          </a>
         </div>
-        <svg aria-hidden viewBox="0 0 1440 80" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-10 w-full fill-background md:h-20">
-          <path d="M0 80 Q720 -40 1440 80 Z" />
-        </svg>
       </section>
 
       <RecentlyViewed />
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-12">
-        <h2 className="text-center text-2xl font-semibold">Search by university</h2>
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {universities.map((uni, index) => (
-            <Link key={uni.id} to="/search" search={{ university: uni.id }} className="group rounded-lg">
-              <UniversityMark university={uni} size="tile" index={index} />
-              <p className="mt-2 text-sm font-semibold leading-5 group-hover:underline">{uni.name}</p>
-              <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                {uni.city}
-                <span className="size-1 rounded-full bg-current" aria-hidden />
-                <span className={uni.listings > 0 ? "font-medium text-foreground" : ""}>{listingCount(uni.listings)}</span>
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <main className="mx-auto flex max-w-7xl flex-col gap-20 px-5 pt-14 sm:px-12 md:gap-28 md:pt-20">
+        <section aria-labelledby="uni-h">
+          <h2 id="uni-h" className={sectionTitle}>Search by university</h2>
+          <p className="mt-2 text-[17px] text-muted-foreground">Homes close to {universities.length} universities across Zambia.</p>
+          <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {universities.map((uni, index) => (
+              <Link key={uni.id} to="/search" search={{ university: uni.id }} className="group rounded-lg">
+                <UniversityMark university={uni} size="tile" index={index} />
+                <p className="mt-2 text-sm font-semibold leading-5 group-hover:underline">{uni.name}</p>
+                <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                  {uni.city}
+                  <span className="size-1 rounded-full bg-current" aria-hidden />
+                  <span className={uni.listings > 0 ? "font-medium text-foreground" : ""}>{listingCount(uni.listings)}</span>
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-      <section className="bg-background">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 pb-16 pt-8 sm:px-12 md:pb-20 md:pt-10 lg:flex-row lg:items-center">
-          <h2 className="text-2xl font-semibold lg:w-72">Why Instayhomes?</h2>
-          <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
-            {stats.map(([v, l, src]) => (
-              <div key={l} className="relative flex h-28 overflow-hidden rounded-xl bg-stat p-4">
-                <div className="relative z-10">
-                  <p className="text-lg font-bold">{v}</p><p className="max-w-[7rem] text-sm text-muted-foreground">{l}</p>
+        <section aria-labelledby="how-h">
+          <h2 id="how-h" className={sectionTitle}>How it works</h2>
+          <ol className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
+            {steps.map(([title, text], i) => (
+              <li key={title} className="border-t border-foreground pt-5">
+                <span className="text-[15px] font-bold text-primary">0{i + 1}</span>
+                <p className="mt-2 text-[22px] font-bold leading-tight tracking-[-0.02em]">{title}</p>
+                <p className="mt-2 text-[17px] text-muted-foreground">{text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section id="tenant-protection" aria-labelledby="tp-h" className="grid scroll-mt-6 items-center gap-8 rounded-[28px] bg-muted p-5 md:grid-cols-2 md:gap-16 md:p-8">
+          <img src={protectionImage} alt="Friends relaxing together at home" loading="lazy" className="aspect-[5/4] w-full rounded-[20px] object-cover" />
+          <div>
+            <p className="inline-flex items-center gap-2 text-sm font-bold text-primary">
+              <ShieldCheck className="size-[18px]" /> Tenant Protection
+            </p>
+            <h2 id="tp-h" className={`mt-2 ${sectionTitle}`}>Rent with peace of mind</h2>
+            <ul className="mt-6 space-y-5">
+              {protectionPerks.map(([title, body]) => (
+                <li key={title} className="flex gap-3.5">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                    <Check className="size-3.5" strokeWidth={3} />
+                  </span>
+                  <span>
+                    <span className="block text-[17px] font-bold">{title}</span>
+                    <span className="block text-muted-foreground">{body}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section aria-labelledby="faq-h" className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] md:gap-16">
+          <div>
+            <h2 id="faq-h" className={sectionTitle}>Your questions, answered</h2>
+            <p className="mt-3 text-[17px] text-muted-foreground">
+              Can't find what you need?{" "}
+              <Link to="/help" className="font-semibold text-foreground underline underline-offset-4">Visit the Help Center</Link>
+            </p>
+          </div>
+          <div className="border-t">
+            {faqs.map(([q, a], i) => (
+              <div key={q} className="border-b">
+                <button onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} className="flex w-full items-center justify-between gap-4 py-5 text-left text-lg font-semibold">
+                  {q}
+                  <Plus className={`size-5 shrink-0 transition-transform duration-200 ease-out ${open === i ? "rotate-45" : ""}`} />
+                </button>
+                <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open === i ? "1fr" : "0fr" }}>
+                  <p className="overflow-hidden text-[17px] text-muted-foreground">
+                    <span className="block max-w-2xl pb-5">{a}</span>
+                  </p>
                 </div>
-                <img src={src} alt="" loading="lazy" className="absolute -bottom-1 -right-1 h-28 w-28 object-contain object-right-bottom" />
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="tenant-protection" className="scroll-mt-4 bg-primary text-primary-foreground">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-12 md:grid-cols-2">
-          <div>
-            <h2 className="font-display text-5xl leading-none md:text-6xl">TENANT<br />PROTECTION</h2>
-            <div className="mt-8"><ProtectionPerks /></div>
-            <a href="#" className="mt-6 inline-block pl-8 text-sm font-semibold underline">Learn about Tenant Protection</a>
+        <section aria-labelledby="cta-h" className="relative flex min-h-[440px] items-end overflow-hidden rounded-[28px] text-white md:items-center">
+          <img src={ctaPhoto} alt="Four friends laughing at something on a phone" loading="lazy" className="absolute inset-0 size-full object-cover" />
+          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.2)_55%,rgba(0,0,0,0)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.3)_45%,rgba(0,0,0,0)_75%)]" />
+          <div className="relative max-w-lg p-7 md:p-16">
+            <h2 id="cta-h" className="text-4xl font-bold leading-[1.05] tracking-[-0.035em] md:text-[52px]">The endless hunt is over</h2>
+            <p className="mt-4 text-lg text-white/90">Rooms near your campus. Landlords one message away.</p>
+            <Link to="/search" className="mt-6 inline-flex h-13 items-center gap-2.5 rounded-full bg-white px-6 py-3.5 font-bold text-foreground transition-[scale] duration-150 ease-out active:scale-[0.97]">
+              Find a room <ArrowRight className="size-[18px]" />
+            </Link>
           </div>
-          <img src={protectionImage} alt="Happy tenants at home" className="aspect-[4/3] w-full rounded-lg object-cover" />
-        </div>
-      </section>
+        </section>
+      </main>
 
-      <section className="mx-auto max-w-3xl px-4 py-12">
-        <h2 className="text-center font-display text-5xl leading-none md:text-6xl">YOUR QUESTIONS, ANSWERED</h2>
-        <div className="mt-8">
-          {faqs.map(([q, a], i) => (
-            <div key={q} className="border-t">
-              <button onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} className="flex w-full items-center justify-between gap-4 py-4 text-left font-semibold">
-                {q}<ChevronDown className={`size-5 shrink-0 transition-transform duration-200 ease-out ${open === i ? "rotate-180" : ""}`} />
-              </button>
-              <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open === i ? "1fr" : "0fr" }}>
-                <p className="overflow-hidden pb-0 text-sm text-muted-foreground">
-                  <span className="block pb-4">{a}</span>
-                </p>
+      <footer className="mt-20 border-t md:mt-28">
+        <div className="mx-auto max-w-7xl px-5 pb-8 pt-12 sm:px-12">
+          <div className="grid gap-10 md:grid-cols-5">
+            <div className="md:col-span-2">
+              <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
+              <p className="mt-2 max-w-xs text-[15px] text-muted-foreground">Student homes near universities in Zambia.</p>
+            </div>
+            {[
+              ["Instayhomes", ["About", "Blog", "Terms", "Privacy"]],
+              ["Students", ["How it works", "Pricing", "Help", "Contact us"]],
+              ["Landlords", ["List your property", "Rental guides"]],
+            ].map(([h, l]) => (
+              <div key={h as string}>
+                <p className="text-[15px] font-bold">{h}</p>
+                {(l as string[]).map((x) => <FooterLink key={x} label={x} className="mt-2.5 block text-[15px] text-muted-foreground hover:text-foreground hover:underline" />)}
               </div>
-            </div>
-          ))}
-        </div>
-        <Link to="/help" className="mt-6 inline-block text-sm font-semibold underline">Visit our Help Center</Link>
-      </section>
-
-      <section className="px-4 pb-20 pt-8 text-center">
-        <h2 className="font-display text-4xl md:text-6xl">THE ENDLESS HUNT IS OVER</h2>
-        <Link to="/search" className="mt-8 inline-block rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">Find your next home</Link>
-      </section>
-
-      <footer className="bg-muted py-14 text-sm">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-12 md:grid-cols-5">
-          <div className="md:col-span-2">
-            <span className="font-display text-2xl text-primary">INSTAYHOMES</span>
-            <p className="mt-4 text-xs">🌐 English</p>
-            <div className="mt-6 max-w-xs rounded-lg border bg-card p-4">
-              <p className="font-semibold">Get the app</p>
-              <p className="mt-1 text-xs text-muted-foreground">Search faster and get instant alerts.</p>
-            </div>
+            ))}
           </div>
-          {[
-            ["Instayhomes", ["About", "Blog", "Terms", "Privacy"]],
-            ["Tenants", ["How it works", "Pricing", "Help", "Contact us"]],
-            ["Landlords", ["List your property", "Rental guides"]],
-          ].map(([h, l]) => (
-            <div key={h as string}>
-              <p className="font-semibold">{h}</p>
-              {(l as string[]).map((x) => <FooterLink key={x} label={x} className="mt-2 block text-xs text-muted-foreground hover:underline" />)}
-            </div>
-          ))}
+          <div className="mt-10 flex flex-wrap justify-between gap-3 border-t pt-6 text-sm text-muted-foreground">
+            <span>© {new Date().getFullYear()} Instayhomes · Made in Lusaka</span>
+            <span className="inline-flex items-center gap-1.5"><Globe className="size-4" /> English</span>
+          </div>
         </div>
       </footer>
     </div>
   );
 }
-
 
 /** Smoothly brings the Tenant Protection section into view (instantly for reduced-motion users).
  *  Animated by hand rather than with `scroll-behavior: smooth`, which some browsers skip. */
@@ -274,9 +318,9 @@ function UniversitySearch() {
   };
 
   return (
-    <form ref={boxRef} onSubmit={submit} role="search" className="relative mt-8 flex gap-2 rounded-xl bg-background p-2 text-left text-foreground">
-      <label className="flex min-w-0 flex-1 items-center rounded-md px-3">
-        <span className="sr-only">Search for your university</span>
+    <form ref={boxRef} onSubmit={submit} role="search" className="relative flex h-[68px] w-full max-w-[640px] items-center gap-2 rounded-full bg-background pl-6 pr-2 text-left text-foreground shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+      <label className="flex min-w-0 flex-1 flex-col">
+        <span className="text-xs font-bold">University</span>
         <input
           role="combobox"
           aria-expanded={open && matches.length > 0}
@@ -301,14 +345,14 @@ function UniversitySearch() {
               setOpen(false);
             }
           }}
-          placeholder="Search for your university"
+          placeholder="Search UNZA, CBU, UNILUS…"
           autoComplete="off"
           enterKeyHint="search"
-          className="h-11 w-full min-w-0 bg-transparent text-base outline-none md:text-sm"
+          className="w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground"
         />
       </label>
-      <button type="submit" className="flex h-11 shrink-0 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] md:px-10">
-        <Search className="size-4 md:hidden" /> <span className="max-md:sr-only">Search</span>
+      <button type="submit" aria-label="Search" className="flex size-[52px] shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.95]">
+        <Search className="size-[22px]" strokeWidth={2.4} />
       </button>
 
       {open && (
@@ -351,7 +395,7 @@ function ContinueSearch() {
   const recent = useRecentSearch();
   if (!recent) return null;
   return (
-    <p className="mt-3 text-left text-xs font-medium">
+    <p className="-mt-2 text-left text-sm font-medium text-white/90">
       Continue your search:{" "}
       <Link to="/search" search={{ university: recent.universityId }} className="underline underline-offset-2">
         {recent.label}

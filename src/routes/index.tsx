@@ -16,16 +16,16 @@ import { listingCount, matchUniversities, universities, type University } from "
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Instayhomes | Student rooms near universities in Zambia" },
+      { title: "Student accommodation near universities in Zambia | Instayhomes" },
       {
         name: "description",
         content:
-          "Find a room near your university in Zambia. Real homes from checked landlords: message them on WhatsApp and move in for the semester.",
+          "Student accommodation near universities in Zambia: hostels, boarding houses and student apartments from verified landlords. Unlock and chat with them on WhatsApp.",
       },
-      { property: "og:title", content: "Instayhomes | Find a room near your university" },
+      { property: "og:title", content: "Student accommodation near your university | Instayhomes" },
       {
         property: "og:description",
-        content: "Student rooms near universities in Zambia, from checked landlords you message on WhatsApp.",
+        content: "Hostels, boarding houses and student apartments near universities in Zambia, from verified landlords you chat with on WhatsApp.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -111,11 +111,11 @@ function Index() {
         </header>
 
         <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-5 px-5 pb-10 sm:px-12 md:pb-16">
-          <h1 className="max-w-3xl text-balance text-[40px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
-            Find a room near your university
+          <h1 className="max-w-5xl text-balance text-[36px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
+            Student accommodation near your university
           </h1>
-          <p className="-mt-1 max-w-xl text-lg font-semibold [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl">
-            Verified homes near campus. Chat with landlords on WhatsApp.
+          <p className="-mt-1 max-w-2xl text-pretty text-lg font-semibold [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl">
+            Hostels, boarding houses and student apartments from verified landlords. Unlock and chat with them on WhatsApp.
           </p>
           <UniversitySearch />
           <ContinueSearch />
@@ -211,7 +211,7 @@ function Index() {
           <div className="grid gap-10 md:grid-cols-5">
             <div className="md:col-span-2">
               <span className="font-display text-2xl tracking-wide text-primary">INSTAYHOMES</span>
-              <p className="mt-2 max-w-xs text-[15px] text-muted-foreground">Student homes near universities in Zambia.</p>
+              <p className="mt-2 max-w-xs text-[15px] text-muted-foreground">Student accommodation near universities in Zambia: hostels, boarding houses and apartments.</p>
             </div>
             {[
               ["Instayhomes", ["About", "Blog", "Terms", "Privacy"]],

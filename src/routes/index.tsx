@@ -2,10 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check, Globe, History, Menu, Plus, Search, ShieldCheck, X } from "lucide-react";
 import ctaPhoto from "@/assets/cta-students.webp";
+import protectionPhoto from "@/assets/protection-student.webp";
 import { Availability } from "@/components/availability";
 import { openHowItWorks } from "@/components/welcome-stories";
 import { FooterLink } from "@/components/site-footer";
-import { protectionImage, protectionPerks } from "@/components/tenant-protection";
+import { protectionPerks } from "@/components/tenant-protection";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
 import { listingCount, matchUniversities, universities, type University } from "@/lib/universities";
@@ -164,7 +165,7 @@ function Index() {
         </section>
 
         <section id="tenant-protection" aria-labelledby="tp-h" className="grid scroll-mt-6 items-center gap-8 rounded-[28px] bg-muted p-5 md:grid-cols-2 md:gap-16 md:p-8">
-          <img src={protectionImage} alt="Friends relaxing together at home" loading="lazy" className="aspect-[5/4] w-full rounded-[20px] object-cover" />
+          <img src={protectionPhoto} alt="A student smiling while chatting at a table" loading="lazy" className="aspect-[5/4] w-full rounded-[20px] object-cover object-[center_35%]" />
           <div>
             <p className="inline-flex items-center gap-2 text-sm font-bold text-primary">
               <ShieldCheck className="size-[18px]" /> Tenant Protection

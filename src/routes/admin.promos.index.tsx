@@ -32,7 +32,10 @@ function NewPromo({ onCreate }: { onCreate: (p: Promo) => void }) {
   const [partner, setPartner] = useState("");
   const gen = () => setCode(Math.random().toString(36).slice(2, 8).toUpperCase());
   const submit = () => {
-    if (!code) return toast.error("Give the code a name");
+    if (!code) {
+      toast.error("Give the code a name");
+      return;
+    }
     onCreate({ code, type, value, plans: picked, limit: limit ? Number(limit) : null, starts, ends, partner: partner || null, active: true, uses: [] });
     toast.success(`${code} is ready to share`);
     setOpen(false); setCode("");

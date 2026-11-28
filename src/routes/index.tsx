@@ -6,6 +6,7 @@ import protectionPhoto from "@/assets/protection-student.webp";
 import { Availability } from "@/components/availability";
 import { openHowItWorks } from "@/components/welcome-stories";
 import { FooterLink } from "@/components/site-footer";
+import { HowItWorks } from "@/components/how-it-works";
 import { protectionPerks } from "@/components/tenant-protection";
 import { UniversityMark } from "@/components/university-mark";
 import { rememberSearch, useRecentListing, useRecentSearch } from "@/lib/recent";
@@ -34,12 +35,6 @@ export const Route = createFileRoute("/")({
 
 const heroPhoto =
   "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=2000&q=70";
-
-const steps = [
-  ["Find a room near campus", "Search by university and browse real photos, prices and move-in dates for free."],
-  ["Get Instayhomes Plus", "One payment by mobile money, from K199, unlocks chat with landlords for 30 days."],
-  ["Chat and view on WhatsApp", "Message the landlord directly, book a viewing, and only pay rent once you've seen it."],
-] as const;
 
 const faqs = [
   ["Is Instayhomes a rental agency?", "No. We list homes near universities from landlords we've checked, and connect you with them directly on WhatsApp."],
@@ -151,18 +146,7 @@ function Index() {
           </div>
         </section>
 
-        <section aria-labelledby="how-h">
-          <h2 id="how-h" className={sectionTitle}>How it works</h2>
-          <ol className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
-            {steps.map(([title, text], i) => (
-              <li key={title} className="border-t border-foreground pt-5">
-                <span className="text-[15px] font-bold text-primary">0{i + 1}</span>
-                <p className="mt-2 text-[22px] font-bold leading-tight tracking-[-0.02em]">{title}</p>
-                <p className="mt-2 text-[17px] text-muted-foreground">{text}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <HowItWorks titleClassName={sectionTitle} />
 
         <section id="tenant-protection" aria-labelledby="tp-h" className="grid scroll-mt-6 items-center gap-8 rounded-[28px] bg-muted p-5 md:grid-cols-2 md:gap-16 md:p-8">
           <img src={protectionPhoto} alt="A student smiling while chatting at a table" loading="lazy" className="aspect-[5/4] w-full rounded-[20px] object-cover object-[center_35%]" />

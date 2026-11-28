@@ -172,7 +172,7 @@ export function HowItWorks({ titleClassName }: { titleClassName: string }) {
             </div>
             <div className="px-1 pt-5">
               <p className="text-sm font-bold text-primary">Step {i + 1}</p>
-              <h3 className="mt-1 text-[22px] font-bold leading-tight tracking-[-0.02em]">
+              <h3 className="mt-1 text-[22px] font-extrabold leading-tight tracking-[-0.035em]">
                 {step.title}
               </h3>
               <p className="mt-1.5 text-[17px] text-muted-foreground">{step.text}</p>

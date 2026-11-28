@@ -43,7 +43,7 @@ const faqs = [
   ["What if the home isn't as shown?", "Tell us within your 30 days. Under Tenant Protection you're eligible for a refund of your plan."],
 ] as const;
 
-const sectionTitle = "text-3xl font-bold leading-tight tracking-[-0.03em] md:text-[40px]";
+const sectionTitle = "text-3xl font-extrabold leading-tight tracking-[-0.045em] md:text-[40px]";
 
 function Index() {
   const [open, setOpen] = useState<number | null>(0);
@@ -95,6 +95,7 @@ function Index() {
         <img src={heroPhoto} alt="" className="absolute inset-0 size-full object-cover object-[center_55%]" fetchPriority="high" />
         {/* A light fade at the top and bottom only, so the white text stays readable. */}
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_22%,rgba(0,0,0,0.05)_32%,rgba(0,0,0,0.62)_100%)]" />
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.2)_45%,rgba(0,0,0,0)_70%)]" />
 
         <header className="relative mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-5 sm:px-12">
           <span className="font-display text-[26px] tracking-wide">INSTAYHOMES</span>
@@ -110,15 +111,15 @@ function Index() {
         </header>
 
         <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-5 px-5 pb-10 sm:px-12 md:pb-16">
-          <h1 className="max-w-3xl text-balance text-[40px] font-bold leading-[1.04] tracking-[-0.035em] sm:text-6xl lg:text-[72px]">
+          <h1 className="max-w-3xl text-balance text-[40px] font-extrabold leading-[1.02] tracking-[-0.05em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
             Find a room near your university
           </h1>
-          <p className="-mt-1 max-w-xl text-lg text-white/90 md:text-xl">
-            Real homes from checked landlords. Message them on WhatsApp and move in for the semester.
+          <p className="-mt-1 max-w-xl text-lg font-semibold [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl">
+            Verified homes near campus. Chat with landlords on WhatsApp.
           </p>
           <UniversitySearch />
           <ContinueSearch />
-          <a href="#tenant-protection" onClick={scrollToProtection} className="inline-flex items-center gap-2 self-start text-[15px] font-medium underline-offset-4 hover:underline">
+          <a href="#tenant-protection" onClick={scrollToProtection} className="inline-flex items-center gap-2 self-start text-[15px] font-semibold underline-offset-4 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] hover:underline">
             <ShieldCheck className="size-[18px]" /> Covered by Tenant Protection
           </a>
         </div>
@@ -196,8 +197,8 @@ function Index() {
           <img src={ctaPhoto} alt="Four friends laughing at something on a phone" loading="lazy" className="absolute inset-0 size-full object-cover" />
           <div aria-hidden className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.2)_55%,rgba(0,0,0,0)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.3)_45%,rgba(0,0,0,0)_75%)]" />
           <div className="relative max-w-lg p-7 md:p-16">
-            <h2 id="cta-h" className="text-4xl font-bold leading-[1.05] tracking-[-0.035em] md:text-[52px]">The endless hunt is over</h2>
-            <p className="mt-4 text-lg text-white/90">Rooms near your campus. Landlords one message away.</p>
+            <h2 id="cta-h" className="text-4xl font-extrabold leading-[1.03] tracking-[-0.05em] md:text-[52px]">The endless hunt is over</h2>
+            <p className="mt-4 text-lg font-semibold">Rooms near your campus. Landlords one message away.</p>
             <Link to="/search" className="mt-6 inline-flex h-13 items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]">
               Find a room <ArrowRight className="size-[18px]" />
             </Link>
@@ -376,7 +377,7 @@ function ContinueSearch() {
   const recent = useRecentSearch();
   if (!recent) return null;
   return (
-    <p className="-mt-2 text-left text-sm font-medium text-white/90">
+    <p className="-mt-2 text-left text-sm font-semibold [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
       Continue your search:{" "}
       <Link to="/search" search={{ university: recent.universityId }} className="underline underline-offset-2">
         {recent.label}

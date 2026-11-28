@@ -167,14 +167,11 @@ function Index() {
         <section id="tenant-protection" aria-labelledby="tp-h" className="grid scroll-mt-6 items-center gap-8 rounded-[28px] bg-muted p-5 md:grid-cols-2 md:gap-16 md:p-8">
           <img src={protectionPhoto} alt="A student smiling while chatting at a table" loading="lazy" className="aspect-[5/4] w-full rounded-[20px] object-cover object-[center_35%]" />
           <div>
-            <p className="inline-flex items-center gap-2 text-sm font-bold text-primary">
-              <ShieldCheck className="size-[18px]" /> Tenant Protection
-            </p>
-            <h2 id="tp-h" className={`mt-2 ${sectionTitle}`}>Rent with peace of mind</h2>
+            <h2 id="tp-h" className={`text-primary ${sectionTitle}`}>Tenant Protection</h2>
             <ul className="mt-6 space-y-5">
               {protectionPerks.map(([title, body]) => (
                 <li key={title} className="flex gap-3.5">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                     <Check className="size-3.5" strokeWidth={3} />
                   </span>
                   <span>
@@ -218,7 +215,7 @@ function Index() {
           <div className="relative max-w-lg p-7 md:p-16">
             <h2 id="cta-h" className="text-4xl font-bold leading-[1.05] tracking-[-0.035em] md:text-[52px]">The endless hunt is over</h2>
             <p className="mt-4 text-lg text-white/90">Rooms near your campus. Landlords one message away.</p>
-            <Link to="/search" className="mt-6 inline-flex h-13 items-center gap-2.5 rounded-full bg-white px-6 py-3.5 font-bold text-foreground transition-[scale] duration-150 ease-out active:scale-[0.97]">
+            <Link to="/search" className="mt-6 inline-flex h-13 items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]">
               Find a room <ArrowRight className="size-[18px]" />
             </Link>
           </div>
@@ -319,9 +316,9 @@ function UniversitySearch() {
   };
 
   return (
-    <form ref={boxRef} onSubmit={submit} role="search" className="relative flex h-[68px] w-full max-w-[640px] items-center gap-2 rounded-full bg-background pl-6 pr-2 text-left text-foreground shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-      <label className="flex min-w-0 flex-1 flex-col">
-        <span className="text-xs font-bold">University</span>
+    <form ref={boxRef} onSubmit={submit} role="search" className="relative mt-2 flex w-full max-w-2xl gap-2 rounded-xl bg-background p-2 text-left text-foreground">
+      <label className="flex min-w-0 flex-1 items-center rounded-md px-3">
+        <span className="sr-only">Search for your university</span>
         <input
           role="combobox"
           aria-expanded={open && matches.length > 0}
@@ -346,14 +343,14 @@ function UniversitySearch() {
               setOpen(false);
             }
           }}
-          placeholder="Search UNZA, CBU, UNILUS…"
+          placeholder="Search for your university"
           autoComplete="off"
           enterKeyHint="search"
-          className="w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+          className="h-11 w-full min-w-0 bg-transparent text-base outline-none md:text-sm"
         />
       </label>
-      <button type="submit" aria-label="Search" className="flex size-[52px] shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.95]">
-        <Search className="size-[22px]" strokeWidth={2.4} />
+      <button type="submit" className="flex h-11 shrink-0 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] md:px-10">
+        <Search className="size-4 md:hidden" /> <span className="max-md:sr-only">Search</span>
       </button>
 
       {open && (

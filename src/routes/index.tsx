@@ -407,23 +407,25 @@ function RecentlyViewed() {
   const recent = useRecentListing();
   if (!recent) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-12">
+    <section className="mx-auto max-w-7xl px-5 pt-12 sm:px-12">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
         <History className="size-5 text-muted-foreground" /> Continue where you left off
       </h2>
-      <Link
-        to={recent.href}
-        className="group mt-4 flex max-w-xl items-center gap-4 rounded-xl border p-3 transition-[scale,border-color] duration-150 ease-out hover:border-foreground/30 active:scale-[0.99]"
-      >
-        <img src={recent.image} alt="" className="size-20 shrink-0 rounded-lg object-cover sm:size-24" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold group-hover:underline">{recent.title}</span>
-          <span className="block text-sm text-muted-foreground">{recent.area}</span>
-          <span className="mt-1 block text-sm"><span className="font-bold">From {recent.fromPrice}</span> <span className="text-muted-foreground">/ month</span></span>
-          <Availability available={recent.available} left={1} className="mt-0.5 text-xs" />
-        </span>
-        <ArrowRight className="size-5 shrink-0 text-muted-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
-      </Link>
+      {/* Same card as the search results, so a home looks the same wherever it appears. */}
+      <div className="mt-4 grid gap-x-5 sm:grid-cols-2 lg:grid-cols-4">
+        <Link to={recent.href} className="group block">
+          <span className="block aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+            <img src={recent.image} alt={recent.title} loading="lazy" className="size-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]" />
+          </span>
+          <span className="mt-3 line-clamp-2 block text-sm font-semibold leading-5 group-hover:underline" title={recent.title}>{recent.title}</span>
+          <span className="mt-0.5 block truncate text-sm text-muted-foreground">{recent.area}</span>
+          <span className="mt-2 block text-base">
+            <span className="font-bold">From {recent.fromPrice}</span>
+            <span className="text-sm text-muted-foreground"> / month</span>
+          </span>
+          <Availability available={recent.available} left={1} className="mt-1.5" />
+        </Link>
+      </div>
     </section>
   );
 }

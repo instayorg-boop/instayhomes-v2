@@ -111,7 +111,7 @@ function Index() {
         </header>
 
         <div className="relative mx-auto mt-auto flex w-full max-w-7xl flex-col gap-5 px-5 pb-10 sm:px-12 md:pb-16">
-          <h1 className="max-w-3xl text-balance text-[40px] font-extrabold leading-[1.02] tracking-[-0.05em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
+          <h1 className="max-w-3xl text-balance text-[40px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] [text-shadow:0_2px_24px_rgba(0,0,0,0.25)] sm:text-6xl lg:text-[72px]">
             Find a room near your university
           </h1>
           <p className="-mt-1 max-w-xl text-lg font-semibold [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] md:text-xl">

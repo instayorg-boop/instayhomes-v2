@@ -11,13 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState, type ComponentType } from "react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { whatsappLink } from "@/components/contact-landlord";
+import { FaqList, sectionTitle } from "@/components/page-bits";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
@@ -219,13 +214,15 @@ function HelpPage() {
     <div className="min-h-svh bg-background text-foreground">
       <SiteHeader />
       <main className="mx-auto max-w-7xl px-4 sm:px-12">
-        <div className="pt-8 lg:pt-14 lg:text-center">
-          <h1 className="text-3xl font-bold tracking-tight lg:text-5xl">How can we help?</h1>
-          <p className="mt-2 text-base text-muted-foreground lg:text-lg">
+        <div className="pt-12 text-center md:pt-20">
+          <h1 className="text-[34px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] sm:text-6xl md:text-[80px]">
+            How can we <span className="text-primary">help?</span>
+          </h1>
+          <p className="mt-4 text-[15px] text-muted-foreground md:mt-6 md:text-lg">
             Find an answer, or chat with our team.
           </p>
 
-          <label className="mt-5 flex items-center gap-3 rounded-full bg-muted px-5 py-3.5 focus-within:ring-2 focus-within:ring-foreground lg:mx-auto lg:max-w-xl">
+          <label className="mx-auto mt-6 flex max-w-xl items-center gap-3 rounded-full bg-muted px-5 py-3.5 text-left focus-within:ring-2 focus-within:ring-foreground md:mt-8">
             <Search className="size-5 shrink-0" />
             <span className="sr-only">Search for an answer</span>
             <input
@@ -247,7 +244,7 @@ function HelpPage() {
             )}
           </label>
 
-          <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:justify-center lg:px-0">
+          <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:justify-center lg:mx-0 lg:px-0">
             {suggestions.map((s) => (
               <button
                 key={s.label}
@@ -264,40 +261,35 @@ function HelpPage() {
           </div>
         </div>
 
-        <section className="mt-10">
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground lg:mb-4">
-            Topics
-          </h2>
-          <div className="grid lg:grid-cols-3 lg:gap-4">
+        <section className="mt-14 md:mt-24">
+          <h2 className={sectionTitle}>Topics</h2>
+          <div className="mt-6 grid grid-cols-2 gap-3 md:mt-10 lg:grid-cols-3 lg:gap-4">
             {topics.map(({ id, title, text, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
                 aria-pressed={topic === id}
                 onClick={() => chooseTopic(id)}
-                className={`flex items-center gap-4 border-b py-4 text-left transition-colors last:border-b-0 lg:flex-col lg:items-start lg:gap-3 lg:rounded-2xl lg:border lg:p-5 lg:last:border-b hover:lg:border-foreground ${
-                  topic === id ? "lg:border-foreground lg:bg-muted/50" : ""
+                className={`flex flex-col items-start gap-3 rounded-2xl border-2 p-4 text-left transition-colors md:gap-5 md:p-6 ${
+                  topic === id ? "border-primary bg-primary/[0.04]" : "border-transparent bg-muted hover:border-foreground/20"
                 }`}
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Icon className="size-5" />
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">{title}</span>
-                  <span className="block text-sm text-muted-foreground">{text}</span>
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-bold leading-snug tracking-[-0.01em] md:text-lg">{title}</span>
+                  <span className="mt-0.5 block text-[13px] text-muted-foreground md:text-sm">{text}</span>
                 </span>
-                <ChevronRight className="size-5 shrink-0 text-muted-foreground lg:hidden" />
               </button>
             ))}
           </div>
         </section>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:gap-12">
+        <div className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-14 md:mt-24 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-16">
           <section id="answers" className="scroll-mt-24">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                {heading}
-              </h2>
+              <h2 className={sectionTitle}>{heading}</h2>
               {(topic || query) && (
                 <button
                   type="button"
@@ -312,18 +304,14 @@ function HelpPage() {
               )}
             </div>
             {results.length > 0 ? (
-              <Accordion
-                type="single"
-                collapsible
-                defaultValue={results[0]?.id ?? ""}
+              <FaqList
                 key={`${topic}-${query}`}
-              >
-                {results.map((faq) => (
-                  <AccordionItem key={faq.id} value={faq.id}>
-                    <AccordionTrigger className="py-4 text-base font-medium hover:no-underline">
-                      {faq.q}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-base leading-relaxed text-foreground/80">
+                className="mt-6 md:mt-10"
+                items={results.map((faq) => ({
+                  id: faq.id,
+                  q: faq.q,
+                  a: (
+                    <>
                       <p>{faq.a}</p>
                       {faq.offerChat && (
                         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -331,19 +319,17 @@ function HelpPage() {
                             href={teamChatLink(`Hi Instayhomes, I have a question: ${faq.q}`)}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-2 rounded-lg bg-[#128C4A] px-4 py-2.5 text-sm font-semibold text-white transition-[scale,background-color] duration-150 ease-out hover:bg-[#0F7A40] active:scale-[0.97]"
+                            className="inline-flex items-center gap-2 rounded-full bg-[#128C4A] px-4 py-2.5 text-sm font-bold text-white transition-[scale,background-color] duration-150 ease-out hover:bg-[#0F7A40] active:scale-[0.97]"
                           >
                             <WhatsAppIcon /> Chat with us
                           </a>
-                          <span className="text-sm text-muted-foreground">
-                            Usually replies {teamReplyTime}
-                          </span>
+                          <span className="text-sm">Usually replies {teamReplyTime}</span>
                         </div>
                       )}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+                    </>
+                  ),
+                }))}
+              />
             ) : (
               <p className="mt-4 text-base text-muted-foreground">
                 No answers match "{query.trim()}". Try another word, or chat with our team.
@@ -352,10 +338,8 @@ function HelpPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              Still need help?
-            </h2>
-            <div className="rounded-2xl border px-4">
+            <h2 className={sectionTitle}>Still need help?</h2>
+            <div className="mt-6 rounded-2xl border px-4 md:mt-10">
               <a
                 href={teamChatLink("Hi Instayhomes, I need some help.")}
                 target="_blank"

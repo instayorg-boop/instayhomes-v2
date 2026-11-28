@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, Share, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState } from "react";
 import { GuideRow } from "@/components/guide-row";
+import { TickList } from "@/components/page-bits";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { guideTitle } from "@/lib/guides";
@@ -82,7 +83,7 @@ function Article({ guide }: { guide: Guide }) {
           </button>
         </div>
         <p className="mt-5 text-xs font-bold text-primary">{guide.category}</p>
-        <h1 className="mt-2 text-balance text-3xl font-bold leading-[1.12] tracking-tight lg:text-5xl">
+        <h1 className="mt-2 text-balance text-[32px] font-extrabold leading-[1.02] tracking-[-0.05em] lg:text-[56px]">
           {guide.title}
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">{guide.dek}</p>
@@ -106,13 +107,9 @@ function Article({ guide }: { guide: Guide }) {
       />
 
       <div className="mx-auto max-w-[700px] px-4 sm:px-0">
-        <div className="mt-7 rounded-2xl bg-muted p-5">
-          <p className="font-semibold">In short</p>
-          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-base">
-            {guide.inShort.map((point) => (
-              <li key={point}>{point}</li>
-            ))}
-          </ul>
+        <div className="mt-7 rounded-2xl bg-primary/10 p-5 md:p-7">
+          <p className="text-lg font-extrabold tracking-[-0.03em]">In short</p>
+          <TickList className="mt-4" items={guide.inShort} />
         </div>
 
         <div className="mt-2 text-lg leading-[1.7] text-foreground/90">
@@ -123,25 +120,23 @@ function Article({ guide }: { guide: Guide }) {
 
         <WasThisHelpful slug={guide.slug} />
 
-        <div className="mt-7 flex items-center gap-4 rounded-2xl bg-muted p-4">
+        <div className="mt-7 flex flex-wrap items-center gap-4 rounded-2xl bg-muted p-5 md:p-6">
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">Every landlord on Instayhomes is checked</p>
+            <p className="text-lg font-extrabold tracking-[-0.03em]">Every landlord on Instayhomes is verified</p>
             <p className="text-sm text-muted-foreground">
               Browse rooms near your university for free.
             </p>
           </div>
           <Link
             to="/search"
-            className="shrink-0 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]"
+            className="shrink-0 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]"
           >
             Find a room
           </Link>
         </div>
 
         <section className="mt-10">
-          <h2 className="text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">
-            Keep reading
-          </h2>
+          <h2 className="text-[22px] font-extrabold tracking-[-0.04em] lg:text-[28px]">Keep reading</h2>
           {relatedGuides(guide).map((g) => (
             <GuideRow key={g.slug} guide={g} />
           ))}
@@ -157,7 +152,7 @@ function Block({ block }: { block: GuideBlock }) {
       return <p className="mt-4">{block.text}</p>;
     case "h2":
       return (
-        <h2 className="mt-9 text-[22px] font-bold leading-snug tracking-tight text-foreground">
+        <h2 className="mt-10 text-[24px] font-extrabold leading-tight tracking-[-0.035em] text-foreground lg:text-[28px]">
           {block.text}
         </h2>
       );
@@ -176,7 +171,7 @@ function Block({ block }: { block: GuideBlock }) {
         <ul className="mt-4 space-y-3">
           {block.items.map((item) => (
             <li key={item} className="flex gap-3">
-              <span className="mt-1.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[#128C4A]/10 text-[#128C4A]">
+              <span className="mt-1.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                 <Check className="size-3.5" strokeWidth={3} />
               </span>
               {item}
@@ -186,7 +181,7 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "quote":
       return (
-        <p className="mt-7 border-l-[3px] border-primary pl-5 text-xl font-semibold leading-snug tracking-tight text-foreground">
+        <p className="mt-8 text-[24px] font-extrabold leading-[1.15] tracking-[-0.04em] text-primary lg:text-[28px]">
           {block.text}
         </p>
       );
@@ -232,14 +227,14 @@ function WasThisHelpful({ slug }: { slug: string }) {
             <button
               type="button"
               onClick={() => choose("yes")}
-              className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold hover:border-foreground"
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold hover:border-foreground"
             >
               <ThumbsUp className="size-4" /> Yes
             </button>
             <button
               type="button"
               onClick={() => choose("no")}
-              className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold hover:border-foreground"
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold hover:border-foreground"
             >
               <ThumbsDown className="size-4" /> No
             </button>
@@ -263,7 +258,7 @@ function GuideComingSoon({ slug }: { slug: string }) {
       <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         Student guide
       </p>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+      <h1 className="mt-2 text-[32px] font-extrabold leading-[1.02] tracking-[-0.05em] sm:text-5xl">{title}</h1>
       <p className="mx-auto mt-3 max-w-md text-base text-muted-foreground">
         We're writing this guide now. In the meantime, you can keep looking for a place.
       </p>
@@ -271,7 +266,7 @@ function GuideComingSoon({ slug }: { slug: string }) {
         <button
           type="button"
           onClick={() => router.history.back()}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97]"
         >
           <ArrowLeft className="size-4" /> Back to your search
         </button>

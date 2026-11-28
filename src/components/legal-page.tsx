@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { useEffect, useState } from "react";
+import { TickList } from "@/components/page-bits";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { legalIsDraft, legalUpdated, type LegalDoc } from "@/lib/legal";
@@ -38,7 +39,7 @@ export function LegalPage({ doc, current }: { doc: LegalDoc; current: "terms" | 
           </nav>
 
           <div className="min-w-0">
-            <h1 className="text-3xl font-bold tracking-tight lg:text-5xl">Legal</h1>
+            <h1 className="text-[34px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] lg:text-[64px]">Legal</h1>
             <div className="mt-5 flex gap-6 border-b" role="tablist">
               {(["terms", "privacy"] as const).map((tab) => (
                 <Link
@@ -65,13 +66,9 @@ export function LegalPage({ doc, current }: { doc: LegalDoc; current: "terms" | 
               </p>
             )}
 
-            <section id={SHORT_ID} className="mt-6 scroll-mt-24 rounded-2xl bg-muted p-5">
-              <h2 className="font-semibold">The short version</h2>
-              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-base">
-                {doc.shortVersion.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
+            <section id={SHORT_ID} className="mt-6 scroll-mt-24 rounded-2xl bg-primary/10 p-5 md:p-7">
+              <h2 className="text-lg font-extrabold tracking-[-0.03em] md:text-xl">The short version</h2>
+              <TickList className="mt-4" items={doc.shortVersion} />
             </section>
 
             {/* Phones: the section list sits above the text instead of beside it. */}
@@ -95,7 +92,7 @@ export function LegalPage({ doc, current }: { doc: LegalDoc; current: "terms" | 
             <div className="text-base leading-relaxed text-foreground/85">
               {doc.sections.map((s, i) => (
                 <section key={s.id} id={s.id} className="scroll-mt-24">
-                  <h2 className="mt-10 text-xl font-bold tracking-tight text-foreground">
+                  <h2 className="mt-10 text-xl font-extrabold tracking-[-0.03em] text-foreground md:text-2xl">
                     {i + 1}. {s.title}
                   </h2>
                   {s.paragraphs?.map((p) => (

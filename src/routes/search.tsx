@@ -249,7 +249,7 @@ function SearchPage() {
       </section>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-12 sm:py-8">
-        <h1 className="text-2xl font-bold tracking-tight">{university ? `Homes near ${university.name}` : `Accommodation in ${city}`}</h1>
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.045em]">{university ? `Homes near ${university.name}` : `Accommodation in ${city}`}</h1>
         <div className="mt-1 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             {visibleListings.length} furnished {visibleListings.length === 1 ? "home" : "homes"} ·{" "}

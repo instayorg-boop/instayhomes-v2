@@ -71,7 +71,7 @@ function LoginPage() {
           INSTAYHOMES
         </Link>
         <div className="absolute inset-x-8 bottom-8 text-white">
-          <p className="font-display text-5xl leading-[0.95]">
+          <p className="text-[56px] font-extrabold uppercase leading-[0.92] tracking-[-0.06em]">
             YOUR NEXT HOME
             <br />
             IS ONE CHAT AWAY

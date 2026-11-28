@@ -385,7 +385,7 @@ function ListingPage() {
           <div className="min-w-0">
           <div className="min-w-0 pb-8">
             {/* Clean stack: what it is, where, when you can move in, what it's like, why trust it. */}
-            <h1 className="max-w-3xl text-balance text-center text-2xl font-bold leading-tight tracking-tight sm:text-3xl lg:text-left">{listing.title}</h1>
+            <h1 className="max-w-3xl text-balance text-center text-[26px] font-extrabold leading-[1.05] tracking-[-0.045em] sm:text-4xl lg:text-left">{listing.title}</h1>
             {/* Phones and tablets: centred, location and gender side by side, availability below.
                 Desktop: location, availability and gender on one left-aligned line. */}
             <div className="mt-2 flex flex-col items-center gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-5 lg:gap-y-2">
@@ -424,7 +424,7 @@ function ListingPage() {
 
             <section aria-labelledby="room-heading" className="pb-8">
               <div className="flex items-baseline justify-between gap-3">
-                <h2 id="room-heading" className="text-xl font-bold">Rooms</h2>
+                <h2 id="room-heading" className="text-xl font-extrabold tracking-[-0.035em]">Rooms</h2>
                 <p className="shrink-0 text-sm text-muted-foreground">
                   {listingRooms.length} {listingRooms.length === 1 ? "room type" : "room types"}
                 </p>
@@ -443,14 +443,14 @@ function ListingPage() {
             </section>
 
             <section className="border-b py-8">
-              <h2 className="text-xl font-bold">About this home</h2>
+              <h2 className="text-xl font-extrabold tracking-[-0.035em]">About this home</h2>
               <p className="mt-3 max-w-prose text-sm leading-7 text-muted-foreground">
                 Set on a quiet street in Kreuzberg, this bright apartment pairs original wooden floors with simple, modern furnishings. Prepare dinner in the shared kitchen, catch up in the living room, or retreat to your own private room. Shops, cafés and public transport are all within easy walking distance.
               </p>
             </section>
 
             <section className="border-b py-8">
-              <h2 className="text-xl font-bold">What this place offers</h2>
+              <h2 className="text-xl font-extrabold tracking-[-0.035em]">What this place offers</h2>
               <ul className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {amenities.map(({ icon: Icon, label }) => (
                   <li key={label} className="flex items-center gap-3 text-sm"><Icon className="size-5 shrink-0 text-muted-foreground" /> {label}</li>
@@ -459,7 +459,7 @@ function ListingPage() {
             </section>
 
             <section aria-labelledby="universities-heading" className="border-b py-8">
-              <h2 id="universities-heading" className="text-xl font-bold">Nearby universities</h2>
+              <h2 id="universities-heading" className="text-xl font-extrabold tracking-[-0.035em]">Nearby universities</h2>
               <ul className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {universities.map((university) => (
                   <li key={university.name} className="flex items-center justify-between gap-4 text-sm">
@@ -471,7 +471,7 @@ function ListingPage() {
             </section>
 
             <section className="py-8">
-              <h2 className="text-xl font-bold">House rules</h2>
+              <h2 className="text-xl font-extrabold tracking-[-0.035em]">House rules</h2>
               <ul className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {houseRules.map(({ icon: Icon, label }) => (
                   <li key={label} className="flex items-center gap-3 text-sm"><Icon className="size-5 shrink-0 text-muted-foreground" /> {label}</li>
@@ -738,7 +738,7 @@ function PhotoGalleryDialog({
           {sections.map((section) => (
             <section key={section.id} aria-labelledby={`gallery-${section.id}`} className="mb-10 last:mb-0">
               <div className="mb-4 flex items-end justify-between gap-4">
-                <h2 id={`gallery-${section.id}`} className="text-lg font-bold">{section.title}</h2>
+                <h2 id={`gallery-${section.id}`} className="text-lg font-extrabold tracking-[-0.03em]">{section.title}</h2>
                 <p className="shrink-0 text-xs text-muted-foreground">{section.photos.length} photos</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -799,7 +799,7 @@ function LandlordRow({ hasPlus, onMessage }: { hasPlus: boolean; onMessage: () =
             </span>
           </span>
           <div className="min-w-0">
-            <h2 id="landlord-heading" className="text-lg font-bold">Listed by {landlord.firstName}</h2>
+            <h2 id="landlord-heading" className="text-lg font-extrabold tracking-[-0.03em]">Listed by {landlord.firstName}</h2>
             <p className="text-sm text-muted-foreground">
               Verified landlord · {years} {years === 1 ? "year" : "years"} on Instayhomes
             </p>

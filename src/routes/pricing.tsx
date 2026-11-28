@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Plus } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { Check } from "lucide-react";
 import bandPhoto from "@/assets/protection-student.webp";
 import ctaPhoto from "@/assets/hero-house.webp";
+import { FaqList, FindRoomButton, PhotoCta, sectionTitle } from "@/components/page-bits";
 import { AirtelLogo, MtnLogo } from "@/components/payment-logos";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -22,9 +21,6 @@ export const Route = createFileRoute("/pricing")({
   }),
   component: PricingPage,
 });
-
-const sectionTitle =
-  "text-[26px] font-extrabold leading-tight tracking-[-0.045em] md:text-[44px] md:leading-none";
 
 const free = [
   "Searching student accommodation near campus",
@@ -62,8 +58,6 @@ const questions = [
 ] as const;
 
 function PricingPage() {
-  const [open, setOpen] = useState<number | null>(0);
-
   return (
     <div className="min-h-svh bg-background text-foreground">
       <SiteHeader />
@@ -189,66 +183,25 @@ function PricingPage() {
 
         <section className="mx-auto mt-14 max-w-3xl px-5 sm:px-12 md:mt-28">
           <h2 className={sectionTitle}>Questions about pricing</h2>
-          <div className="mt-6 border-t md:mt-10">
-            {questions.map(([q, a], i) => (
-              <div key={q} className="border-b">
-                <button
-                  type="button"
-                  onClick={() => setOpen(open === i ? null : i)}
-                  aria-expanded={open === i}
-                  className="flex w-full items-center justify-between gap-4 py-4 text-left text-base font-semibold md:py-6 md:text-xl"
-                >
-                  {q}
-                  <Plus
-                    className={`size-5 shrink-0 transition-transform duration-200 ease-out ${open === i ? "rotate-45" : ""}`}
-                  />
-                </button>
-                <AnimatePresence initial={false}>
-                  {open === i && (
-                    <motion.div
-                      key="answer"
-                      className="overflow-hidden"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                    >
-                      <p className="max-w-2xl pb-5 text-[15px] text-muted-foreground md:pb-6 md:text-[17px]">
-                        {a}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
+          <FaqList
+            className="mt-6 md:mt-10"
+            items={questions.map(([q, a]) => ({ id: q, q, a }))}
+          />
         </section>
 
-        <section className="relative mt-14 flex min-h-[420px] items-center justify-center overflow-hidden text-center text-white md:mt-28 md:min-h-[620px]">
-          <img
-            src={ctaPhoto}
-            alt="A student boarding house in Zambia"
-            loading="lazy"
-            className="absolute inset-0 size-full object-cover"
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(0,0,0,0.6)_0%,rgba(0,0,0,0.45)_70%,rgba(0,0,0,0.3)_100%)]"
-          />
-          <div className="relative px-5">
-            <p className="text-[40px] font-extrabold uppercase leading-[0.95] tracking-[-0.06em] md:text-[88px]">
+        <PhotoCta
+          photo={ctaPhoto}
+          alt="A student boarding house in Zambia"
+          title={
+            <>
               Ready when
               <br />
               you are.
-            </p>
-            <Link
-              to="/search"
-              className="mt-7 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground transition-[scale,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] md:mt-10 md:px-9 md:py-4 md:text-lg"
-            >
-              Find a room <ArrowRight className="size-[18px]" />
-            </Link>
-          </div>
-        </section>
+            </>
+          }
+        >
+          <FindRoomButton />
+        </PhotoCta>
       </main>
       <SiteFooter />
     </div>

@@ -82,7 +82,7 @@ export function TenantProtectionSheet({ open, onOpenChange }: { open: boolean; o
           </button>
           <div className="overflow-y-auto overscroll-contain">
             <div className="px-5 pt-5">
-              <DrawerTitle className="font-display text-5xl font-normal leading-none">
+              <DrawerTitle className="text-[44px] font-extrabold uppercase leading-[0.92] tracking-[-0.06em]">
                 TENANT
                 <br />
                 PROTECTION
@@ -109,7 +109,7 @@ export function TenantProtectionSheet({ open, onOpenChange }: { open: boolean; o
       <DialogContent className="max-h-[90dvh] max-w-3xl gap-0 overflow-hidden border-primary bg-primary p-0 text-primary-foreground sm:rounded-xl [&>button:last-child]:z-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-black/30 [&>button:last-child]:p-1.5 [&>button:last-child]:text-white [&>button:last-child]:opacity-100 [&>button:last-child]:backdrop-blur-sm">
         <div className="grid md:grid-cols-2">
           <div className="p-8 md:py-10">
-            <DialogTitle className="font-display text-6xl font-normal leading-none">
+            <DialogTitle className="text-[60px] font-extrabold uppercase leading-[0.92] tracking-[-0.06em]">
               TENANT
               <br />
               PROTECTION
